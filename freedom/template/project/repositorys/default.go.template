@@ -1,0 +1,20 @@
+package repositorys
+
+import (
+	"github.com/8treenet/freedom"
+)
+
+func NewDefaultRepository() *DefaultRepository {
+	return new(DefaultRepository)
+}
+
+// DefaultRepository .
+type DefaultRepository struct {
+	freedom.RepositoryDB
+}
+
+func (repo *DefaultRepository) Get() string {
+	//repo.DB().Find()
+	repo.Runtime.Logger().Infof("我是Repository")
+	return repo.Runtime.Store().ToInterface("Trace-ID").(string) + " " + repo.Runtime.Context().RemoteAddr()
+}
