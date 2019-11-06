@@ -99,3 +99,25 @@ func TestTotalPage(t *testing.T) {
 	fmt.Println(result)
 	return
 }
+
+type parsePool struct {
+}
+
+func TestParsePoolFunc(t *testing.T) {
+	f := func() *parsePool {
+		return new(parsePool)
+	}
+	t.Log(parsePoolFunc(f))
+
+	f2 := func() {}
+	t.Log(parsePoolFunc(f2))
+
+	f3 := 20
+	t.Log(parsePoolFunc(f3))
+
+	values := reflect.ValueOf(f).Call([]reflect.Value{})
+	if len(values) == 0 {
+		panic("BindService func return to empty")
+	}
+	t.Log(values[0])
+}

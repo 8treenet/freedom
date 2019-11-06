@@ -3,12 +3,16 @@ package cmd
 import (
 	"fmt"
 	"go/build"
-	"html/template"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
+	"strconv"
 	"strings"
+	"text/template"
+
+	"github.com/8treenet/freedom/freedom/template/project"
 
 	"github.com/spf13/cobra"
 )
@@ -28,56 +32,80 @@ var (
 				return fmt.Errorf("Project path must be within '%s'", gopath+"/src/")
 			}
 
-			tp, mod, err := getTemplatePath(gopath)
-			if err != nil {
-				return
-			}
-			execcmd := exec.Command("cp", "-r", tp, sysPath)
-			if _, err = execcmd.Output(); err != nil {
-				return
-			}
-			if mod {
-				//chmod -R 755 sysPath
-				chmod := exec.Command("chmod", "-R", "755", sysPath)
-				chmod.Output()
-			}
-
 			projectPath := strings.Replace(sysPath, build.Default.GOPATH+"/src/", "", 1)
 			projectName := args[0]
-			// fmt.Println("New project", sysPath, projectPath, projectName)
 			pdata := map[string]interface{}{
 				"PackagePath": projectPath,
 				"PackageName": projectName,
 			}
 
-			fileList, err := getAllFile(sysPath, []string{})
-			for index := 0; index < len(fileList); index++ {
-				if !strings.Contains(fileList[index], ".template") {
-					continue
-				}
-				text, err := ioutil.ReadFile(fileList[index])
-				if err != nil {
-					return err
-				}
-
+			mkdirAll(sysPath)
+			m := project.FileContent()
+			for filepath, content := range m {
 				var pf *os.File
-				newFile := strings.Split(fileList[index], ".template")
-				pf, err = os.Create(newFile[0])
+				pf, err = os.Create(sysPath + filepath)
 				if err != nil {
 					return err
 				}
-
-				tmpl, err := template.New(projectName).Parse(string(text))
-				if err != nil {
-					return err
-				}
-
+				tmpl, err := template.New(projectName).Parse(content)
 				if err = tmpl.Execute(pf, pdata); err != nil {
 					return err
 				}
-				os.Remove(fileList[index])
 			}
+			exec.Command("gofmt", "-w", sysPath).Output()
+			gomod(sysPath)
 			return nil
+			/*
+				tp, mod, err := getTemplatePath(gopath)
+				if err != nil {
+					return
+				}
+				execcmd := exec.Command("cp", "-r", tp, sysPath)
+				if _, err = execcmd.Output(); err != nil {
+					return
+				}
+				if mod {
+					//chmod -R 755 sysPath
+					chmod := exec.Command("chmod", "-R", "755", sysPath)
+					chmod.Output()
+				}
+
+				projectPath := strings.Replace(sysPath, build.Default.GOPATH+"/src/", "", 1)
+				projectName := args[0]
+				// fmt.Println("New project", sysPath, projectPath, projectName)
+				pdata := map[string]interface{}{
+					"PackagePath": projectPath,
+					"PackageName": projectName,
+				}
+
+				fileList, err := getAllFile(sysPath, []string{})
+				for index := 0; index < len(fileList); index++ {
+					if !strings.Contains(fileList[index], ".template") {
+						continue
+					}
+					text, err := ioutil.ReadFile(fileList[index])
+					if err != nil {
+						return err
+					}
+
+					var pf *os.File
+					newFile := strings.Split(fileList[index], ".template")
+					pf, err = os.Create(newFile[0])
+					if err != nil {
+						return err
+					}
+
+					tmpl, err := template.New(projectName).Parse(string(text))
+					if err != nil {
+						return err
+					}
+
+					if err = tmpl.Execute(pf, pdata); err != nil {
+						return err
+					}
+					os.Remove(fileList[index])
+				}
+			*/
 		},
 	}
 )
@@ -124,4 +152,42 @@ func getTemplatePath(gopath string) (string, bool, error) {
 		}
 	}
 	return "", false, fmt.Errorf("unknown error")
+}
+
+func mkdirAll(projectPath string) {
+	os.MkdirAll(projectPath+"/cmd", os.ModePerm)
+	os.MkdirAll(projectPath+"/cmd/conf", os.ModePerm)
+	os.MkdirAll(projectPath+"/controllers", os.ModePerm)
+	os.MkdirAll(projectPath+"/models", os.ModePerm)
+	os.MkdirAll(projectPath+"/models/config", os.ModePerm)
+	os.MkdirAll(projectPath+"/repositorys", os.ModePerm)
+	os.MkdirAll(projectPath+"/services", os.ModePerm)
+}
+
+func gomod(sysPath string) {
+	version := runtime.Version()
+	version1 := version[2:]
+	list := strings.Split(version1, ".")
+	if len(list) < 2 {
+		return
+	}
+	v1, err := strconv.Atoi(list[0])
+	if err != nil {
+		return
+	}
+
+	v2, err := strconv.Atoi(list[1])
+	if err != nil {
+		return
+	}
+
+	on := os.Getenv("GO111MODULE")
+	if v2 > 12 || v1 > 1 || on == "on" {
+		var pf *os.File
+		pf, err = os.Create(sysPath + "/go.mod")
+		if err != nil {
+			pf.Close()
+		}
+	}
+	return
 }

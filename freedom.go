@@ -28,9 +28,6 @@ type (
 	// RepositoryDB .
 	RepositoryDB = general.RepositoryDB
 
-	// Service .
-	Service = general.Service
-
 	// GORMRepository .
 	GORMRepository = general.GORMRepository
 

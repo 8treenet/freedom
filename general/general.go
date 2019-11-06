@@ -16,7 +16,8 @@ type Initiator interface {
 	CreateParty(relativePath string, handlers ...context.Handler) iris.Party
 	BindController(relativePath string, controller interface{}, service ...interface{})
 	BindControllerByParty(party iris.Party, controller interface{}, service ...interface{})
-	BindService(obj interface{}, f func() interface{})
+	BindService(f interface{})
+	BindRepository(f interface{})
 	GetService(ctx iris.Context, service interface{})
 	AsyncCachePreheat(f func(repoDB *RepositoryDB, repoCache *RepositoryCache))
 	CachePreheat(f func(repoDB *RepositoryDB, repoCache *RepositoryCache))
@@ -29,7 +30,7 @@ type BeginRequest interface {
 
 // Runtime .
 type Runtime interface {
-	Context() iris.Context
+	Ctx() iris.Context
 	Logger() *golog.Logger
 	Store() *Store
 }

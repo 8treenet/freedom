@@ -1,6 +1,8 @@
 package general
 
 import (
+	"fmt"
+
 	"github.com/go-redis/redis"
 	"github.com/jinzhu/gorm"
 
@@ -19,15 +21,7 @@ func NewApplication() *Application {
 		globalApp = new(Application)
 		globalApp.IrisApp = iris.New()
 		globalApp.pool = newServicePool()
-		{
-			globalApp.IrisApp.Use(newRuntimeHandle())
-			globalApp.IrisApp.Use(globalApp.pool.freeHandle())
-
-			loggerConf := logger.DefaultConfig()
-			loggerConf.IP = false
-			loggerConf.MessageContextKeys = []string{"logger_trace", "logger_message"}
-			globalApp.IrisApp.Use(logger.New(loggerConf))
-		}
+		globalApp.rpool = newRepoPool()
 		boots = make([]func(Initiator), 0)
 	})
 	return globalApp
@@ -37,6 +31,7 @@ func NewApplication() *Application {
 type Application struct {
 	IrisApp  *iris.Application
 	pool     *ServicePool
+	rpool    *RepositoryPool
 	Database struct {
 		db      *gorm.DB
 		cache   gcache.Plugin
@@ -81,8 +76,21 @@ func (app *Application) GetService(ctx iris.Context, service interface{}) {
 }
 
 // BindService .
-func (app *Application) BindService(obj interface{}, f func() interface{}) {
-	app.pool.bind(obj, f)
+func (app *Application) BindService(f interface{}) {
+	outType, err := parsePoolFunc(f)
+	if err != nil {
+		panic(fmt.Sprintf("%v : %s", f, fmt.Sprint(err)))
+	}
+	app.pool.bind(outType, f)
+}
+
+// BindRepository .
+func (app *Application) BindRepository(f interface{}) {
+	outType, err := parsePoolFunc(f)
+	if err != nil {
+		panic(fmt.Sprintf("%v : %s", f, fmt.Sprint(err)))
+	}
+	app.rpool.bind(outType, f)
 }
 
 // AsyncCachePreheat .

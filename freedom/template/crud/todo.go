@@ -1,4 +1,4 @@
-package models
+package crud
 
 import (
 	"github.com/8treenet/freedom"

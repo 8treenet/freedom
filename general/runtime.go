@@ -40,8 +40,8 @@ type appRuntime struct {
 	traceID  string
 }
 
-// Context .
-func (rt *appRuntime) Context() iris.Context {
+// Ctx .
+func (rt *appRuntime) Ctx() iris.Context {
 	return rt.ctx
 }
 

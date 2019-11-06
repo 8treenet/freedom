@@ -506,3 +506,21 @@ func UUID() string {
 	ts, _ := snowFlakeWorker.NextId()
 	return strings.ToUpper(hostId + strconv.FormatInt(ts, 36))
 }
+
+func parsePoolFunc(f interface{}) (outType reflect.Type, e error) {
+	ftype := reflect.TypeOf(f)
+	if ftype.Kind() != reflect.Func {
+		e = errors.New("It's not a func")
+		return
+	}
+	if ftype.NumOut() != 1 {
+		e = errors.New("Return must be an object pointer")
+		return
+	}
+	outType = ftype.Out(0)
+	if outType.Kind() != reflect.Ptr {
+		e = errors.New("Return must be an object pointer")
+		return
+	}
+	return
+}

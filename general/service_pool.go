@@ -14,7 +14,7 @@ const (
 
 func newServicePool() *ServicePool {
 	result := new(ServicePool)
-	result.creater = make(map[reflect.Type]func() interface{})
+	result.creater = make(map[reflect.Type]interface{})
 	result.instanceList = make(map[reflect.Type]*list.List)
 	result.instanceListMax = 200
 	return result
@@ -22,7 +22,7 @@ func newServicePool() *ServicePool {
 
 // ServicePool .
 type ServicePool struct {
-	creater           map[reflect.Type]func() interface{}
+	creater           map[reflect.Type]interface{}
 	instanceList      map[reflect.Type]*list.List
 	instanceListMutex sync.Mutex
 	instanceListMax   int
@@ -74,12 +74,42 @@ func (pool *ServicePool) free(obj interface{}) {
 	l.PushFront(obj)
 }
 
-func (pool *ServicePool) bind(obj interface{}, f func() interface{}) {
-	pool.creater[reflect.TypeOf(obj)] = f
+func (pool *ServicePool) bind(t reflect.Type, f interface{}) {
+	pool.creater[t] = f
 }
 
 func (pool *ServicePool) malloc(t reflect.Type) interface{} {
-	return pool.creater[t]()
+	values := reflect.ValueOf(pool.creater[t]).Call([]reflect.Value{})
+	if len(values) == 0 {
+		panic("BindService func return to empty")
+	}
+
+	newSercice := values[0].Interface()
+	allFields(newSercice, func(value reflect.Value) {
+		if value.Kind() == reflect.Ptr {
+			ok, newfield := globalApp.rpool.get(value.Type())
+			if !ok {
+				return
+			}
+			value.Set(newfield)
+		}
+
+		if value.Kind() == reflect.Interface {
+			typeList := globalApp.rpool.allType()
+			for index := 0; index < len(typeList); index++ {
+				if !typeList[index].Implements(value.Type()) {
+					continue
+				}
+				ok, newfield := globalApp.rpool.get(typeList[index])
+				if !ok {
+					continue
+				}
+				value.Set(newfield)
+				return
+			}
+		}
+	})
+	return newSercice
 }
 
 func (pool *ServicePool) take(t reflect.Type) interface{} {
@@ -99,7 +129,13 @@ func (pool *ServicePool) take(t reflect.Type) interface{} {
 }
 
 func (pool *ServicePool) objBeginRequest(rt *appRuntime, obj interface{}) {
+	rtValue := reflect.ValueOf(rt)
 	allFields(obj, func(value reflect.Value) {
+		kind := value.Kind()
+		if kind == reflect.Interface && rtValue.Type().AssignableTo(value.Type()) && value.CanSet() {
+			value.Set(rtValue)
+			return
+		}
 		if !value.CanInterface() {
 			return
 		}
@@ -109,10 +145,10 @@ func (pool *ServicePool) objBeginRequest(rt *appRuntime, obj interface{}) {
 		}
 	})
 
-	br, ok := obj.(BeginRequest)
-	if ok {
-		br.BeginRequest(rt)
-	}
+	// br, ok := obj.(BeginRequest)
+	// if ok {
+	// 	br.BeginRequest(rt)
+	// }
 
 	/*
 		structFields(obj, func(sf reflect.StructField, val reflect.Value) {
