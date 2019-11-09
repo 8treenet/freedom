@@ -3,7 +3,8 @@ module github.com/8treenet/freedom
 go 1.12
 
 require (
-	github.com/8treenet/gcache v1.1.1
+	github.com/8treenet/gcache v1.1.2
+	github.com/BurntSushi/toml v0.3.1
 	github.com/Joker/jade v1.0.1-0.20190614124447-d475f43051e7 // indirect
 	github.com/Shopify/goreferrer v0.0.0-20181106222321-ec9c9a553398 // indirect
 	github.com/ajg/form v1.5.1 // indirect
@@ -34,6 +35,7 @@ require (
 	github.com/ryanuber/columnize v2.1.0+incompatible // indirect
 	github.com/sergi/go-diff v1.0.0 // indirect
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
+	github.com/sirupsen/logrus v1.2.0
 	github.com/smartystreets/goconvey v0.0.0-20190731233626-505e41936337 // indirect
 	github.com/spf13/cobra v0.0.5
 	github.com/valyala/fasthttp v1.6.0

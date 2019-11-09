@@ -21,7 +21,7 @@ func repositoryTemplate() string {
 	
 	// DefaultRepository .
 	type DefaultRepository struct {
-		freedom.RepositoryDB
+		freedom.Repository
 	}
 	
 	// GetIP .

@@ -91,6 +91,9 @@ func (pool *ServicePool) malloc(t reflect.Type) interface{} {
 			if !ok {
 				return
 			}
+			if !value.CanSet() {
+				globalApp.IrisApp.Logger().Fatal("The member variable must be publicly visible, Its type is " + value.Type().String())
+			}
 			value.Set(newfield)
 		}
 
@@ -103,6 +106,9 @@ func (pool *ServicePool) malloc(t reflect.Type) interface{} {
 				ok, newfield := globalApp.rpool.get(typeList[index])
 				if !ok {
 					continue
+				}
+				if !value.CanSet() {
+					globalApp.IrisApp.Logger().Fatal("The member variable must be publicly visible, Its type is " + value.Type().String())
 				}
 				value.Set(newfield)
 				return
@@ -145,10 +151,10 @@ func (pool *ServicePool) objBeginRequest(rt *appRuntime, obj interface{}) {
 		}
 	})
 
-	// br, ok := obj.(BeginRequest)
-	// if ok {
-	// 	br.BeginRequest(rt)
-	// }
+	br, ok := obj.(BeginRequest)
+	if ok {
+		br.BeginRequest(rt)
+	}
 
 	/*
 		structFields(obj, func(sf reflect.StructField, val reflect.Value) {

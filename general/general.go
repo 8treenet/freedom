@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/kataras/golog"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/context"
 	"golang.org/x/net/http2"
@@ -19,8 +18,8 @@ type Initiator interface {
 	BindService(f interface{})
 	BindRepository(f interface{})
 	GetService(ctx iris.Context, service interface{})
-	AsyncCachePreheat(f func(repoDB *RepositoryDB, repoCache *RepositoryCache))
-	CachePreheat(f func(repoDB *RepositoryDB, repoCache *RepositoryCache))
+	AsyncCachePreheat(f func(repo *Repository))
+	CachePreheat(f func(repo *Repository))
 }
 
 // BeginRequest .
@@ -31,7 +30,7 @@ type BeginRequest interface {
 // Runtime .
 type Runtime interface {
 	Ctx() iris.Context
-	Logger() *golog.Logger
+	Logger() Logger
 	Store() *Store
 }
 

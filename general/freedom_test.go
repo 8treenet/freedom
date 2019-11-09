@@ -3,6 +3,7 @@ package general
 import (
 	"fmt"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -120,4 +121,8 @@ func TestParsePoolFunc(t *testing.T) {
 		panic("BindService func return to empty")
 	}
 	t.Log(values[0])
+}
+
+func TestParsePoolFunc2(t *testing.T) {
+	t.Log(strings.Split("asdasdasdsad", "?"))
 }

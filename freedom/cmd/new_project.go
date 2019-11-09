@@ -7,8 +7,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
-	"strconv"
 	"strings"
 	"text/template"
 
@@ -53,7 +51,6 @@ var (
 				}
 			}
 			exec.Command("gofmt", "-w", sysPath).Output()
-			gomod(sysPath)
 			return nil
 			/*
 				tp, mod, err := getTemplatePath(gopath)
@@ -162,32 +159,4 @@ func mkdirAll(projectPath string) {
 	os.MkdirAll(projectPath+"/models/config", os.ModePerm)
 	os.MkdirAll(projectPath+"/repositorys", os.ModePerm)
 	os.MkdirAll(projectPath+"/services", os.ModePerm)
-}
-
-func gomod(sysPath string) {
-	version := runtime.Version()
-	version1 := version[2:]
-	list := strings.Split(version1, ".")
-	if len(list) < 2 {
-		return
-	}
-	v1, err := strconv.Atoi(list[0])
-	if err != nil {
-		return
-	}
-
-	v2, err := strconv.Atoi(list[1])
-	if err != nil {
-		return
-	}
-
-	on := os.Getenv("GO111MODULE")
-	if v2 > 12 || v1 > 1 || on == "on" {
-		var pf *os.File
-		pf, err = os.Create(sysPath + "/go.mod")
-		if err != nil {
-			pf.Close()
-		}
-	}
-	return
 }

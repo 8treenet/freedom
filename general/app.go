@@ -23,6 +23,7 @@ func NewApplication() *Application {
 		globalApp.pool = newServicePool()
 		globalApp.rpool = newRepoPool()
 		boots = make([]func(Initiator), 0)
+		globalApp.IrisApp.Logger().SetTimeFormat("2006-01-02 15:04:05.000")
 	})
 	return globalApp
 }
@@ -94,17 +95,15 @@ func (app *Application) BindRepository(f interface{}) {
 }
 
 // AsyncCachePreheat .
-func (app *Application) AsyncCachePreheat(f func(repoDB *RepositoryDB, repoCache *RepositoryCache)) {
-	rb := new(RepositoryDB)
-	rc := new(RepositoryCache)
-	go f(rb, rc)
+func (app *Application) AsyncCachePreheat(f func(repo *Repository)) {
+	rb := new(Repository)
+	go f(rb)
 }
 
 // CachePreheat .
-func (app *Application) CachePreheat(f func(repoDB *RepositoryDB, repoCache *RepositoryCache)) {
-	rb := new(RepositoryDB)
-	rc := new(RepositoryCache)
-	f(rb, rc)
+func (app *Application) CachePreheat(f func(repo *Repository)) {
+	rb := new(Repository)
+	f(rb)
 }
 
 func (app *Application) generalDep() (result []interface{}) {

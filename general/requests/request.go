@@ -13,6 +13,8 @@ type Request interface {
 	ToBytes(httpRespones ...*Response) ([]byte, error)
 	ToXML(v interface{}, httpRespones ...*Response) (e error)
 	SetHeader(key, value string) Request
+	SetParam(key string, value interface{}) Request
+	URI() string
 }
 
 // Response .

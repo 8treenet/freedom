@@ -96,7 +96,7 @@ func mainTemplate() string {
 		install()
 	
 		//http2 h2c 服务
-		//h2caddrRunner := freedom.CreateH2CRunner(config.Get().AppConf.Other["listen_addr"].(string))
+		//h2caddrRunner := freedom.CreateH2CRunner(config.Get().App.Other["listen_addr"].(string))
 		addrRunner := iris.Addr(config.Get().App.Other["listen_addr"].(string))
 		freedom.Run(addrRunner, config.Get().App)
 	}
@@ -173,7 +173,7 @@ func mainTemplate() string {
 	
 	func installLogrus() {
 		logrus.SetLevel(logrus.InfoLevel)
-		logrus.SetFormatter(&logrus.JSONFormatter{})
+		logrus.SetFormatter(&logrus.JSONFormatter{TimestampFormat: "2006-01-02 15:04:05.000"})
 		freedom.Logger().Install(logrus.StandardLogger())
 	}
 	`

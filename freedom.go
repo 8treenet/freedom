@@ -1,6 +1,9 @@
 package freedom
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/8treenet/freedom/general"
 	"github.com/8treenet/gcache"
 	"github.com/go-redis/redis"
@@ -22,11 +25,9 @@ type (
 
 	// Initiator .
 	Initiator = general.Initiator
-	// RepositoryCache .
-	RepositoryCache = general.RepositoryCache
 
-	// RepositoryDB .
-	RepositoryDB = general.RepositoryDB
+	// Repository .
+	Repository = general.Repository
 
 	// GORMRepository .
 	GORMRepository = general.GORMRepository
@@ -50,6 +51,11 @@ func Booting(f func(Initiator)) {
 // CreateH2CRunner -
 func CreateH2CRunner(addr string) iris.Runner {
 	ser := general.CreateH2Server(app, addr)
+	if strings.Index(addr, ":") == 0 {
+		fmt.Printf("Now h2c listening on: http://0.0.0.0%s\n", addr)
+	} else {
+		fmt.Printf("Now h2c listening on: http://%s\n", addr)
+	}
 	return iris.Raw(ser.ListenAndServe)
 }
 

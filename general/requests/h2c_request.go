@@ -11,6 +11,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"golang.org/x/net/http2"
@@ -19,6 +20,10 @@ import (
 var (
 	h2cclient *http.Client
 )
+
+func init() {
+	Newh2cClient(10 * time.Second)
+}
 
 // Newh2cClient .
 func Newh2cClient(rwTimeout time.Duration) {
@@ -49,24 +54,22 @@ func timeoutDialer(cTimeout time.Duration) func(net, addr string) (c net.Conn, e
 
 func NewH2CRequest(rawurl string) Request {
 	result := new(H2CRequest)
-	u, err := url.Parse(rawurl)
-	if err != nil {
-		result.reqe = err
-		return result
-	}
 	req := &http.Request{
-		URL:    u,
 		Header: make(http.Header),
 	}
 	result.resq = req
+	result.params = make(map[string]interface{})
+	result.url = rawurl
 	return result
 }
 
 // H2CRequest .
 type H2CRequest struct {
-	resq *http.Request
-	resp *http.Response
-	reqe error
+	resq   *http.Request
+	resp   *http.Response
+	reqe   error
+	params map[string]interface{}
+	url    string
 }
 
 // Post .
@@ -168,16 +171,51 @@ func (hr *H2CRequest) ToXML(v interface{}, httpRespones ...*Response) (e error) 
 	return xml.Unmarshal(hr.body(), v)
 }
 
+// SetParam .
+func (hr *H2CRequest) SetParam(key string, value interface{}) Request {
+	hr.params[key] = value
+	return hr
+}
+
 // SetHeader .
 func (hr *H2CRequest) SetHeader(key, value string) Request {
 	hr.resq.Header.Set(key, value)
 	return hr
 }
 
+// URI .
+func (hr *H2CRequest) URI() string {
+	result := hr.url
+	if len(hr.params) > 0 {
+		uris := strings.Split(result, "?")
+		uri := ""
+		if len(uris) > 1 {
+			uri = uris[1]
+		}
+		index := 0
+		for key, value := range hr.params {
+			if index > 0 {
+				uri += "&"
+			}
+			uri += key + "=" + fmt.Sprint(value)
+			index++
+		}
+		result = uris[0] + "?" + uri
+	}
+	return result
+}
+
 func (hr *H2CRequest) do() (e error) {
 	if hr.reqe != nil {
 		return hr.reqe
 	}
+
+	u, e := url.Parse(hr.URI())
+	if e != nil {
+		return
+	}
+	hr.resq.URL = u
+
 	hr.resp, e = h2cclient.Do(hr.resq)
 	if e != nil {
 		return
