@@ -3,13 +3,14 @@
 ###### freedom-微服务框架。
 
 ## Overview
-- iris
+- 集成iris
+- 集成普罗米修斯
+- 集成gorm
+- 集成gcache
 - 链路跟踪
-- 普罗米修斯
-- gorm
-- gcache
 - http2 server
 - http2 client
+- 依赖注入
 - CRUD 代码生成
 
 ## 安装
@@ -21,3 +22,5 @@ $ go get github.com/8treenet/freedom/freedom
 ```sh
 $ freedom new-project [project-name]
 ```
+
+#### [Example](https://github.com/8treenet/freedom/blob/master/example)
