@@ -8,10 +8,12 @@ type Request interface {
 	Delete() Request
 	SetJSONBody(obj interface{}) Request
 	SetBody(byts []byte) Request
-	ToJSON(obj interface{}, httpRespones ...*Response) error
-	ToString(httpRespones ...*Response) (string, error)
-	ToBytes(httpRespones ...*Response) ([]byte, error)
-	ToXML(v interface{}, httpRespones ...*Response) (e error)
+	//设置总线数据,上下游header携带
+	SetBus() Request
+	ToJSON(obj interface{}) Response
+	ToString() (string, Response)
+	ToBytes() ([]byte, Response)
+	ToXML(v interface{}) Response
 	SetHeader(key, value string) Request
 	SetParam(key string, value interface{}) Request
 	URI() string
@@ -19,6 +21,7 @@ type Request interface {
 
 // Response .
 type Response struct {
+	Error         error
 	Header        map[string]string
 	ContentLength int64
 	ContentType   string

@@ -4,16 +4,10 @@ import (
 	"database/sql/driver"
 	"errors"
 	"fmt"
-	"hash/crc32"
-	"math/rand"
-	"os"
 	"reflect"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
-
-	"github.com/zheng-ji/goSnowFlake"
 )
 
 //InSlice 是否在数组内
@@ -482,29 +476,6 @@ func allFields(dest interface{}, call func(reflect.Value)) {
 		val := destVal.Field(index)
 		call(val)
 	}
-}
-
-var snowFlakeWorker *goSnowFlake.IdWorker
-var hostId string
-
-func init() {
-	hostName, err := os.Hostname()
-	if err != nil {
-		return
-	}
-	hostId = strconv.FormatInt(int64(crc32.ChecksumIEEE([]byte(hostName))), 36)
-	rand.Seed(time.Now().UnixNano())
-	machineID := int64(1 + rand.Intn(950))
-	snowFlakeWorker, _ = goSnowFlake.NewIdWorker(machineID)
-}
-
-// UUID .
-func UUID() string {
-	if snowFlakeWorker == nil {
-		return ""
-	}
-	ts, _ := snowFlakeWorker.NextId()
-	return strings.ToUpper(hostId + strconv.FormatInt(ts, 36))
 }
 
 func parsePoolFunc(f interface{}) (outType reflect.Type, e error) {

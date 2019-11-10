@@ -6,6 +6,7 @@ import (
 
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/context"
+	"github.com/kataras/iris/core/memstore"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 )
@@ -31,7 +32,8 @@ type BeginRequest interface {
 type Runtime interface {
 	Ctx() iris.Context
 	Logger() Logger
-	Store() *Store
+	Store() *memstore.Store
+	Prometheus() *Prometheus
 }
 
 var (

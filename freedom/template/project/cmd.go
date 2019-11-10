@@ -11,7 +11,6 @@ func appTomlConf() string {
 	return `[other]
 listen_addr = ":8000"
 service_name = "{{.PackageName}}"
-trace_key = "Trace-ID"
 repository_request_timeout = 5
 prometheus_listen_addr = ":9090"`
 }
@@ -89,24 +88,30 @@ func mainTemplate() string {
 		"github.com/jinzhu/gorm"
 		"github.com/kataras/iris"
 		"github.com/sirupsen/logrus"
+		"github.com/8treenet/freedom/middleware"
 		
 	)
 	
 	func main() {
-		install()
-	
-		//http2 h2c 服务
-		//h2caddrRunner := freedom.CreateH2CRunner(config.Get().App.Other["listen_addr"].(string))
+		/*
+			installDatabase() //安装数据库
+			installRedis() //安装redis
+			installLogrus() //安装第三方logger
+
+			http2 h2c 服务
+			h2caddrRunner := freedom.CreateH2CRunner(config.Get().App.Other["listen_addr"].(string))
+		*/
+
+		installMiddleware()
 		addrRunner := iris.Addr(config.Get().App.Other["listen_addr"].(string))
 		freedom.Run(addrRunner, config.Get().App)
 	}
-	
-	func install() {
-		//installLogrus()
-		//installDatabase()
-		//installRedis()
+
+	func installMiddleware() {
+		freedom.UseMiddleware(middleware.NewTrace("TRACE-ID"))
+		freedom.UseMiddleware(middleware.NewLogger("TRACE-ID"))
+		freedom.UseMiddleware(middleware.NewRuntimeLogger("TRACE-ID"))
 	}
-	
 	
 	func installDatabase() {
 		freedom.InstallGorm(func() (db *gorm.DB, cache gcache.Plugin) {

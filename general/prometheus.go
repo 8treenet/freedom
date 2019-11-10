@@ -1,4 +1,4 @@
-package middleware
+package general
 
 import (
 	"fmt"
@@ -35,10 +35,10 @@ type log interface {
 	Info(v ...interface{})
 }
 
-// NewPrometheus returns a new prometheus middleware.
+// newPrometheus returns a new prometheus middleware.
 //
 // If buckets are empty then `DefaultBuckets` are set.
-func NewPrometheus(name, listen string) *Prometheus {
+func newPrometheus(name, listen string) *Prometheus {
 	p := Prometheus{}
 	p.reqs = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
@@ -70,16 +70,33 @@ func NewPrometheus(name, listen string) *Prometheus {
 	return &p
 }
 
-func (p *Prometheus) ServeHTTP(ctx context.Context) {
-	start := time.Now()
-	ctx.Next()
-	r := ctx.Request()
-	statusCode := strconv.Itoa(ctx.GetStatusCode())
+// newPrometheusHandle .
+func newPrometheusHandle(p *Prometheus) func(context.Context) {
+	return func(ctx context.Context) {
+		start := time.Now()
+		ctx.Next()
+		r := ctx.Request()
+		statusCode := strconv.Itoa(ctx.GetStatusCode())
 
-	path := ctx.GetCurrentRoute().Path()
-	p.reqs.WithLabelValues(statusCode, r.Method, path).
-		Inc()
+		path := ctx.GetCurrentRoute().Path()
+		p.reqs.WithLabelValues(statusCode, r.Method, path).
+			Inc()
 
-	p.latency.WithLabelValues(statusCode, r.Method, path).
-		Observe(float64(time.Since(start).Nanoseconds()) / 1000000000)
+		p.latency.WithLabelValues(statusCode, r.Method, path).
+			Observe(float64(time.Since(start).Nanoseconds()) / 1000000000)
+	}
 }
+
+// func (p *Prometheus) ServeHTTP(ctx context.Context) {
+// 	start := time.Now()
+// 	ctx.Next()
+// 	r := ctx.Request()
+// 	statusCode := strconv.Itoa(ctx.GetStatusCode())
+
+// 	path := ctx.GetCurrentRoute().Path()
+// 	p.reqs.WithLabelValues(statusCode, r.Method, path).
+// 		Inc()
+
+// 	p.latency.WithLabelValues(statusCode, r.Method, path).
+// 		Observe(float64(time.Since(start).Nanoseconds()) / 1000000000)
+// }

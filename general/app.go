@@ -6,10 +6,8 @@ import (
 	"github.com/go-redis/redis"
 	"github.com/jinzhu/gorm"
 
-	"github.com/kataras/iris/middleware/logger"
 	"github.com/kataras/iris/mvc"
 
-	"github.com/8treenet/freedom/general/middleware"
 	"github.com/8treenet/gcache"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/context"
@@ -43,8 +41,8 @@ type Application struct {
 		client  *redis.Client
 		Install func() (client *redis.Client)
 	}
-	traceIDKey string
 	Middleware []context.Handler
+	Prometheus *Prometheus
 }
 
 // CreateParty .
@@ -116,7 +114,6 @@ func (app *Application) generalDep() (result []interface{}) {
 
 // Run .
 func (app *Application) Run(serve iris.Runner, irisConf iris.Configuration) {
-	app.traceIDKey = irisConf.Other["trace_key"].(string)
 	app.addMiddlewares(irisConf)
 	if app.Database.Install != nil {
 		app.Database.db, app.Database.cache = app.Database.Install()
@@ -137,15 +134,9 @@ func (app *Application) Run(serve iris.Runner, irisConf iris.Configuration) {
 func (app *Application) addMiddlewares(irisConf iris.Configuration) {
 	app.IrisApp.Use(newRuntimeHandle())
 	app.IrisApp.Use(globalApp.pool.freeHandle())
-
-	loggerConf := logger.DefaultConfig()
-	loggerConf.IP = false
-	loggerConf.MessageContextKeys = []string{"logger_trace", "logger_message"}
-	app.IrisApp.Use(logger.New(loggerConf))
-
 	if pladdr, ok := irisConf.Other["prometheus_listen_addr"]; ok {
-		m := middleware.NewPrometheus(irisConf.Other["service_name"].(string), pladdr.(string))
-		globalApp.IrisApp.Use(m.ServeHTTP)
+		app.Prometheus = newPrometheus(irisConf.Other["service_name"].(string), pladdr.(string))
+		globalApp.IrisApp.Use(newPrometheusHandle(app.Prometheus))
 	}
 	globalApp.IrisApp.Use(app.Middleware...)
 	globalApp.IrisApp.Use(newRecover())

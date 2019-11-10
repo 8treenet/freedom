@@ -11,6 +11,7 @@
 - http2 server
 - http2 client
 - 依赖注入
+- 组件总线
 - CRUD 代码生成
 
 ## 安装

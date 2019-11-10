@@ -24,12 +24,13 @@ func NewFastClient(rwTimeout time.Duration) {
 }
 
 // NewFastRequest .
-func NewFastRequest(uri string) Request {
+func NewFastRequest(uri, bus string) Request {
 	result := new(FastRequest)
 	result.resq = fasthttp.AcquireRequest()
 	result.resp = fasthttp.AcquireResponse()
 	result.params = make(map[string]interface{})
 	result.url = uri
+	result.bus = bus
 	return result
 }
 
@@ -40,6 +41,7 @@ type FastRequest struct {
 	reqe   error
 	params map[string]interface{}
 	url    string
+	bus    string
 }
 
 // Post .
@@ -93,40 +95,41 @@ func (fr *FastRequest) SetParam(key string, value interface{}) Request {
 	return fr
 }
 
+// SetBus .
+func (fr *FastRequest) SetBus() Request {
+	fr.SetHeader("Freedom-Bus", fr.bus)
+	return fr
+}
+
 // ToJSON .
-func (fr *FastRequest) ToJSON(obj interface{}, httpRespones ...*Response) (e error) {
+func (fr *FastRequest) ToJSON(obj interface{}) (r Response) {
 	defer func() {
 		fasthttp.ReleaseRequest(fr.resq)
 		fasthttp.ReleaseResponse(fr.resp)
 		fr.resq = nil
 		fr.resq = nil
 	}()
-	e = fr.do()
-	if e != nil {
+	r.Error = fr.do()
+	fr.httpRespone(&r)
+	if r.Error != nil {
 		return
 	}
-
-	if len(httpRespones) > 0 {
-		fr.httpRespone(httpRespones[0])
-	}
-
-	return json.Unmarshal(fr.resp.Body(), obj)
+	r.Error = json.Unmarshal(fr.resp.Body(), obj)
+	return
 }
 
 // ToString .
-func (fr *FastRequest) ToString(httpRespones ...*Response) (value string, e error) {
+func (fr *FastRequest) ToString() (value string, r Response) {
 	defer func() {
 		fasthttp.ReleaseRequest(fr.resq)
 		fasthttp.ReleaseResponse(fr.resp)
 		fr.resq = nil
 		fr.resq = nil
 	}()
-	e = fr.do()
-	if e != nil {
+	r.Error = fr.do()
+	fr.httpRespone(&r)
+	if r.Error != nil {
 		return
-	}
-	if len(httpRespones) > 0 {
-		fr.httpRespone(httpRespones[0])
 	}
 
 	value = string(fr.resp.Body())
@@ -134,42 +137,38 @@ func (fr *FastRequest) ToString(httpRespones ...*Response) (value string, e erro
 }
 
 // ToBytes .
-func (fr *FastRequest) ToBytes(httpRespones ...*Response) (value []byte, e error) {
+func (fr *FastRequest) ToBytes() (value []byte, r Response) {
 	defer func() {
 		fasthttp.ReleaseRequest(fr.resq)
 		fasthttp.ReleaseResponse(fr.resp)
 		fr.resq = nil
 		fr.resq = nil
 	}()
-	e = fr.do()
-	if e != nil {
+	r.Error = fr.do()
+	fr.httpRespone(&r)
+	if r.Error != nil {
 		return
 	}
 
-	if len(httpRespones) > 0 {
-		fr.httpRespone(httpRespones[0])
-	}
 	value = fr.resp.Body()
 	return
 }
 
 // ToXML .
-func (fr *FastRequest) ToXML(v interface{}, httpRespones ...*Response) (e error) {
+func (fr *FastRequest) ToXML(v interface{}) (r Response) {
 	defer func() {
 		fasthttp.ReleaseRequest(fr.resq)
 		fasthttp.ReleaseResponse(fr.resp)
 		fr.resq = nil
 		fr.resq = nil
 	}()
-	e = fr.do()
-	if e != nil {
+	r.Error = fr.do()
+	fr.httpRespone(&r)
+	if r.Error != nil {
 		return
 	}
-
-	if len(httpRespones) > 0 {
-		fr.httpRespone(httpRespones[0])
-	}
-	return xml.Unmarshal(fr.resp.Body(), v)
+	r.Error = xml.Unmarshal(fr.resp.Body(), v)
+	return
 }
 
 // SetHeader .

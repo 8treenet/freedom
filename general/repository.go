@@ -96,19 +96,16 @@ type Request requests.Request
 
 // NewFastRequest .
 func (repo *Repository) NewFastRequest(url string) Request {
-	req := requests.NewFastRequest(url)
-	var traceid string
-	repo.Runtime.Store().Get(globalApp.traceIDKey, &traceid)
-	req.SetHeader(globalApp.traceIDKey, traceid)
+	bus := GetBus(repo.Runtime.Ctx())
+	req := requests.NewFastRequest(url, bus.toJson())
+
 	return req
 }
 
 // NewH2CRequest .
 func (repo *Repository) NewH2CRequest(url string) Request {
-	req := requests.NewH2CRequest(url)
-	var traceid string
-	repo.Runtime.Store().Get(globalApp.traceIDKey, &traceid)
-	req.SetHeader(globalApp.traceIDKey, traceid)
+	bus := GetBus(repo.Runtime.Ctx())
+	req := requests.NewH2CRequest(url, bus.toJson())
 	return req
 }
 

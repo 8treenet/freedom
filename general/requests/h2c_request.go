@@ -52,7 +52,7 @@ func timeoutDialer(cTimeout time.Duration) func(net, addr string) (c net.Conn, e
 	}
 }
 
-func NewH2CRequest(rawurl string) Request {
+func NewH2CRequest(rawurl, bus string) Request {
 	result := new(H2CRequest)
 	req := &http.Request{
 		Header: make(http.Header),
@@ -60,6 +60,7 @@ func NewH2CRequest(rawurl string) Request {
 	result.resq = req
 	result.params = make(map[string]interface{})
 	result.url = rawurl
+	result.bus = bus
 	return result
 }
 
@@ -70,6 +71,7 @@ type H2CRequest struct {
 	reqe   error
 	params map[string]interface{}
 	url    string
+	bus    string
 }
 
 // Post .
@@ -118,57 +120,54 @@ func (hr *H2CRequest) SetBody(byts []byte) Request {
 	return hr
 }
 
+// SetBus .
+func (hr *H2CRequest) SetBus() Request {
+	hr.SetHeader("Freedom-Bus", hr.bus)
+	return hr
+}
+
 // ToJSON .
-func (hr *H2CRequest) ToJSON(obj interface{}, httpRespones ...*Response) (e error) {
-	e = hr.do()
-	if e != nil {
+func (hr *H2CRequest) ToJSON(obj interface{}) (r Response) {
+	r.Error = hr.do()
+	hr.httpRespone(&r)
+	if r.Error != nil {
 		return
 	}
-	if len(httpRespones) > 0 {
-		hr.httpRespone(httpRespones[0])
-	}
-
-	return json.Unmarshal(hr.body(), obj)
+	r.Error = json.Unmarshal(hr.body(), obj)
+	return
 }
 
 // ToString .
-func (hr *H2CRequest) ToString(httpRespones ...*Response) (value string, e error) {
-	e = hr.do()
-	if e != nil {
+func (hr *H2CRequest) ToString() (value string, r Response) {
+	r.Error = hr.do()
+	hr.httpRespone(&r)
+	if r.Error != nil {
 		return
-	}
-
-	if len(httpRespones) > 0 {
-		hr.httpRespone(httpRespones[0])
 	}
 	value = string(hr.body())
 	return
 }
 
 // ToBytes .
-func (hr *H2CRequest) ToBytes(httpRespones ...*Response) (value []byte, e error) {
-	e = hr.do()
-	if e != nil {
+func (hr *H2CRequest) ToBytes() (value []byte, r Response) {
+	r.Error = hr.do()
+	hr.httpRespone(&r)
+	if r.Error != nil {
 		return
-	}
-	if len(httpRespones) > 0 {
-		hr.httpRespone(httpRespones[0])
 	}
 	value = hr.body()
 	return
 }
 
 // ToXML .
-func (hr *H2CRequest) ToXML(v interface{}, httpRespones ...*Response) (e error) {
-
-	e = hr.do()
-	if e != nil {
+func (hr *H2CRequest) ToXML(v interface{}) (r Response) {
+	r.Error = hr.do()
+	hr.httpRespone(&r)
+	if r.Error != nil {
 		return
 	}
-	if len(httpRespones) > 0 {
-		hr.httpRespone(httpRespones[0])
-	}
-	return xml.Unmarshal(hr.body(), v)
+	r.Error = xml.Unmarshal(hr.body(), v)
+	return
 }
 
 // SetParam .
