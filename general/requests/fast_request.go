@@ -31,17 +31,19 @@ func NewFastRequest(uri, bus string) Request {
 	result.params = make(map[string]interface{})
 	result.url = uri
 	result.bus = bus
+	result.skipBus = false
 	return result
 }
 
 // FastRequest .
 type FastRequest struct {
-	resq   *fasthttp.Request
-	resp   *fasthttp.Response
-	reqe   error
-	params map[string]interface{}
-	url    string
-	bus    string
+	resq    *fasthttp.Request
+	resp    *fasthttp.Response
+	reqe    error
+	params  map[string]interface{}
+	url     string
+	bus     string
+	skipBus bool
 }
 
 // Post .
@@ -95,9 +97,9 @@ func (fr *FastRequest) SetParam(key string, value interface{}) Request {
 	return fr
 }
 
-// SetBus .
-func (fr *FastRequest) SetBus() Request {
-	fr.SetHeader("Freedom-Bus", fr.bus)
+// SkipBus .
+func (fr *FastRequest) SkipBus() Request {
+	fr.skipBus = true
 	return fr
 }
 
@@ -202,6 +204,10 @@ func (fr *FastRequest) URI() string {
 func (fr *FastRequest) do() error {
 	if fr.reqe != nil {
 		return fr.reqe
+	}
+
+	if !fr.skipBus {
+		fr.SetHeader("Freedom-Bus", fr.bus)
 	}
 
 	fr.resq.SetRequestURI(fr.URI())

@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"github.com/8treenet/freedom"
-	"github.com/8treenet/freedom/example/http2/services"
+	"github.com/8treenet/freedom/example/http2/business/services"
 	"github.com/kataras/iris"
 )
 

@@ -1,11 +1,7 @@
 package config
 
 import (
-	"os"
-
 	"github.com/kataras/iris"
-
-	"github.com/BurntSushi/toml"
 )
 
 func init() {
@@ -28,15 +24,4 @@ type Configuration struct {
 // Get .
 func Get() *Configuration {
 	return cfg
-}
-
-func configure(obj interface{}, fileName string, def bool) {
-	path := os.Getenv("FREEDOM_PROJECT_CONFIG")
-	if path == "" {
-		path = "./conf"
-	}
-	_, err := toml.DecodeFile(path+"/"+fileName, obj)
-	if err != nil && !def {
-		panic(err)
-	}
 }

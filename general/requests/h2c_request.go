@@ -61,17 +61,19 @@ func NewH2CRequest(rawurl, bus string) Request {
 	result.params = make(map[string]interface{})
 	result.url = rawurl
 	result.bus = bus
+	result.skipBus = false
 	return result
 }
 
 // H2CRequest .
 type H2CRequest struct {
-	resq   *http.Request
-	resp   *http.Response
-	reqe   error
-	params map[string]interface{}
-	url    string
-	bus    string
+	resq    *http.Request
+	resp    *http.Response
+	reqe    error
+	params  map[string]interface{}
+	url     string
+	bus     string
+	skipBus bool
 }
 
 // Post .
@@ -120,9 +122,9 @@ func (hr *H2CRequest) SetBody(byts []byte) Request {
 	return hr
 }
 
-// SetBus .
-func (hr *H2CRequest) SetBus() Request {
-	hr.SetHeader("Freedom-Bus", hr.bus)
+// SkipBus .
+func (hr *H2CRequest) SkipBus() Request {
+	hr.skipBus = true
 	return hr
 }
 
@@ -214,6 +216,9 @@ func (hr *H2CRequest) do() (e error) {
 		return
 	}
 	hr.resq.URL = u
+	if !hr.skipBus {
+		hr.SetHeader("Freedom-Bus", hr.bus)
+	}
 
 	hr.resp, e = h2cclient.Do(hr.resq)
 	if e != nil {

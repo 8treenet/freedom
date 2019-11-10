@@ -2,7 +2,7 @@ package services
 
 import (
 	"github.com/8treenet/freedom"
-	"github.com/8treenet/freedom/example/http2/repositorys"
+	"github.com/8treenet/freedom/example/http2/business/repositorys"
 )
 
 func init() {

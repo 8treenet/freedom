@@ -2,10 +2,12 @@ package freedom
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/8treenet/freedom/general"
 	"github.com/8treenet/gcache"
+	"github.com/BurntSushi/toml"
 	"github.com/go-redis/redis"
 	"github.com/jinzhu/gorm"
 	"github.com/kataras/golog"
@@ -34,6 +36,9 @@ type (
 
 	// QueryBuilder .
 	QueryBuilder = general.QueryBuilder
+
+	// Component .
+	Component = general.Component
 )
 
 var app *Application
@@ -77,4 +82,16 @@ func Logger() *golog.Logger {
 // UseMiddleware .
 func UseMiddleware(handler iris.Handler) {
 	app.Middleware = append(app.Middleware, handler)
+}
+
+// Configure .
+func Configure(obj interface{}, fileName string, def bool) {
+	path := os.Getenv("FREEDOM_PROJECT_CONFIG")
+	if path == "" {
+		path = "./conf"
+	}
+	_, err := toml.DecodeFile(path+"/"+fileName, obj)
+	if err != nil && !def {
+		panic(err)
+	}
 }

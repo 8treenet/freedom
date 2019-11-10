@@ -1,8 +1,10 @@
 package config
 
+import "github.com/8treenet/freedom"
+
 func newDBConf() *DBConf {
 	result := &DBConf{}
-	configure(result, "db.toml", false)
+	freedom.Configure(result, "db.toml", false)
 	return result
 }
 

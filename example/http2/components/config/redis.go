@@ -1,6 +1,10 @@
 package config
 
-import "runtime"
+import (
+	"runtime"
+
+	"github.com/8treenet/freedom"
+)
 
 func newRedisConf() *RedisConf {
 	result := &RedisConf{
@@ -11,7 +15,7 @@ func newRedisConf() *RedisConf {
 		IdleTimeout:        300,
 		IdleCheckFrequency: 60,
 	}
-	configure(result, "redis.toml", true)
+	freedom.Configure(result, "redis.toml", true)
 	return result
 }
 

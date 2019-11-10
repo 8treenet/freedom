@@ -21,6 +21,6 @@ type H2cRepository struct {
 func (repo *H2cRepository) GetHello() string {
 	repo.Runtime.Logger().Infof("我是H2cRepository")
 	//通过h2c request 访问本服务 /hello
-	result, _ := repo.NewH2CRequest("http://127.0.0.1:8000/hello").Get().SetBus().ToString() //SetBus() : 设置总线数据 携带到下游
+	result, _ := repo.NewH2CRequest("http://127.0.0.1:8000/hello").Get().ToString()
 	return result
 }

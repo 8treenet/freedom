@@ -1,6 +1,8 @@
 package general
 
 import (
+	"reflect"
+
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/context"
 	"github.com/kataras/iris/core/memstore"
@@ -16,7 +18,8 @@ func newRuntimeHandle() context.Handler {
 
 func newRuntime(ctx iris.Context) *appRuntime {
 	rt := new(appRuntime)
-	rt.services = make([]interface{}, 0)
+	rt.freeServices = make([]interface{}, 0)
+	rt.coms = make(map[reflect.Type]interface{})
 	rt.ctx = ctx
 	rt.store = ctx.Values()
 	busStr := ctx.GetHeader("Freedom-Bus")
@@ -26,11 +29,12 @@ func newRuntime(ctx iris.Context) *appRuntime {
 
 // appRuntime .
 type appRuntime struct {
-	ctx      iris.Context
-	services []interface{}
-	store    *memstore.Store
-	logger   Logger
-	bus      *Bus
+	ctx          iris.Context
+	freeServices []interface{}
+	coms         map[reflect.Type]interface{}
+	store        *memstore.Store
+	logger       Logger
+	bus          *Bus
 }
 
 // Ctx .

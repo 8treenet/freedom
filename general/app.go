@@ -2,6 +2,7 @@ package general
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/go-redis/redis"
 	"github.com/jinzhu/gorm"
@@ -20,6 +21,7 @@ func NewApplication() *Application {
 		globalApp.IrisApp = iris.New()
 		globalApp.pool = newServicePool()
 		globalApp.rpool = newRepoPool()
+		globalApp.comPool = newComponentPool()
 		boots = make([]func(Initiator), 0)
 		globalApp.IrisApp.Logger().SetTimeFormat("2006-01-02 15:04:05.000")
 	})
@@ -31,6 +33,7 @@ type Application struct {
 	IrisApp  *iris.Application
 	pool     *ServicePool
 	rpool    *RepositoryPool
+	comPool  *ComponentPool
 	Database struct {
 		db      *gorm.DB
 		cache   gcache.Plugin
@@ -90,6 +93,27 @@ func (app *Application) BindRepository(f interface{}) {
 		panic(fmt.Sprintf("%v : %s", f, fmt.Sprint(err)))
 	}
 	app.rpool.bind(outType, f)
+}
+
+// BindComponent .
+func (app *Application) BindComponent(single bool, com interface{}) {
+	if !single {
+		outType, err := parsePoolFunc(com)
+		if err != nil {
+			panic(fmt.Sprintf("%v : %s", com, fmt.Sprint(err)))
+		}
+		app.comPool.bind(single, outType, com)
+		return
+	}
+	if reflect.TypeOf(com).Kind() != reflect.Ptr {
+		panic("single:true, The component must be an object")
+	}
+	app.comPool.bind(single, reflect.TypeOf(com), com)
+}
+
+// GetComponent .
+func (app *Application) GetComponent(ctx iris.Context, com interface{}) {
+	app.comPool.get(ctx.Values().Get(runtimeKey).(*appRuntime), reflect.ValueOf(com).Elem())
 }
 
 // AsyncCachePreheat .

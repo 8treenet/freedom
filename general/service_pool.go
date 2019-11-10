@@ -44,7 +44,7 @@ func (pool *ServicePool) get(rt *appRuntime, service interface{}) {
 
 	ptr.Set(reflect.ValueOf(newService))
 	pool.objBeginRequest(rt, newService)
-	rt.services = append(rt.services, newService)
+	rt.freeServices = append(rt.freeServices, newService)
 }
 
 // freeHandle .
@@ -52,8 +52,8 @@ func (pool *ServicePool) freeHandle() context.Handler {
 	return func(ctx context.Context) {
 		ctx.Next()
 		rt := ctx.Values().Get(runtimeKey).(*appRuntime)
-		for index := 0; index < len(rt.services); index++ {
-			pool.free(rt.services[index])
+		for index := 0; index < len(rt.freeServices); index++ {
+			pool.free(rt.freeServices[index])
 		}
 	}
 }
@@ -145,8 +145,17 @@ func (pool *ServicePool) objBeginRequest(rt *appRuntime, obj interface{}) {
 		if !value.CanInterface() {
 			return
 		}
-		br, ok := value.Interface().(BeginRequest)
+		vi := value.Interface()
+		if globalApp.comPool.get(rt, value) {
+			return
+		}
+		br, ok := vi.(BeginRequest)
 		if ok {
+			allFields(vi, func(repoValue reflect.Value) {
+				if globalApp.comPool.get(rt, repoValue) {
+					return
+				}
+			})
 			br.BeginRequest(rt)
 		}
 	})

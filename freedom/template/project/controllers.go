@@ -1,7 +1,7 @@
 package project
 
 func init() {
-	content["/controllers/default.go"] = controllerTemplate()
+	content["/business/controllers/default.go"] = controllerTemplate()
 }
 
 func controllerTemplate() string {
@@ -9,7 +9,7 @@ func controllerTemplate() string {
 
 	import (
 		"github.com/8treenet/freedom"
-		"{{.PackagePath}}/services"
+		"{{.PackagePath}}/business/services"
 		"github.com/kataras/iris"
 	)
 	

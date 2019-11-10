@@ -8,8 +8,8 @@ type Request interface {
 	Delete() Request
 	SetJSONBody(obj interface{}) Request
 	SetBody(byts []byte) Request
-	//设置总线数据,上下游header携带
-	SetBus() Request
+	//跳过总线数据,上下游header携带
+	SkipBus() Request
 	ToJSON(obj interface{}) Response
 	ToString() (string, Response)
 	ToBytes() ([]byte, Response)
