@@ -24,4 +24,7 @@ $ go get github.com/8treenet/freedom/freedom
 $ freedom new-project [project-name]
 ```
 
-#### [Example](https://github.com/8treenet/freedom/blob/master/example)
+#### [example-base](https://github.com/8treenet/freedom/blob/master/example/base)
+#### [example-orm](https://github.com/8treenet/freedom/blob/master/example/orm)
+#### [example-http2](https://github.com/8treenet/freedom/blob/master/example/http2)
+#### [example-component](https://github.com/8treenet/freedom/blob/master/example/component)
