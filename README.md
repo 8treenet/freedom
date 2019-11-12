@@ -27,4 +27,4 @@ $ freedom new-project [project-name]
 #### [example-base](https://github.com/8treenet/freedom/blob/master/example/base)
 #### [example-orm](https://github.com/8treenet/freedom/blob/master/example/orm)
 #### [example-http2](https://github.com/8treenet/freedom/blob/master/example/http2)
-#### [example-component](https://github.com/8treenet/freedom/blob/master/example/component)
+#### [example-component](https://github.com/8treenet/freedom/blob/master/example/com)
