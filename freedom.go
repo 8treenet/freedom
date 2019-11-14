@@ -88,7 +88,7 @@ func UseMiddleware(handler iris.Handler) {
 func Configure(obj interface{}, fileName string, def bool) {
 	path := os.Getenv("FREEDOM_PROJECT_CONFIG")
 	if path == "" {
-		path = "./conf"
+		path = "./cmd/conf"
 	}
 	_, err := toml.DecodeFile(path+"/"+fileName, obj)
 	if err != nil && !def {
