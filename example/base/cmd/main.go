@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	"github.com/8treenet/freedom"
 	_ "github.com/8treenet/freedom/example/base/business/controllers"
 	_ "github.com/8treenet/freedom/example/base/business/repositorys"
@@ -9,21 +11,22 @@ import (
 	"github.com/8treenet/gcache"
 	"github.com/go-redis/redis"
 	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
+
+	// _ "github.com/jinzhu/gorm/dialects/mysql"
+	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"github.com/kataras/iris"
 	"github.com/sirupsen/logrus"
-	"time"
 )
 
 func main() {
 	/*
-		installDatabase() //安装数据库
 		installRedis() //安装redis
 		installLogrus() //安装第三方logger
 
 		http2 h2c 服务
 		h2caddrRunner := freedom.CreateH2CRunner(config.Get().App.Other["listen_addr"].(string))
 	*/
+	installDatabase() //安装数据库
 
 	installMiddleware()
 	addrRunner := iris.Addr(config.Get().App.Other["listen_addr"].(string))
@@ -38,16 +41,17 @@ func installMiddleware() {
 
 func installDatabase() {
 	freedom.InstallGorm(func() (db *gorm.DB, cache gcache.Plugin) {
-		conf := config.Get().DB
+		// conf := config.Get().DB
 		var e error
-		db, e = gorm.Open("mysql", conf.Addr)
+		// db, e = gorm.Open("mysql", conf.Addr)
+		gorm.Open("sqlite3", "./chinook.db")
 		if e != nil {
 			freedom.Logger().Fatal(e.Error())
 		}
-
-		db.DB().SetMaxIdleConns(conf.MaxIdleConns)
-		db.DB().SetMaxOpenConns(conf.MaxOpenConns)
-		db.DB().SetConnMaxLifetime(time.Duration(conf.ConnMaxLifeTime) * time.Second)
+		freedom.Logger().Info("Database connected.")
+		// db.DB().SetMaxIdleConns(conf.MaxIdleConns)
+		// db.DB().SetMaxOpenConns(conf.MaxOpenConns)
+		// db.DB().SetConnMaxLifetime(time.Duration(conf.ConnMaxLifeTime) * time.Second)
 
 		/*
 			启用缓存中间件
