@@ -3,6 +3,7 @@ package controllers
 import (
 	"github.com/8treenet/freedom"
 	"github.com/8treenet/freedom/example/base/business/services"
+	"github.com/8treenet/freedom/example/base/models"
 	"github.com/kataras/iris"
 )
 
@@ -18,6 +19,7 @@ func init() {
 
 type DefaultController struct {
 	Sev     *services.DefaultService
+	ASev    *services.AlbumService
 	Runtime freedom.Runtime
 }
 
@@ -39,8 +41,9 @@ func (c *DefaultController) GetHello() string {
 }
 
 // GetUserBy handles the GET: /user/{username:string} route.
-func (c *DefaultController) GetUserBy(username string) string {
-	return username
+func (c *DefaultController) GetUserBy(id int) (album *models.Album, e error) {
+	c.Runtime.Logger().Infof("我是 Album 控制器")
+	return c.ASev.GetAlbum(id)
 }
 
 // GetAgeByUserBy handles the GET: /age/{age:int}/user/{user:string} route.
