@@ -44,7 +44,7 @@ func installDatabase() {
 		// conf := config.Get().DB
 		var e error
 		// db, e = gorm.Open("mysql", conf.Addr)
-		gorm.Open("sqlite3", "./chinook.db")
+		db, e = gorm.Open("sqlite3", "./chinook.db")
 		if e != nil {
 			freedom.Logger().Fatal(e.Error())
 		}
