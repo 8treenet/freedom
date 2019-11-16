@@ -87,8 +87,30 @@ func UseMiddleware(handler iris.Handler) {
 // Configure .
 func Configure(obj interface{}, fileName string, def bool) {
 	path := os.Getenv("FREEDOM_PROJECT_CONFIG")
+	if path != "" {
+		_, err := os.Stat(path)
+		if err != nil {
+			path = ""
+		}
+	}
 	if path == "" {
 		path = "./conf"
+		_, err := os.Stat(path)
+		if err != nil {
+			path = ""
+		}
+	}
+
+	if path == "" {
+		path = "./cmd/conf"
+		_, err := os.Stat(path)
+		if err != nil {
+			path = ""
+		}
+	}
+
+	if path == "" {
+		panic("No profile directory found:" + "'$FREEDOM_PROJECT_CONFIG' or './conf' or './cmd/conf'")
 	}
 	_, err := toml.DecodeFile(path+"/"+fileName, obj)
 	if err != nil && !def {
