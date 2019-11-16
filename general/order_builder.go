@@ -23,6 +23,11 @@ func (o *Order) SetPager(page, pageSize int) *Order {
 	defer func() {
 		o.limit = nil
 	}()
+	o.pager = new(struct {
+		pageSize  int
+		page      int
+		TotalPage int
+	})
 
 	o.pager.pageSize = pageSize
 	o.pager.page = page
@@ -34,7 +39,7 @@ func (o *Order) SetLimiter(limit int) *Order {
 	defer func() {
 		o.pager = nil
 	}()
-
+	o.limit = new(int)
 	*o.limit = limit
 	return o
 }
@@ -49,13 +54,18 @@ func (o *Order) Limit() int {
 	return *o.limit
 }
 
+// TotalPage .
+func (o *Order) TotalPage() int {
+	return o.pager.TotalPage
+}
+
 // Execute .
-func (o *Order) Execute(db *gorm.DB, object interface{}) (next *gorm.DB, e error) {
+func (o *Order) Execute(db *gorm.DB, object interface{}) (e error) {
 	orderBy := o.Order()
 	if o.pager != nil {
 		resultDB := db.Order(orderBy).Offset((o.pager.page - 1) * o.pager.pageSize).Find(object)
 		if resultDB.Error != nil {
-			return nil, resultDB.Error
+			return resultDB.Error
 		}
 		var count int
 		e := resultDB.Count(&count).Error
@@ -68,13 +78,13 @@ func (o *Order) Execute(db *gorm.DB, object interface{}) (next *gorm.DB, e error
 			}
 
 		}
-		return nil, nil
+		return nil
 	}
 
 	if o.limit != nil {
 		e = db.Order(orderBy).Limit(*o.limit).Find(object).Error
-		return nil, e
+		return e
 	}
 
-	return nil, db.Order(orderBy).Find(&object).Error
+	return db.Order(orderBy).Find(&object).Error
 }

@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"go/build"
 	"os"
 	"os/exec"
@@ -23,10 +22,6 @@ var (
 			sysPath, err := filepath.Abs(args[0])
 			if err != nil {
 				return
-			}
-			gopath := os.Getenv("GOPATH")
-			if !strings.Contains(sysPath, gopath+"/src/") {
-				return fmt.Errorf("Project path must be within '%s'", gopath+"/src/")
 			}
 
 			projectPath := strings.Replace(sysPath, build.Default.GOPATH+"/src/", "", 1)

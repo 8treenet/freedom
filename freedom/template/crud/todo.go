@@ -1,27 +1,28 @@
 package crud
 
-import (
-	"github.com/8treenet/freedom"
-)
+func CrudTemplate() string {
 
-// Todo .
-type Todo struct {
-}
+	return `
+package models
+import "github.com/8treenet/freedom"
 
-// FindTodoByPrimary .
-func FindTodoByPrimary(rep freedom.GORMRepository, primary interface{}) (result Todo, e error) {
+// {{.Name}} .
+{{.Content}}
+
+// Find{{.Name}}ByPrimary .
+func Find{{.Name}}ByPrimary(rep freedom.GORMRepository, primary interface{}) (result {{.Name}}, e error) {
 	e = rep.DB().Find(&result, primary).Error
 	return
 }
 
-// FindTodosByPrimarys .
-func FindTodosByPrimarys(rep freedom.GORMRepository, primarys []interface{}) (results []Todo, e error) {
-	e = rep.DB().Find(results, primarys).Error
+// Find{{.Name}}sByPrimarys .
+func Find{{.Name}}sByPrimarys(rep freedom.GORMRepository, primarys ...interface{}) (results []{{.Name}}, e error) {
+	e = rep.DB().Find(&results, primarys).Error
 	return
 }
 
-// FindTodo .
-func FindTodo(rep freedom.GORMRepository, query *Todo, builders ...freedom.QueryBuilder) (result Todo, e error) {
+// Find{{.Name}} .
+func Find{{.Name}}(rep freedom.GORMRepository, query *{{.Name}}, builders ...freedom.QueryBuilder) (result {{.Name}}, e error) {
 	if len(builders) == 0 {
 		e = rep.DB().Where(query).Last(&result).Error
 		return
@@ -31,8 +32,19 @@ func FindTodo(rep freedom.GORMRepository, query *Todo, builders ...freedom.Query
 	return
 }
 
-// FindTodos .
-func FindTodos(rep freedom.GORMRepository, query *Todo, builders ...freedom.QueryBuilder) (results []Todo, e error) {
+// Find{{.Name}}ByWhere .
+func Find{{.Name}}ByWhere(rep freedom.GORMRepository, query string, args []interface{}, builders ...freedom.QueryBuilder) (result {{.Name}}, e error) {
+	if len(builders) == 0 {
+		e = rep.DB().Where(query, args...).Last(&result).Error
+		return
+	}
+
+	e = rep.DB().Where(query, args...).Limit(1).Order(builders[0].Order()).Find(&result).Error
+	return
+}
+
+// Find{{.Name}}s .
+func Find{{.Name}}s(rep freedom.GORMRepository, query *{{.Name}}, builders ...freedom.QueryBuilder) (results []{{.Name}}, e error) {
 	db := rep.DB()
 	if len(builders) == 0 {
 		e = db.Where(query).Find(&results).Error
@@ -44,8 +56,8 @@ func FindTodos(rep freedom.GORMRepository, query *Todo, builders ...freedom.Quer
 	return
 }
 
-// FindTodosByWhere .
-func FindTodosByWhere(rep freedom.GORMRepository, query string, args []interface{}, builders ...freedom.QueryBuilder) (results []Todo, e error) {
+// Find{{.Name}}sByWhere .
+func Find{{.Name}}sByWhere(rep freedom.GORMRepository, query string, args []interface{}, builders ...freedom.QueryBuilder) (results []{{.Name}}, e error) {
 	db := rep.DB()
 	if len(builders) == 0 {
 		e = db.Where(query, args...).Find(&results).Error
@@ -57,29 +69,29 @@ func FindTodosByWhere(rep freedom.GORMRepository, query string, args []interface
 	return
 }
 
-// CreateTodo .
-func CreateTodo(rep freedom.GORMRepository, entity *Todo) (rowsAffected int64, e error) {
+// Create{{.Name}} .
+func Create{{.Name}}(rep freedom.GORMRepository, entity *{{.Name}}) (rowsAffected int64, e error) {
 	db := rep.DB().Create(entity)
 	rowsAffected = db.RowsAffected
 	e = db.Error
 	return
 }
 
-// UpdateTodo .
-func UpdateTodo(rep freedom.GORMRepository, entity *Todo, value Todo) (affected int64, e error) {
+// Update{{.Name}} .
+func Update{{.Name}}(rep freedom.GORMRepository, entity *{{.Name}}, value {{.Name}}) (affected int64, e error) {
 	db := rep.DB().Model(entity).Updates(value)
 	e = db.Error
 	affected = db.RowsAffected
 	return
 }
 
-// FindToUpdateTodos .
-func FindToUpdateTodos(rep freedom.GORMRepository, query *Todo, value Todo, builders ...freedom.QueryBuilder) (affected int64, e error) {
+// FindToUpdate{{.Name}}s .
+func FindToUpdate{{.Name}}s(rep freedom.GORMRepository, query *{{.Name}}, value {{.Name}}, builders ...freedom.QueryBuilder) (affected int64, e error) {
 	db := rep.DB()
 	if len(builders) > 0 {
-		db = db.Model(&Todo{}).Where(query).Order(builders[0].Order).Limit(builders[0].Limit()).Updates(value)
+		db = db.Model(&{{.Name}}{}).Where(query).Order(builders[0].Order()).Limit(builders[0].Limit()).Updates(value)
 	} else {
-		db = db.Model(&Todo{}).Where(query).Updates(value)
+		db = db.Model(&{{.Name}}{}).Where(query).Updates(value)
 	}
 
 	affected = db.RowsAffected
@@ -87,16 +99,18 @@ func FindToUpdateTodos(rep freedom.GORMRepository, query *Todo, value Todo, buil
 	return
 }
 
-// FindByWhereToUpdateTodos .
-func FindByWhereToUpdateTodos(rep freedom.GORMRepository, query string, args []interface{}, value Todo, builders ...freedom.QueryBuilder) (affected int64, e error) {
+// FindByWhereToUpdate{{.Name}}s .
+func FindByWhereToUpdate{{.Name}}s(rep freedom.GORMRepository, query string, args []interface{}, value {{.Name}}, builders ...freedom.QueryBuilder) (affected int64, e error) {
 	db := rep.DB()
 	if len(builders) > 0 {
-		db = db.Model(&Todo{}).Where(query, args...).Order(builders[0].Order).Limit(builders[0].Limit()).Updates(value)
+		db = db.Model(&{{.Name}}{}).Where(query, args...).Order(builders[0].Order()).Limit(builders[0].Limit()).Updates(value)
 	} else {
-		db = db.Model(&Todo{}).Where(query, args...).Updates(value)
+		db = db.Model(&{{.Name}}{}).Where(query, args...).Updates(value)
 	}
 
 	affected = db.RowsAffected
 	e = db.Error
 	return
+}`
+
 }

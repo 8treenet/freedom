@@ -24,9 +24,16 @@ $ go get github.com/8treenet/freedom/freedom
 $ freedom new-project [project-name]
 ```
 
+## 生成crud
+```sh
+# 编辑 [project-name]/cmd/conf/db.toml 填入数据库地址
+# 可指定配置地址和输出目录 freedom new-crud -h 查看更多
+$ cd [project-name]
+$ freedom new-crud
+```
+
 ## Example
 
-#### [example-base](https://github.com/8treenet/freedom/blob/master/example/base)
-#### [example-orm](https://github.com/8treenet/freedom/blob/master/example/orm)
-#### [example-http2](https://github.com/8treenet/freedom/blob/master/example/http2)
-#### [example-component](https://github.com/8treenet/freedom/blob/master/example/com)
+#### [基础示例](https://github.com/8treenet/freedom/blob/master/example/base)
+#### [http2示例](https://github.com/8treenet/freedom/blob/master/example/http2)
+#### [组件总线示例](https://github.com/8treenet/freedom/blob/master/example/com)
