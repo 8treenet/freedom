@@ -29,5 +29,5 @@ func installMiddleware(app freedom.Application) {
 func installLogrus(app freedom.Application) {
 	logrus.SetLevel(logrus.InfoLevel)
 	logrus.SetFormatter(&logrus.JSONFormatter{TimestampFormat: "2006-01-02 15:04:05.000"})
-	app.Logger().Install(logrus.StandardLogger())
+	freedom.Logger().Install(logrus.StandardLogger())
 }

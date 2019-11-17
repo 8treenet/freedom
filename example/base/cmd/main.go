@@ -43,7 +43,7 @@ func installDatabase(app freedom.Application) {
 		var e error
 		db, e = gorm.Open("mysql", conf.Addr)
 		if e != nil {
-			app.Logger().Fatal(e.Error())
+			freedom.Logger().Fatal(e.Error())
 		}
 
 		db.DB().SetMaxIdleConns(conf.MaxIdleConns)
@@ -94,7 +94,7 @@ func installRedis(app freedom.Application) {
 		}
 		client = redis.NewClient(opt)
 		if e := client.Ping().Err(); e != nil {
-			app.Logger().Fatal(e.Error())
+			freedom.Logger().Fatal(e.Error())
 		}
 		return
 	})
@@ -103,5 +103,5 @@ func installRedis(app freedom.Application) {
 func installLogrus(app freedom.Application) {
 	logrus.SetLevel(logrus.InfoLevel)
 	logrus.SetFormatter(&logrus.JSONFormatter{TimestampFormat: "2006-01-02 15:04:05.000"})
-	app.Logger().Install(logrus.StandardLogger())
+	freedom.Logger().Install(logrus.StandardLogger())
 }
