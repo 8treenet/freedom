@@ -1,9 +1,7 @@
 package freedom
 
 import (
-	"fmt"
 	"os"
-	"strings"
 
 	"github.com/8treenet/freedom/general"
 	"github.com/8treenet/gcache"
@@ -14,6 +12,8 @@ import (
 	"github.com/kataras/iris"
 )
 
+var app *general.Application
+
 func init() {
 	app = general.NewApplication()
 }
@@ -21,9 +21,6 @@ func init() {
 type (
 	// Runtime .
 	Runtime = general.Runtime
-
-	// Application .
-	Application = general.Application
 
 	// Initiator .
 	Initiator = general.Initiator
@@ -41,47 +38,19 @@ type (
 	Component = general.Component
 )
 
-var app *Application
-
-// Run .
-func Run(serve iris.Runner, c *iris.Configuration) {
-	app.Run(serve, *c)
+// NewApplication .
+func NewApplication() Application {
+	return app
 }
 
-// Booting app.BindController or app.BindControllerByParty.
+// Booting .
 func Booting(f func(Initiator)) {
 	general.Booting(f)
 }
 
-// CreateH2CRunner -
-func CreateH2CRunner(addr string) iris.Runner {
-	ser := general.CreateH2Server(app, addr)
-	if strings.Index(addr, ":") == 0 {
-		fmt.Printf("Now h2c listening on: http://0.0.0.0%s\n", addr)
-	} else {
-		fmt.Printf("Now h2c listening on: http://%s\n", addr)
-	}
-	return iris.Raw(ser.ListenAndServe)
-}
-
-// InstallGorm .
-func InstallGorm(f func() (db *gorm.DB, cache gcache.Plugin)) {
-	app.Database.Install = f
-}
-
-// InstallRedis .
-func InstallRedis(f func() (client *redis.Client)) {
-	app.Redis.Install = f
-}
-
 // Logger .
 func Logger() *golog.Logger {
-	return app.IrisApp.Logger()
-}
-
-// UseMiddleware .
-func UseMiddleware(handler iris.Handler) {
-	app.Middleware = append(app.Middleware, handler)
+	return app.Logger()
 }
 
 // Configure .
@@ -116,4 +85,14 @@ func Configure(obj interface{}, fileName string, def bool) {
 	if err != nil && !def {
 		panic(err)
 	}
+}
+
+type Application interface {
+	InstallGorm(f func() (db *gorm.DB, cache gcache.Plugin))
+	InstallRedis(f func() (client *redis.Client))
+	InstallMiddleware(handler iris.Handler)
+	CreateH2CRunner(addr string) iris.Runner
+	Iris() *iris.Application
+	Logger() *golog.Logger
+	Run(serve iris.Runner, c iris.Configuration)
 }

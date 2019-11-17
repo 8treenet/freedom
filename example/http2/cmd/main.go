@@ -11,22 +11,23 @@ import (
 )
 
 func main() {
-	installMiddleware()
+	app := freedom.NewApplication()
+	installMiddleware(app)
+	installLogrus(app)
 
 	//http2 h2c 服务
-	h2caddrRunner := freedom.CreateH2CRunner(config.Get().App.Other["listen_addr"].(string))
-	freedom.Run(h2caddrRunner, config.Get().App)
+	h2caddrRunner := app.CreateH2CRunner(config.Get().App.Other["listen_addr"].(string))
+	app.Run(h2caddrRunner, *config.Get().App)
 }
 
-func installMiddleware() {
-	freedom.UseMiddleware(middleware.NewTrace("TRACE-ID"))
-	freedom.UseMiddleware(middleware.NewLogger("TRACE-ID"))
-	freedom.UseMiddleware(middleware.NewRuntimeLogger("TRACE-ID"))
-	installLogrus()
+func installMiddleware(app freedom.Application) {
+	app.InstallMiddleware(middleware.NewTrace("TRACE-ID"))
+	app.InstallMiddleware(middleware.NewLogger("TRACE-ID"))
+	app.InstallMiddleware(middleware.NewRuntimeLogger("TRACE-ID"))
 }
 
-func installLogrus() {
+func installLogrus(app freedom.Application) {
 	logrus.SetLevel(logrus.InfoLevel)
 	logrus.SetFormatter(&logrus.JSONFormatter{TimestampFormat: "2006-01-02 15:04:05.000"})
-	freedom.Logger().Install(logrus.StandardLogger())
+	app.Logger().Install(logrus.StandardLogger())
 }

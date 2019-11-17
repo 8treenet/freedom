@@ -2,11 +2,16 @@ package general
 
 import (
 	"fmt"
+	"net/http"
 	"reflect"
+	"strings"
 
 	"github.com/go-redis/redis"
 	"github.com/jinzhu/gorm"
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
 
+	"github.com/kataras/golog"
 	"github.com/kataras/iris/mvc"
 
 	"github.com/8treenet/gcache"
@@ -22,7 +27,6 @@ func NewApplication() *Application {
 		globalApp.pool = newServicePool()
 		globalApp.rpool = newRepoPool()
 		globalApp.comPool = newComponentPool()
-		boots = make([]func(Initiator), 0)
 		globalApp.IrisApp.Logger().SetTimeFormat("2006-01-02 15:04:05.000")
 	})
 	return globalApp
@@ -153,6 +157,46 @@ func (app *Application) Run(serve iris.Runner, irisConf iris.Configuration) {
 
 	repositoryAPIRun(irisConf)
 	app.IrisApp.Run(serve, iris.WithConfiguration(irisConf))
+}
+
+func (app *Application) CreateH2CRunner(addr string) iris.Runner {
+	h2cSer := &http2.Server{}
+	ser := &http.Server{
+		Addr:    addr,
+		Handler: h2c.NewHandler(app.IrisApp, h2cSer),
+	}
+
+	if strings.Index(addr, ":") == 0 {
+		fmt.Printf("Now h2c listening on: http://0.0.0.0%s\n", addr)
+	} else {
+		fmt.Printf("Now h2c listening on: http://%s\n", addr)
+	}
+	return iris.Raw(ser.ListenAndServe)
+}
+
+// InstallGorm .
+func (app *Application) InstallGorm(f func() (db *gorm.DB, cache gcache.Plugin)) {
+	app.Database.Install = f
+}
+
+// InstallRedis .
+func (app *Application) InstallRedis(f func() (client *redis.Client)) {
+	app.Redis.Install = f
+}
+
+// Logger .
+func (app *Application) Logger() *golog.Logger {
+	return app.IrisApp.Logger()
+}
+
+// InstallMiddleware .
+func (app *Application) InstallMiddleware(handler iris.Handler) {
+	app.Middleware = append(app.Middleware, handler)
+}
+
+// Iris .
+func (app *Application) Iris() *iris.Application {
+	return app.IrisApp
 }
 
 func (app *Application) addMiddlewares(irisConf iris.Configuration) {

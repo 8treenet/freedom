@@ -51,7 +51,6 @@ func appConfTemplate() string {
 		result := iris.DefaultConfiguration()
 		result.Other["listen_addr"] = ":8000"
 		result.Other["service_name"] = "default"
-		result.Other["trace_key"] = "Trace-ID"
 		freedom.Configure(&result, "app.toml", false)
 		return &result
 	}

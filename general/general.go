@@ -1,14 +1,11 @@
 package general
 
 import (
-	"net/http"
 	"sync"
 
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/context"
 	"github.com/kataras/iris/core/memstore"
-	"golang.org/x/net/http2"
-	"golang.org/x/net/http2/h2c"
 )
 
 // Initiator .
@@ -48,14 +45,4 @@ var (
 // Booting app.BindController or app.BindControllerByParty.
 func Booting(f func(Initiator)) {
 	boots = append(boots, f)
-}
-
-// CreateH2Server .
-func CreateH2Server(app *Application, addr string) *http.Server {
-	h2cSer := &http2.Server{}
-	ser := &http.Server{
-		Addr:    addr,
-		Handler: h2c.NewHandler(app.IrisApp, h2cSer),
-	}
-	return ser
 }

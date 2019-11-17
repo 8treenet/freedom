@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	"github.com/8treenet/freedom"
 	_ "github.com/8treenet/freedom/example/base/business/controllers"
 	_ "github.com/8treenet/freedom/example/base/business/repositorys"
@@ -12,37 +14,36 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/kataras/iris"
 	"github.com/sirupsen/logrus"
-	"time"
 )
 
 func main() {
+	app := freedom.NewApplication()
 	/*
-		installDatabase() //安装数据库
-		installRedis() //安装redis
-		installLogrus() //安装第三方logger
+		installDatabase(app) //安装数据库
+		installRedis(app) //安装redis
+		installLogrus(app) //安装第三方logger
 
 		http2 h2c 服务
-		h2caddrRunner := freedom.CreateH2CRunner(config.Get().App.Other["listen_addr"].(string))
+		h2caddrRunner := app.CreateH2CRunner(config.Get().App.Other["listen_addr"].(string))
 	*/
-
-	installMiddleware()
+	installMiddleware(app)
 	addrRunner := iris.Addr(config.Get().App.Other["listen_addr"].(string))
-	freedom.Run(addrRunner, config.Get().App)
+	app.Run(addrRunner, *config.Get().App)
 }
 
-func installMiddleware() {
-	freedom.UseMiddleware(middleware.NewTrace("TRACE-ID"))
-	freedom.UseMiddleware(middleware.NewLogger("TRACE-ID"))
-	freedom.UseMiddleware(middleware.NewRuntimeLogger("TRACE-ID"))
+func installMiddleware(app freedom.Application) {
+	app.InstallMiddleware(middleware.NewTrace("TRACE-ID"))
+	app.InstallMiddleware(middleware.NewLogger("TRACE-ID"))
+	app.InstallMiddleware(middleware.NewRuntimeLogger("TRACE-ID"))
 }
 
-func installDatabase() {
-	freedom.InstallGorm(func() (db *gorm.DB, cache gcache.Plugin) {
+func installDatabase(app freedom.Application) {
+	app.InstallGorm(func() (db *gorm.DB, cache gcache.Plugin) {
 		conf := config.Get().DB
 		var e error
 		db, e = gorm.Open("mysql", conf.Addr)
 		if e != nil {
-			freedom.Logger().Fatal(e.Error())
+			app.Logger().Fatal(e.Error())
 		}
 
 		db.DB().SetMaxIdleConns(conf.MaxIdleConns)
@@ -75,8 +76,8 @@ func installDatabase() {
 	})
 }
 
-func installRedis() {
-	freedom.InstallRedis(func() (client *redis.Client) {
+func installRedis(app freedom.Application) {
+	app.InstallRedis(func() (client *redis.Client) {
 		cfg := config.Get().Redis
 		opt := &redis.Options{
 			Addr:               cfg.Addr,
@@ -93,14 +94,14 @@ func installRedis() {
 		}
 		client = redis.NewClient(opt)
 		if e := client.Ping().Err(); e != nil {
-			freedom.Logger().Fatal(e.Error())
+			app.Logger().Fatal(e.Error())
 		}
 		return
 	})
 }
 
-func installLogrus() {
+func installLogrus(app freedom.Application) {
 	logrus.SetLevel(logrus.InfoLevel)
 	logrus.SetFormatter(&logrus.JSONFormatter{TimestampFormat: "2006-01-02 15:04:05.000"})
-	freedom.Logger().Install(logrus.StandardLogger())
+	app.Logger().Install(logrus.StandardLogger())
 }

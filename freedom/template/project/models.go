@@ -6,7 +6,5 @@ func init() {
 
 func modelsTemplate() string {
 	return `package models
-
-	import "github.com/jinzhu/gorm"
 	`
 }
