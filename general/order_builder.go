@@ -63,7 +63,7 @@ func (o *Order) TotalPage() int {
 func (o *Order) Execute(db *gorm.DB, object interface{}) (e error) {
 	orderBy := o.Order()
 	if o.pager != nil {
-		resultDB := db.Order(orderBy).Offset((o.pager.page - 1) * o.pager.pageSize).Find(object)
+		resultDB := db.Order(orderBy).Offset((o.pager.page - 1) * o.pager.pageSize).Limit(o.pager.pageSize).Find(object)
 		if resultDB.Error != nil {
 			return resultDB.Error
 		}

@@ -23,49 +23,61 @@ func Find{{.Name}}sByPrimarys(rep freedom.GORMRepository, primarys ...interface{
 
 // Find{{.Name}} .
 func Find{{.Name}}(rep freedom.GORMRepository, query *{{.Name}}, builders ...freedom.QueryBuilder) (result {{.Name}}, e error) {
+	db := rep.DB()
+	if query != nil {
+		db = db.Where(query)
+	}
 	if len(builders) == 0 {
-		e = rep.DB().Where(query).Last(&result).Error
+		e = db.Last(&result).Error
 		return
 	}
 
-	e = rep.DB().Where(query).Limit(1).Order(builders[0].Order()).Find(&result).Error
+	e = db.Limit(1).Order(builders[0].Order()).Find(&result).Error
 	return
 }
 
 // Find{{.Name}}ByWhere .
 func Find{{.Name}}ByWhere(rep freedom.GORMRepository, query string, args []interface{}, builders ...freedom.QueryBuilder) (result {{.Name}}, e error) {
+	db := rep.DB()
+	if query != "" {
+		db = db.Where(query, args...)
+	}
 	if len(builders) == 0 {
-		e = rep.DB().Where(query, args...).Last(&result).Error
+		e = db.Last(&result).Error
 		return
 	}
 
-	e = rep.DB().Where(query, args...).Limit(1).Order(builders[0].Order()).Find(&result).Error
+	e = db.Limit(1).Order(builders[0].Order()).Find(&result).Error
 	return
 }
 
 // Find{{.Name}}s .
 func Find{{.Name}}s(rep freedom.GORMRepository, query *{{.Name}}, builders ...freedom.QueryBuilder) (results []{{.Name}}, e error) {
 	db := rep.DB()
-	if len(builders) == 0 {
-		e = db.Where(query).Find(&results).Error
-		return
+	if query != nil {
+		db = db.Where(query)
 	}
 
-	where := db.Where(query)
-	e = builders[0].Execute(where, &results)
+	if len(builders) == 0 {
+		e = db.Find(&results).Error
+		return
+	}
+	e = builders[0].Execute(db, &results)
 	return
 }
 
 // Find{{.Name}}sByWhere .
 func Find{{.Name}}sByWhere(rep freedom.GORMRepository, query string, args []interface{}, builders ...freedom.QueryBuilder) (results []{{.Name}}, e error) {
 	db := rep.DB()
-	if len(builders) == 0 {
-		e = db.Where(query, args...).Find(&results).Error
-		return
+	if query != "" {
+		db = db.Where(query, args...)
 	}
 
-	where := db.Where(query, args...)
-	e = builders[0].Execute(where, &results)
+	if len(builders) == 0 {
+		e = db.Find(&results).Error
+		return
+	}
+	e = builders[0].Execute(db, &results)
 	return
 }
 
