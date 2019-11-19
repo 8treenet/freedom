@@ -68,7 +68,7 @@ func (o *Order) Execute(db *gorm.DB, object interface{}) (e error) {
 			return resultDB.Error
 		}
 		var count int
-		e := resultDB.Count(&count).Error
+		e := db.Model(object).Count(&count).Error
 		if e == nil && count != 0 {
 			//计算分页
 			if count%o.pager.pageSize == 0 {
