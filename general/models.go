@@ -10,6 +10,6 @@ type GORMRepository interface {
 // QueryBuilder .
 type QueryBuilder interface {
 	Execute(db *gorm.DB, object interface{}) (e error)
-	Order() string
+	Order() interface{}
 	Limit() int
 }

@@ -64,20 +64,20 @@ func (repo *Repository) Transaction(fun func() error) (e error) {
 }
 
 // NewDescOrder .
-func (repo *Repository) NewDescOrder(orderField string, orderFields ...string) *Order {
+func (repo *Repository) NewDescOrder(orderField string, orderFields ...string) *Reorder {
 	fields := []string{orderField}
 	fields = append(fields, orderFields...)
-	return &Order{
+	return &Reorder{
 		orderFields: fields,
 		order:       "desc",
 	}
 }
 
 // NewAscOrder .
-func (repo *Repository) NewAscOrder(orderField string, orderFields ...string) *Order {
+func (repo *Repository) NewAscOrder(orderField string, orderFields ...string) *Reorder {
 	fields := []string{orderField}
 	fields = append(fields, orderFields...)
-	return &Order{
+	return &Reorder{
 		orderFields: fields,
 		order:       "asc",
 	}

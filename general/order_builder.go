@@ -1,90 +1,101 @@
 package general
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/jinzhu/gorm"
 )
 
-// Order .
-type Order struct {
+// Reorder .
+type Reorder struct {
 	orderFields []string
 	order       string
-	pager       *struct {
-		pageSize  int
-		page      int
-		TotalPage int
-	}
-	limit *int
 }
 
-// SetPager .
-func (o *Order) SetPager(page, pageSize int) *Order {
-	defer func() {
-		o.limit = nil
-	}()
-	o.pager = new(struct {
-		pageSize  int
-		page      int
-		TotalPage int
-	})
-
-	o.pager.pageSize = pageSize
-	o.pager.page = page
-	return o
+// NewPager .
+func (o *Reorder) NewPager(page, pageSize int) *Pager {
+	pager := new(Pager)
+	pager.Reorder = *o
+	pager.page = page
+	pager.pageSize = pageSize
+	return pager
 }
 
-// SetLimiter .
-func (o *Order) SetLimiter(limit int) *Order {
-	defer func() {
-		o.pager = nil
-	}()
-	o.limit = new(int)
-	*o.limit = limit
-	return o
+// NewLimiter .
+func (o *Reorder) NewLimiter(limit int) *Limiter {
+	limiter := new(Limiter)
+	limiter.Reorder = *o
+	return limiter
 }
 
 // Order .
-func (o *Order) Order() string {
-	return strings.Join(o.orderFields, ",") + " " + o.order
-}
+func (o *Reorder) Order() interface{} {
+	args := []string{}
+	for index := 0; index < len(o.orderFields); index++ {
+		args = append(args, fmt.Sprintf("`%s` %s", o.orderFields[index], o.order))
+	}
 
-// Limit .
-func (o *Order) Limit() int {
-	return *o.limit
-}
-
-// TotalPage .
-func (o *Order) TotalPage() int {
-	return o.pager.TotalPage
+	return strings.Join(args, ",")
 }
 
 // Execute .
-func (o *Order) Execute(db *gorm.DB, object interface{}) (e error) {
-	orderBy := o.Order()
-	if o.pager != nil {
-		resultDB := db.Order(orderBy).Offset((o.pager.page - 1) * o.pager.pageSize).Limit(o.pager.pageSize).Find(object)
-		if resultDB.Error != nil {
-			return resultDB.Error
-		}
-		var count int
-		e := db.Model(object).Count(&count).Error
-		if e == nil && count != 0 {
-			//计算分页
-			if count%o.pager.pageSize == 0 {
-				o.pager.TotalPage = count / o.pager.pageSize
-			} else {
-				o.pager.TotalPage = count/o.pager.pageSize + 1
-			}
+func (o *Reorder) Execute(db *gorm.DB, object interface{}) error {
+	panic("Subclass implementation")
+}
 
-		}
-		return nil
+// Limit .
+func (o *Reorder) Limit() int {
+	panic("Subclass implementation")
+}
+
+// Pager 分页器
+type Pager struct {
+	Reorder
+	pageSize  int
+	page      int
+	totalPage int
+}
+
+// TotalPage .
+func (p *Pager) TotalPage() int {
+	return p.totalPage
+}
+
+// Execute .
+func (p *Pager) Execute(db *gorm.DB, object interface{}) (e error) {
+	orderBy := p.Order()
+	resultDB := db.Order(orderBy).Offset((p.page - 1) * p.pageSize).Limit(p.pageSize).Find(object)
+	if resultDB.Error != nil {
+		return resultDB.Error
 	}
-
-	if o.limit != nil {
-		e = db.Order(orderBy).Limit(*o.limit).Find(object).Error
-		return e
+	var count int
+	e = db.Model(object).Count(&count).Error
+	if e == nil && count != 0 {
+		//计算分页
+		if count%p.pageSize == 0 {
+			p.totalPage = count / p.pageSize
+		} else {
+			p.totalPage = count/p.pageSize + 1
+		}
 	}
-
 	return db.Order(orderBy).Find(&object).Error
+}
+
+// Limiter 行数限制器
+type Limiter struct {
+	Reorder
+	limit int
+}
+
+// Limit .
+func (l *Limiter) Limit() int {
+	return l.limit
+}
+
+// Execute .
+func (l *Limiter) Execute(db *gorm.DB, object interface{}) (e error) {
+	orderBy := l.Order()
+	e = db.Order(orderBy).Limit(l.limit).Find(object).Error
+	return
 }
