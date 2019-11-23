@@ -5,6 +5,9 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
 
 type B struct {
@@ -85,19 +88,39 @@ func TestStore(t *testing.T) {
 	t.Log(store.ToMap())
 }
 
-func TestTotalPage(t *testing.T) {
-	var (
-		result   int
-		size     = 90
-		pageSize = 20
-	)
+type TestUser struct {
+	gorm.Model
+	UserName string `gorm:"size:32"`
+	Password string `gorm:"size:32"`
+	Age      int
+	Status   int
+}
 
-	if size%pageSize == 0 {
-		result = size / pageSize
-	} else {
-		result = size/pageSize + 1
+func newReorder(sort, field string, args ...string) *Reorder {
+	fields := []string{field}
+	fields = append(fields, args...)
+	orders := []string{}
+	for index := 0; index < len(fields); index++ {
+		orders = append(orders, sort)
 	}
-	fmt.Println(result)
+	return &Reorder{
+		fields: fields,
+		orders: orders,
+	}
+}
+
+func TestTotalPage(t *testing.T) {
+	addr := "root:123123@tcp(127.0.0.1:3306)/octree_matrix?charset=utf8&parseTime=True&loc=Local"
+	db, e := gorm.Open("mysql", addr)
+	if e != nil {
+		panic(e)
+	}
+	db.LogMode(true)
+	p := newReorder("desc", "age", "id").NewLimiter(5)
+
+	var list []TestUser
+	p.Execute(db, &list)
+	t.Log(list)
 	return
 }
 

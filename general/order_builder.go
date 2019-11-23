@@ -9,8 +9,8 @@ import (
 
 // Reorder .
 type Reorder struct {
-	orderFields []string
-	order       string
+	fields []string
+	orders []string
 }
 
 // NewPager .
@@ -26,14 +26,15 @@ func (o *Reorder) NewPager(page, pageSize int) *Pager {
 func (o *Reorder) NewLimiter(limit int) *Limiter {
 	limiter := new(Limiter)
 	limiter.Reorder = *o
+	limiter.limit = limit
 	return limiter
 }
 
 // Order .
 func (o *Reorder) Order() interface{} {
 	args := []string{}
-	for index := 0; index < len(o.orderFields); index++ {
-		args = append(args, fmt.Sprintf("`%s` %s", o.orderFields[index], o.order))
+	for index := 0; index < len(o.fields); index++ {
+		args = append(args, fmt.Sprintf("`%s` %s", o.fields[index], o.orders[index]))
 	}
 
 	return strings.Join(args, ",")

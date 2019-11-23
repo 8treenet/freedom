@@ -64,22 +64,26 @@ func (repo *Repository) Transaction(fun func() error) (e error) {
 }
 
 // NewDescOrder .
-func (repo *Repository) NewDescOrder(orderField string, orderFields ...string) *Reorder {
-	fields := []string{orderField}
-	fields = append(fields, orderFields...)
-	return &Reorder{
-		orderFields: fields,
-		order:       "desc",
-	}
+func (repo *Repository) NewDescOrder(field string, fields ...string) *Reorder {
+	return repo.newReorder("desc", field, fields...)
 }
 
 // NewAscOrder .
-func (repo *Repository) NewAscOrder(orderField string, orderFields ...string) *Reorder {
-	fields := []string{orderField}
-	fields = append(fields, orderFields...)
+func (repo *Repository) NewAscOrder(field string, fields ...string) *Reorder {
+	return repo.newReorder("asc", field, fields...)
+}
+
+// NewDescOrder .
+func (repo *Repository) newReorder(sort, field string, args ...string) *Reorder {
+	fields := []string{field}
+	fields = append(fields, args...)
+	orders := []string{}
+	for index := 0; index < len(fields); index++ {
+		orders = append(orders, sort)
+	}
 	return &Reorder{
-		orderFields: fields,
-		order:       "asc",
+		fields: fields,
+		orders: orders,
 	}
 }
 
