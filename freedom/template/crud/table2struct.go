@@ -129,9 +129,9 @@ func (t *Table2Struct) Run() (result []SturctContent, e error) {
 		structContent += "type " + tableName + " struct {\n"
 		for _, v := range item {
 			if v.Primary == "PRI" {
-				v.Tag = "`" + `gorm:"primary_key"` + "`"
+				v.Tag = "`" + `gorm:"primary_key" column:"` + v.Tag + `"` + "`"
 			} else {
-				v.Tag = ""
+				v.Tag = "`" + `gorm:"column:` + v.Tag + `"` + "`"
 			}
 			//structContent += tab(depth) + v.ColumnName + " " + v.Type + " " + v.Json + "\n"
 			// 字段注释
