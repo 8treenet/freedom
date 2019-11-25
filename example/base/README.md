@@ -66,6 +66,8 @@ type Initiator interface {
     BindController(relativePath string, controller interface{}, service ...interface{})
     //绑定服务
     BindService(f interface{})
+    //注入到控制器
+    InjectController(f interface{})
     //绑定Repo
     BindRepository(f interface{})
     //获取服务，freedom内部有 服务的对象池可复用。
@@ -85,14 +87,8 @@ type Initiator interface {
 ```go
 func init() {
     freedom.Booting(func(initiator freedom.Initiator) {
-        //iris 依赖注入 返回要注入的服务对象，service/default.go。
-        serFunc := func(ctx iris.Context) (m *services.DefaultService) {
-            //从服务池里取出服务对象
-            initiator.GetService(ctx, &m)
-            return
-        }
         //绑定Default控制器到路径 /
-        initiator.BindController("/", &DefaultController{}, serFunc)
+        initiator.BindController("/", &DefaultController{})
     })
 }
 
@@ -131,6 +127,13 @@ func init() {
         //绑定服务
         initiator.BindService(func() *DefaultService {
             return &DefaultService{}
+        })
+
+        //控制器中使用依赖注入需要注入到控制器.
+        initiator.InjectController(func(ctx iris.Context) (ds *DefaultService) {
+            //从对象池中获取service
+            initiator.GetService(ctx, &ds)
+            return
         })
     })
 }

@@ -2,12 +2,17 @@ package components
 
 import (
 	"github.com/8treenet/freedom"
+	"github.com/kataras/iris"
 )
 
 func init() {
 	freedom.Booting(func(initiator freedom.Initiator) {
 		initiator.BindComponent(false, func() *DefaultComponent {
 			return &DefaultComponent{}
+		})
+		initiator.InjectController(func(ctx iris.Context) (com *DefaultComponent) {
+			initiator.GetComponent(ctx, &com)
+			return
 		})
 	})
 }

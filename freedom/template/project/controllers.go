@@ -10,16 +10,11 @@ func controllerTemplate() string {
 	import (
 		"github.com/8treenet/freedom"
 		"{{.PackagePath}}/business/services"
-		"github.com/kataras/iris"
 	)
 	
 	func init() {
 		freedom.Booting(func(initiator freedom.Initiator) {
-			serFunc := func(ctx iris.Context) (m *services.DefaultService) {
-				initiator.GetService(ctx, &m)
-				return
-			}
-			initiator.BindController("/", &DefaultController{}, serFunc)
+			initiator.BindController("/", &DefaultController{})
 		})
 	}
 	

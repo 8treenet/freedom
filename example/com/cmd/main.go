@@ -19,6 +19,6 @@ func main() {
 
 func installMiddleware(app freedom.Application) {
 	app.InstallMiddleware(middleware.NewTrace("TRACE-ID"))
-	app.InstallMiddleware(middleware.NewLogger("TRACE-ID"))
+	app.InstallMiddleware(middleware.NewLogger("TRACE-ID", true))
 	app.InstallMiddleware(middleware.NewRuntimeLogger("TRACE-ID"))
 }

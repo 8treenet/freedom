@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"bytes"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -108,7 +109,11 @@ func (l *requestLoggerMiddleware) ServeHTTP(ctx context.Context) {
 			if !writer.IsValid() {
 				break
 			}
-			outBody = string(writer.Bytes())
+
+			buf := writer.Bytes()
+			index := bytes.IndexByte(buf, 0)
+			buf = buf[0:index]
+			outBody = string(buf)
 			break
 		}
 		if outBody != "" {

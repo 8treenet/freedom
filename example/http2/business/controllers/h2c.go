@@ -3,16 +3,11 @@ package controllers
 import (
 	"github.com/8treenet/freedom"
 	"github.com/8treenet/freedom/example/http2/business/services"
-	"github.com/kataras/iris"
 )
 
 func init() {
 	freedom.Booting(func(initiator freedom.Initiator) {
-		serFunc := func(ctx iris.Context) (m *services.H2cService) {
-			initiator.GetService(ctx, &m)
-			return
-		}
-		initiator.BindController("/", &H2cController{}, serFunc)
+		initiator.BindController("/", &H2cController{})
 	})
 }
 

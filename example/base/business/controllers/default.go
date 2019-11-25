@@ -3,16 +3,11 @@ package controllers
 import (
 	"github.com/8treenet/freedom"
 	"github.com/8treenet/freedom/example/base/business/services"
-	"github.com/kataras/iris"
 )
 
 func init() {
 	freedom.Booting(func(initiator freedom.Initiator) {
-		serFunc := func(ctx iris.Context) (m *services.DefaultService) {
-			initiator.GetService(ctx, &m)
-			return
-		}
-		initiator.BindController("/", &DefaultController{}, serFunc)
+		initiator.BindController("/", &DefaultController{})
 	})
 }
 

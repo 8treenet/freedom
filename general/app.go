@@ -48,8 +48,9 @@ type Application struct {
 		client  *redis.Client
 		Install func() (client *redis.Client)
 	}
-	Middleware []context.Handler
-	Prometheus *Prometheus
+	Middleware    []context.Handler
+	Prometheus    *Prometheus
+	ControllerDep []interface{}
 }
 
 // CreateParty .
@@ -137,7 +138,13 @@ func (app *Application) generalDep() (result []interface{}) {
 		rt = ctx.Values().Get(runtimeKey).(Runtime)
 		return
 	})
+	result = append(result, app.ControllerDep...)
 	return
+}
+
+// InjectController .
+func (app *Application) InjectController(f interface{}) {
+	app.ControllerDep = append(app.ControllerDep, f)
 }
 
 // Run .

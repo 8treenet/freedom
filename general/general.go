@@ -14,6 +14,7 @@ type Initiator interface {
 	BindController(relativePath string, controller interface{}, service ...interface{})
 	BindControllerByParty(party iris.Party, controller interface{}, service ...interface{})
 	BindService(f interface{})
+	InjectController(f interface{})
 	BindRepository(f interface{})
 	GetService(ctx iris.Context, service interface{})
 	AsyncCachePreheat(f func(repo *Repository))

@@ -7,24 +7,11 @@ import (
 	"github.com/8treenet/freedom"
 	"github.com/8treenet/freedom/example/com/business/services"
 	"github.com/8treenet/freedom/example/com/components"
-	"github.com/kataras/iris"
 )
 
 func init() {
 	freedom.Booting(func(initiator freedom.Initiator) {
-		serFunc := func(ctx iris.Context) (m *services.DefaultService) {
-			initiator.GetService(ctx, &m)
-			return
-		}
-		comFunc := func(ctx iris.Context) (c *components.DefaultComponent) {
-			initiator.GetComponent(ctx, &c)
-			return
-		}
-		singleFunc := func(ctx iris.Context) (s *components.SingleComponent) {
-			initiator.GetComponent(ctx, &s)
-			return
-		}
-		initiator.BindController("/", &DefaultController{}, serFunc, comFunc, singleFunc)
+		initiator.BindController("/", &DefaultController{})
 	})
 }
 

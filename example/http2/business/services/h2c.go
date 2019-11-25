@@ -3,12 +3,17 @@ package services
 import (
 	"github.com/8treenet/freedom"
 	"github.com/8treenet/freedom/example/http2/business/repositorys"
+	"github.com/kataras/iris"
 )
 
 func init() {
 	freedom.Booting(func(initiator freedom.Initiator) {
 		initiator.BindService(func() *H2cService {
 			return &H2cService{}
+		})
+		initiator.InjectController(func(ctx iris.Context) (service *H2cService) {
+			initiator.GetService(ctx, &service)
+			return
 		})
 	})
 }

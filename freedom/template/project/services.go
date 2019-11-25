@@ -10,12 +10,17 @@ func servicesTemplate() string {
 	import (
 		"github.com/8treenet/freedom"
 		"{{.PackagePath}}/business/repositorys"
+		"github.com/kataras/iris"
 	)
 	
 	func init() {
 		freedom.Booting(func(initiator freedom.Initiator) {
 			initiator.BindService(func() *DefaultService {
 				return &DefaultService{}
+			})
+			initiator.InjectController(func(ctx iris.Context) (service *DefaultService) {
+				initiator.GetService(ctx, &service)
+				return
 			})
 		})
 	}
