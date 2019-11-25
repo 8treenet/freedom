@@ -3,6 +3,7 @@ package middleware
 import (
 	"bytes"
 	"fmt"
+	"io/ioutil"
 	"reflect"
 	"strconv"
 	"strings"
@@ -83,7 +84,7 @@ func (l *requestLoggerMiddleware) ServeHTTP(ctx context.Context) {
 	}
 
 	if l.config.Query {
-		body, e := ctx.GetBody()
+		body, e := ioutil.ReadAll(ctx.Request().Body)
 		cl := ctx.GetContentLength()
 		if e == nil && cl < 512 && len(body) < 512 {
 			msg := string(body)
