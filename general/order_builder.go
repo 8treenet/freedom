@@ -16,7 +16,7 @@ type Reorder struct {
 // NewPager .
 func (o *Reorder) NewPager(page, pageSize int) *Pager {
 	pager := new(Pager)
-	pager.Reorder = *o
+	pager.reorder = *o
 	pager.page = page
 	pager.pageSize = pageSize
 	return pager
@@ -25,7 +25,7 @@ func (o *Reorder) NewPager(page, pageSize int) *Pager {
 // NewLimiter .
 func (o *Reorder) NewLimiter(limit int) *Limiter {
 	limiter := new(Limiter)
-	limiter.Reorder = *o
+	limiter.reorder = *o
 	limiter.limit = limit
 	return limiter
 }
@@ -40,19 +40,9 @@ func (o *Reorder) Order() interface{} {
 	return strings.Join(args, ",")
 }
 
-// Execute .
-func (o *Reorder) Execute(db *gorm.DB, object interface{}) error {
-	panic("Subclass implementation")
-}
-
-// Limit .
-func (o *Reorder) Limit() int {
-	panic("Subclass implementation")
-}
-
 // Pager 分页器
 type Pager struct {
-	Reorder
+	reorder   Reorder
 	pageSize  int
 	page      int
 	totalPage int
@@ -65,7 +55,7 @@ func (p *Pager) TotalPage() int {
 
 // Execute .
 func (p *Pager) Execute(db *gorm.DB, object interface{}) (e error) {
-	orderBy := p.Order()
+	orderBy := p.reorder.Order()
 	resultDB := db.Order(orderBy).Offset((p.page - 1) * p.pageSize).Limit(p.pageSize).Find(object)
 	if resultDB.Error != nil {
 		return resultDB.Error
@@ -83,10 +73,20 @@ func (p *Pager) Execute(db *gorm.DB, object interface{}) (e error) {
 	return
 }
 
+// Order .
+func (p *Pager) Order() interface{} {
+	return p.reorder.Order()
+}
+
+// Limit .
+func (o *Pager) Limit() int {
+	panic("Subclass implementation")
+}
+
 // Limiter 行数限制器
 type Limiter struct {
-	Reorder
-	limit int
+	reorder Reorder
+	limit   int
 }
 
 // Limit .
@@ -96,7 +96,12 @@ func (l *Limiter) Limit() int {
 
 // Execute .
 func (l *Limiter) Execute(db *gorm.DB, object interface{}) (e error) {
-	orderBy := l.Order()
+	orderBy := l.reorder.Order()
 	e = db.Order(orderBy).Limit(l.limit).Find(object).Error
 	return
+}
+
+// Order .
+func (l *Limiter) Order() interface{} {
+	return l.reorder.Order()
 }
