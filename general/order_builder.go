@@ -80,7 +80,7 @@ func (p *Pager) Execute(db *gorm.DB, object interface{}) (e error) {
 			p.totalPage = count/p.pageSize + 1
 		}
 	}
-	return db.Order(orderBy).Find(&object).Error
+	return
 }
 
 // Limiter 行数限制器

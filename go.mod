@@ -12,6 +12,7 @@ require (
 	github.com/fatih/structs v1.1.0 // indirect
 	github.com/flosch/pongo2 v0.0.0-20190707114632-bbf5a6c351f4 // indirect
 	github.com/go-redis/redis v6.15.6+incompatible
+	github.com/go-sql-driver/mysql v1.4.1
 	github.com/gorilla/schema v1.1.0 // indirect
 	github.com/iris-contrib/blackfriday v2.0.0+incompatible // indirect
 	github.com/iris-contrib/formBinder v5.0.0+incompatible // indirect
@@ -25,6 +26,7 @@ require (
 	github.com/prometheus/client_golang v1.2.1
 	github.com/ryanuber/columnize v2.1.0+incompatible
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
+	github.com/spf13/cobra v0.0.5
 	github.com/valyala/fasthttp v1.6.0
 	github.com/zheng-ji/goSnowFlake v0.0.0-20180906112711-fc763800eec9
 	golang.org/x/net v0.0.0-20191124235446-72fef5d5e266
