@@ -22,11 +22,8 @@ func Find{{.Name}}sByPrimarys(rep freedom.GORMRepository, primarys ...interface{
 }
 
 // Find{{.Name}} .
-func Find{{.Name}}(rep freedom.GORMRepository, query *{{.Name}}, builders ...freedom.QueryBuilder) (result {{.Name}}, e error) {
-	db := rep.DB()
-	if query != nil {
-		db = db.Where(query)
-	}
+func Find{{.Name}}(rep freedom.GORMRepository, query {{.Name}}, builders ...freedom.QueryBuilder) (result {{.Name}}, e error) {
+	db := rep.DB().Where(query)
 	if len(builders) == 0 {
 		e = db.Last(&result).Error
 		return
@@ -52,11 +49,8 @@ func Find{{.Name}}ByWhere(rep freedom.GORMRepository, query string, args []inter
 }
 
 // Find{{.Name}}s .
-func Find{{.Name}}s(rep freedom.GORMRepository, query *{{.Name}}, builders ...freedom.QueryBuilder) (results []{{.Name}}, e error) {
-	db := rep.DB()
-	if query != nil {
-		db = db.Where(query)
-	}
+func Find{{.Name}}s(rep freedom.GORMRepository, query {{.Name}}, builders ...freedom.QueryBuilder) (results []{{.Name}}, e error) {
+	db := rep.DB().Where(query)
 
 	if len(builders) == 0 {
 		e = db.Find(&results).Error
@@ -90,15 +84,15 @@ func Create{{.Name}}(rep freedom.GORMRepository, entity *{{.Name}}) (rowsAffecte
 }
 
 // Update{{.Name}} .
-func Update{{.Name}}(rep freedom.GORMRepository, entity *{{.Name}}, value {{.Name}}) (affected int64, e error) {
-	db := rep.DB().Model(entity).Updates(value)
+func Update{{.Name}}(rep freedom.GORMRepository, query *{{.Name}}, value {{.Name}}) (affected int64, e error) {
+	db := rep.DB().Model(query).Updates(value)
 	e = db.Error
 	affected = db.RowsAffected
 	return
 }
 
 // FindToUpdate{{.Name}}s .
-func FindToUpdate{{.Name}}s(rep freedom.GORMRepository, query *{{.Name}}, value {{.Name}}, builders ...freedom.QueryBuilder) (affected int64, e error) {
+func FindToUpdate{{.Name}}s(rep freedom.GORMRepository, query {{.Name}}, value {{.Name}}, builders ...freedom.QueryBuilder) (affected int64, e error) {
 	db := rep.DB()
 	if len(builders) > 0 {
 		db = db.Model(&{{.Name}}{}).Where(query).Order(builders[0].Order()).Limit(builders[0].Limit()).Updates(value)

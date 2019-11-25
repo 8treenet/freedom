@@ -6,17 +6,20 @@ import (
 
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/context"
-	"github.com/kataras/iris/middleware/logger"
 
 	"github.com/kataras/golog"
 )
 
 // NewLogger .
-func NewLogger(traceIDName string) func(context.Context) {
-	loggerConf := logger.DefaultConfig()
+func NewLogger(traceIDName string, body bool) func(context.Context) {
+	loggerConf := DefaultConfig()
 	loggerConf.IP = false
-	loggerConf.MessageContextKeys = []string{traceIDName, "logger_message"}
-	return logger.New(loggerConf)
+	loggerConf.Query = false
+	if body {
+		loggerConf.Query = true
+	}
+	loggerConf.MessageContextKeys = append(loggerConf.MessageContextKeys, traceIDName, "logger_message")
+	return NewRequest(loggerConf)
 }
 
 // NewRuntimeLogger .
