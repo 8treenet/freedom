@@ -44,6 +44,9 @@ func (l *requestLoggerMiddleware) ServeHTTP(ctx context.Context) {
 	var latency time.Duration
 	var startTime, endTime time.Time
 	startTime = time.Now()
+	reqBodyBys, _ := ioutil.ReadAll(ctx.Request().Body)
+	ctx.Request().Body.Close() //  must close
+	ctx.Request().Body = ioutil.NopCloser(bytes.NewBuffer(reqBodyBys))
 
 	ctx.Next()
 
@@ -84,10 +87,9 @@ func (l *requestLoggerMiddleware) ServeHTTP(ctx context.Context) {
 	}
 
 	if l.config.Query {
-		body, e := ioutil.ReadAll(ctx.Request().Body)
 		cl := ctx.GetContentLength()
-		if e == nil && cl < 512 && len(body) < 512 {
-			msg := string(body)
+		if cl < 512 && len(reqBodyBys) < 512 {
+			msg := string(reqBodyBys)
 			msg = strings.Replace(msg, "\n", "", -1)
 			msg = strings.Replace(msg, " ", "", -1)
 			if message == nil {
