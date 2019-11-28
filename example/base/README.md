@@ -20,19 +20,23 @@
 ---
 > main.go
 ```go
+
+//创建应用
+app := freedom.NewApplication()
+
 //应用启动 传入绑定地址和应用配置;
-freedom.Run(addrRunner, config.Get().App)
+app.Run(addrRunner, config.Get().App)
 
-//使用全局中间件;
-freedom.UseMiddleware(middleware.NewTrace("TRACE-ID"))
+//安装中间件;
+app.InstallMiddleware(middleware.NewTrace("TRACE-ID"))
 
-//返回要使用的 gorm 和 gcache 句柄, 如不使用可返回nil;
-freedom.InstallGorm(func() (db *gorm.DB, cache gcache.Plugin) {
+//安装数据库orm, 返回要使用的 gorm 和 gcache 句柄, 如不使用可返回nil;
+app.InstallGorm(func() (db *gorm.DB, cache gcache.Plugin) {
     //gcache.Plugin 是 gorm的缓存中间件
 })
 
-//返回redis 连接句柄
-freedom.InstallRedis(func() (client *redis.Client) {
+//安装redis， 返回连接句柄，如不使用可返回nil。
+app.InstallRedis(func() (client *redis.Client) {
 })
 
 //安装第三方日志 logrus
