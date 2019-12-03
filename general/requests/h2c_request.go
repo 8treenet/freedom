@@ -52,7 +52,7 @@ func timeoutDialer(cTimeout time.Duration) func(net, addr string) (c net.Conn, e
 	}
 }
 
-func NewH2CRequest(rawurl, bus string) Request {
+func NewH2CRequest(rawurl string, bus ...string) Request {
 	result := new(H2CRequest)
 	req := &http.Request{
 		Header: make(http.Header),
@@ -60,8 +60,12 @@ func NewH2CRequest(rawurl, bus string) Request {
 	result.resq = req
 	result.params = make(map[string]interface{})
 	result.url = rawurl
-	result.bus = bus
+	result.bus = ""
 	result.skipBus = false
+
+	if len(bus) > 0 {
+		result.bus = bus[0]
+	}
 	return result
 }
 
@@ -216,7 +220,7 @@ func (hr *H2CRequest) do() (e error) {
 		return
 	}
 	hr.resq.URL = u
-	if !hr.skipBus {
+	if !hr.skipBus && hr.bus != "" {
 		hr.SetHeader("Freedom-Bus", hr.bus)
 	}
 

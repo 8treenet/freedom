@@ -24,14 +24,17 @@ func NewFastClient(rwTimeout time.Duration) {
 }
 
 // NewFastRequest .
-func NewFastRequest(uri, bus string) Request {
+func NewFastRequest(uri string, bus ...string) Request {
 	result := new(FastRequest)
 	result.resq = fasthttp.AcquireRequest()
 	result.resp = fasthttp.AcquireResponse()
 	result.params = make(map[string]interface{})
 	result.url = uri
-	result.bus = bus
+	result.bus = ""
 	result.skipBus = false
+	if len(bus) > 0 {
+		result.bus = bus[0]
+	}
 	return result
 }
 
@@ -206,7 +209,7 @@ func (fr *FastRequest) do() error {
 		return fr.reqe
 	}
 
-	if !fr.skipBus {
+	if !fr.skipBus && fr.bus != "" {
 		fr.SetHeader("Freedom-Bus", fr.bus)
 	}
 
