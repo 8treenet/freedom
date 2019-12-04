@@ -161,6 +161,9 @@ func (app *Application) Run(serve iris.Runner, irisConf iris.Configuration) {
 	for index := 0; index < len(boots); index++ {
 		boots[index](app)
 	}
+	for _, r := range app.IrisApp.GetRoutes() {
+		fmt.Println("[route]", r.Method, r.Path, r.MainHandlerName)
+	}
 
 	repositoryAPIRun(irisConf)
 	app.IrisApp.Run(serve, iris.WithConfiguration(irisConf))
