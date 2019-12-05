@@ -54,10 +54,8 @@ func (repo *Repository) DBCacheByName(name string) gcache.Plugin {
 	return globalApp.Database.Multi[name].cache
 }
 
-// Transaction .
-func (repo *Repository) Transaction(fun func() error) (e error) {
-	repo.transactionDB = globalApp.Database.db.Begin()
-
+func (repo *Repository) transaction(db *gorm.DB, fun func() error) (e error) {
+	repo.transactionDB = db.Begin()
 	defer func() {
 		if perr := recover(); perr != nil {
 			repo.transactionDB.Rollback()
@@ -76,6 +74,18 @@ func (repo *Repository) Transaction(fun func() error) (e error) {
 	}()
 
 	e = fun()
+	return
+}
+
+// Transaction .
+func (repo *Repository) Transaction(fun func() error) (e error) {
+	e = repo.transaction(globalApp.Database.db, fun)
+	return
+}
+
+// TransactionByName .
+func (repo *Repository) TransactionByName(name string, fun func() error) (e error) {
+	e = repo.transaction(globalApp.Database.Multi[name].db, fun)
 	return
 }
 
