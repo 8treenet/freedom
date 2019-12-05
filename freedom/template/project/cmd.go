@@ -154,7 +154,7 @@ func mainTemplate() string {
 	}
 	
 	func installRedis(app freedom.Application) {
-		app.InstallRedis(func() (client *redis.Client) {
+		app.InstallRedis(func() (client redis.Cmdable) {
 			cfg := config.Get().Redis
 			opt := &redis.Options{
 				Addr:               cfg.Addr,

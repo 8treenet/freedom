@@ -10,6 +10,17 @@ import (
 	"time"
 )
 
+//NewMap
+func NewMap(dst interface{}) error {
+	dscValue := reflect.ValueOf(dst)
+	if dscValue.Elem().Kind() != reflect.Map {
+		return errors.New("dst error")
+	}
+	result := reflect.MakeMap(reflect.TypeOf(dst).Elem())
+	dscValue.Elem().Set(result)
+	return nil
+}
+
 //InSlice 是否在数组内
 func InSlice(array interface{}, item interface{}) bool {
 	values := reflect.ValueOf(array)

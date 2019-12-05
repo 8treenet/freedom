@@ -33,9 +33,25 @@ func (repo *Repository) DB() (db *gorm.DB) {
 	return globalApp.Database.db
 }
 
+// DBByName .
+func (repo *Repository) DBByName(name string) (db *gorm.DB) {
+	if _, ok := globalApp.Database.Multi[name]; !ok {
+		return nil
+	}
+	return globalApp.Database.Multi[name].db
+}
+
 // DBCache .
 func (repo *Repository) DBCache() gcache.Plugin {
 	return globalApp.Database.cache
+}
+
+// DBCacheByName .
+func (repo *Repository) DBCacheByName(name string) gcache.Plugin {
+	if _, ok := globalApp.Database.Multi[name]; !ok {
+		return nil
+	}
+	return globalApp.Database.Multi[name].cache
 }
 
 // Transaction .
@@ -88,11 +104,19 @@ func (repo *Repository) newReorder(sort, field string, args ...string) *Reorder 
 }
 
 // Redis .
-func (repo *Repository) Redis() *redis.Client {
+func (repo *Repository) Redis() redis.Cmdable {
 	if globalApp.Redis.client == nil {
 		panic("Redis not installed")
 	}
 	return globalApp.Redis.client
+}
+
+// RedisByName .
+func (repo *Repository) RedisByName(name string) redis.Cmdable {
+	if _, ok := globalApp.Redis.Multi[name]; !ok {
+		return nil
+	}
+	return globalApp.Redis.Multi[name]
 }
 
 // Request .

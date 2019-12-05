@@ -39,14 +39,21 @@ type Application struct {
 	rpool    *RepositoryPool
 	comPool  *ComponentPool
 	Database struct {
-		db      *gorm.DB
-		cache   gcache.Plugin
-		Install func() (db *gorm.DB, cache gcache.Plugin)
+		db            *gorm.DB
+		cache         gcache.Plugin
+		Install       func() (db *gorm.DB, cache gcache.Plugin)
+		InstallByName []func() (name string, db *gorm.DB, cache gcache.Plugin)
+		Multi         map[string]struct {
+			db    *gorm.DB
+			cache gcache.Plugin
+		}
 	}
 
 	Redis struct {
-		client  *redis.Client
-		Install func() (client *redis.Client)
+		client        redis.Cmdable
+		Install       func() (client redis.Cmdable)
+		InstallByName []func() (name string, client redis.Cmdable)
+		Multi         map[string]redis.Cmdable
 	}
 	Middleware    []context.Handler
 	Prometheus    *Prometheus
@@ -150,14 +157,7 @@ func (app *Application) InjectController(f interface{}) {
 // Run .
 func (app *Application) Run(serve iris.Runner, irisConf iris.Configuration) {
 	app.addMiddlewares(irisConf)
-	if app.Database.Install != nil {
-		app.Database.db, app.Database.cache = app.Database.Install()
-	}
-
-	if app.Redis.Install != nil {
-		app.Redis.client = app.Redis.Install()
-	}
-
+	app.installDB()
 	for index := 0; index < len(boots); index++ {
 		boots[index](app)
 	}
@@ -190,8 +190,45 @@ func (app *Application) InstallGorm(f func() (db *gorm.DB, cache gcache.Plugin))
 }
 
 // InstallRedis .
-func (app *Application) InstallRedis(f func() (client *redis.Client)) {
+func (app *Application) InstallRedis(f func() (client redis.Cmdable)) {
 	app.Redis.Install = f
+}
+
+// InstallGorm .
+func (app *Application) InstallGormByName(f func() (name string, db *gorm.DB, cache gcache.Plugin)) {
+	app.Database.InstallByName = append(app.Database.InstallByName, f)
+}
+
+// InstallRedis .
+func (app *Application) InstallRedisByName(f func() (name string, client redis.Cmdable)) {
+	app.Redis.InstallByName = append(app.Redis.InstallByName, f)
+}
+
+func (app *Application) installDB() {
+	if app.Database.Install != nil {
+		app.Database.db, app.Database.cache = app.Database.Install()
+	}
+
+	if app.Redis.Install != nil {
+		app.Redis.client = app.Redis.Install()
+	}
+	NewMap(&app.Database.Multi)
+	NewMap(&app.Redis.Multi)
+
+	for index := 0; index < len(app.Database.InstallByName); index++ {
+		var item struct {
+			db    *gorm.DB
+			cache gcache.Plugin
+		}
+		var name string
+		name, item.db, item.cache = app.Database.InstallByName[index]()
+		app.Database.Multi[name] = item
+	}
+
+	for index := 0; index < len(app.Redis.InstallByName); index++ {
+		name, client := app.Redis.InstallByName[index]()
+		app.Redis.Multi[name] = client
+	}
 }
 
 // Logger .

@@ -40,7 +40,7 @@ func (c *Component) DBCache() gcache.Plugin {
 }
 
 // Redis .
-func (c *Component) Redis() *redis.Client {
+func (c *Component) Redis() redis.Cmdable {
 	if globalApp.Redis.client == nil {
 		panic("Redis not installed")
 	}

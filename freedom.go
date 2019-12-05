@@ -89,7 +89,9 @@ func Configure(obj interface{}, fileName string, def bool) {
 
 type Application interface {
 	InstallGorm(f func() (db *gorm.DB, cache gcache.Plugin))
-	InstallRedis(f func() (client *redis.Client))
+	InstallGormByName(f func() (name string, db *gorm.DB, cache gcache.Plugin))
+	InstallRedis(f func() (client redis.Cmdable))
+	InstallRedisByName(f func() (name string, client redis.Cmdable))
 	InstallMiddleware(handler iris.Handler)
 	CreateH2CRunner(addr string) iris.Runner
 	Iris() *iris.Application
