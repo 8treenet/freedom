@@ -8,7 +8,7 @@
 - 集成gorm
 - 集成gcache
 - 链路追踪
-- 链路共享组件
+- 链路共享组件
 - http2 server
 - http2 client
 - 依赖注入
