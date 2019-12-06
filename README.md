@@ -41,4 +41,4 @@ $ freedom new-crud
 
 #### [基础示例](https://github.com/8treenet/freedom/blob/master/example/base)
 #### [http2示例](https://github.com/8treenet/freedom/blob/master/example/http2)
-#### [组件总线示例](https://github.com/8treenet/freedom/blob/master/example/com)
+#### [链路共享组件示例](https://github.com/8treenet/freedom/blob/master/example/com)
