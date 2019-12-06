@@ -50,6 +50,20 @@ func (pool *ComponentPool) get(rt *appRuntime, ptr reflect.Value) bool {
 	return false
 }
 
+// booting .
+func (pool *ComponentPool) singleBooting(app *Application) {
+	type boot interface {
+		Booting(SingleBoot)
+	}
+	for _, com := range pool.singlemap {
+		bootimpl, ok := com.(boot)
+		if !ok {
+			continue
+		}
+		bootimpl.Booting(app)
+	}
+}
+
 func (pool *ComponentPool) single(t reflect.Type) interface{} {
 	return pool.singlemap[t]
 }

@@ -166,6 +166,7 @@ func (app *Application) Run(serve iris.Runner, irisConf iris.Configuration) {
 	}
 
 	repositoryAPIRun(irisConf)
+	app.comPool.singleBooting(app)
 	app.IrisApp.Run(serve, iris.WithConfiguration(irisConf))
 }
 

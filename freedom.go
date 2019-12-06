@@ -36,6 +36,9 @@ type (
 
 	// Component .
 	Component = general.Component
+
+	// SingleBoot .
+	SingleBoot = general.SingleBoot
 )
 
 // NewApplication .
@@ -87,6 +90,7 @@ func Configure(obj interface{}, fileName string, def bool) {
 	}
 }
 
+// Application .
 type Application interface {
 	InstallGorm(f func() (db *gorm.DB, cache gcache.Plugin))
 	InstallGormByName(f func() (name string, db *gorm.DB, cache gcache.Plugin))

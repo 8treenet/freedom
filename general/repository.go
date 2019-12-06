@@ -17,11 +17,14 @@ import (
 type Repository struct {
 	Runtime       Runtime
 	transactionDB *gorm.DB
+	selectDB      *gorm.DB
 }
 
 // BeginRequest .
 func (repo *Repository) BeginRequest(rt Runtime) {
 	repo.Runtime = rt
+	repo.selectDB = nil
+	repo.transactionDB = nil
 }
 
 // DB .
@@ -29,8 +32,23 @@ func (repo *Repository) DB() (db *gorm.DB) {
 	if repo.transactionDB != nil {
 		return repo.transactionDB
 	}
+	if repo.selectDB != nil {
+		return repo.selectDB
+	}
 
 	return globalApp.Database.db
+}
+
+// SelectDB .
+func (repo *Repository) SelectDB(name string) *Repository {
+	if _, ok := globalApp.Database.Multi[name]; !ok {
+		panic(fmt.Sprintf("db '%s' does not exist", name))
+	}
+
+	newRepository := new(Repository)
+	newRepository.Runtime = repo.Runtime
+	newRepository.selectDB = globalApp.Database.Multi[name].db
+	return newRepository
 }
 
 // DBByName .
@@ -67,7 +85,10 @@ func (repo *Repository) transaction(db *gorm.DB, fun func() error) (e error) {
 		deferdb := repo.transactionDB
 		repo.transactionDB = nil
 		if e != nil {
-			e = deferdb.Rollback().Error
+			e2 := deferdb.Rollback()
+			if e2.Error != nil {
+				e = errors.New(e.Error() + "," + e2.Error.Error())
+			}
 			return
 		}
 		e = deferdb.Commit().Error
@@ -79,13 +100,7 @@ func (repo *Repository) transaction(db *gorm.DB, fun func() error) (e error) {
 
 // Transaction .
 func (repo *Repository) Transaction(fun func() error) (e error) {
-	e = repo.transaction(globalApp.Database.db, fun)
-	return
-}
-
-// TransactionByName .
-func (repo *Repository) TransactionByName(name string, fun func() error) (e error) {
-	e = repo.transaction(globalApp.Database.Multi[name].db, fun)
+	e = repo.transaction(repo.DB(), fun)
 	return
 }
 
