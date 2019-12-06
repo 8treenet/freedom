@@ -35,8 +35,8 @@ app.InstallGorm(func() (db *gorm.DB, cache gcache.Plugin) {
     //gcache.Plugin 是 gorm的缓存中间件
 })
 
-//安装redis， 返回连接句柄，如不使用可返回nil。
-app.InstallRedis(func() (client *redis.Client) {
+//安装redis 返回接口
+app.InstallRedis(func() (client redis.Cmdable) {
 })
 
 //安装第三方日志 logrus
