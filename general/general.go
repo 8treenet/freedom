@@ -23,12 +23,15 @@ type Initiator interface {
 	//BindComponent 如果是单例 com是对象， 如果是多例，com是函数
 	BindComponent(single bool, com interface{})
 	GetComponent(ctx iris.Context, com interface{})
+	//监听消息
+	ListenMessage(topic string, controller interface{}, funName string)
 }
 
 // SingleBoot .
 type SingleBoot interface {
 	Iris() *iris.Application
 	Logger() *golog.Logger
+	MessagesPath() map[string]string
 }
 
 // BeginRequest .

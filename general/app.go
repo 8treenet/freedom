@@ -19,6 +19,9 @@ import (
 	"github.com/kataras/iris/context"
 )
 
+var _ Initiator = new(Application)
+var _ SingleBoot = new(Application)
+
 // NewApplication .
 func NewApplication() *Application {
 	globalAppOnce.Do(func() {
@@ -27,6 +30,7 @@ func NewApplication() *Application {
 		globalApp.pool = newServicePool()
 		globalApp.rpool = newRepoPool()
 		globalApp.comPool = newComponentPool()
+		globalApp.msgsBus = newMessageBus()
 		globalApp.IrisApp.Logger().SetTimeFormat("2006-01-02 15:04:05.000")
 	})
 	return globalApp
@@ -38,6 +42,7 @@ type Application struct {
 	pool     *ServicePool
 	rpool    *RepositoryPool
 	comPool  *ComponentPool
+	msgsBus  *MessageBus
 	Database struct {
 		db            *gorm.DB
 		cache         gcache.Plugin
@@ -105,6 +110,16 @@ func (app *Application) BindRepository(f interface{}) {
 		panic(fmt.Sprintf("%v : %s", f, fmt.Sprint(err)))
 	}
 	app.rpool.bind(outType, f)
+}
+
+// ListenMessage .
+func (app *Application) ListenMessage(topic string, controller interface{}, funName string) {
+	app.msgsBus.add(topic, controller, funName)
+}
+
+// MessagesPath .
+func (app *Application) MessagesPath() map[string]string {
+	return app.msgsBus.MessagesPath()
 }
 
 // BindComponent .
