@@ -24,7 +24,7 @@ type Initiator interface {
 	BindComponent(single bool, com interface{})
 	GetComponent(ctx iris.Context, com interface{})
 	//监听消息
-	ListenMessage(topic string, controller interface{}, funName string)
+	ListenMessage(controller interface{}, funName string)
 }
 
 // SingleBoot .

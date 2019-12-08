@@ -18,14 +18,16 @@ type MessageBus struct {
 }
 
 // add .
-func (msgBus *MessageBus) add(topic string, controller interface{}, funName string) {
-	err := fmt.Sprintf("ListenMessage '%s' panic, the method format must be 'PostMsg{}By(messageKey string)'", funName)
+func (msgBus *MessageBus) add(controller interface{}, funName string) {
+	err := fmt.Sprintf("ListenMessage '%s' panic, the method format must be 'Post{Topic}By(messageKey string)'", funName)
 	objType := reflect.TypeOf(controller)
 
 	bytefunName := []byte(funName)
-	if len(bytefunName) < 10 || !bytes.Equal([]byte("PostMsg"), bytefunName[0:7]) || !bytes.Equal([]byte("By"), bytefunName[len(bytefunName)-2:]) {
+	if len(bytefunName) < 10 || !bytes.Equal([]byte("Post"), bytefunName[0:4]) || !bytes.Equal([]byte("By"), bytefunName[len(bytefunName)-2:]) {
 		panic(err)
 	}
+	topic := string(bytefunName[4 : len(bytefunName)-2])
+
 	for index := 0; index < objType.NumMethod(); index++ {
 		if funName != objType.Method(index).Name {
 			continue

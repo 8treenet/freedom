@@ -113,8 +113,8 @@ func (app *Application) BindRepository(f interface{}) {
 }
 
 // ListenMessage .
-func (app *Application) ListenMessage(topic string, controller interface{}, funName string) {
-	app.msgsBus.add(topic, controller, funName)
+func (app *Application) ListenMessage(controller interface{}, funName string) {
+	app.msgsBus.add(controller, funName)
 }
 
 // MessagesPath .
