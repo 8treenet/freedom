@@ -38,12 +38,13 @@ func NewApplication() *Application {
 
 // Application .
 type Application struct {
-	IrisApp  *iris.Application
-	pool     *ServicePool
-	rpool    *RepositoryPool
-	comPool  *ComponentPool
-	msgsBus  *MessageBus
-	Database struct {
+	IrisApp     *iris.Application
+	pool        *ServicePool
+	rpool       *RepositoryPool
+	comPool     *ComponentPool
+	msgsBus     *MessageBus
+	prefixParty string
+	Database    struct {
 		db            *gorm.DB
 		cache         gcache.Plugin
 		Install       func() (db *gorm.DB, cache gcache.Plugin)
@@ -65,14 +66,19 @@ type Application struct {
 	ControllerDep []interface{}
 }
 
+// InstallParty .
+func (app *Application) InstallParty(relativePath string) {
+	app.prefixParty = relativePath
+}
+
 // CreateParty .
 func (app *Application) CreateParty(relativePath string, handlers ...context.Handler) iris.Party {
-	return app.IrisApp.Party(relativePath, handlers...)
+	return app.IrisApp.Party(app.prefixParty+relativePath, handlers...)
 }
 
 // BindController .
 func (app *Application) BindController(relativePath string, controller interface{}, service ...interface{}) {
-	mvcApp := mvc.New(app.IrisApp.Party(relativePath))
+	mvcApp := mvc.New(app.IrisApp.Party(app.prefixParty + relativePath))
 	deps := append(app.generalDep(), service...)
 	mvcApp.Register(deps...)
 	mvcApp.Handle(controller)

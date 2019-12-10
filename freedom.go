@@ -97,6 +97,7 @@ type Application interface {
 	InstallRedis(f func() (client redis.Cmdable))
 	InstallRedisByName(f func() (name string, client redis.Cmdable))
 	InstallMiddleware(handler iris.Handler)
+	InstallParty(relativePath string)
 	CreateH2CRunner(addr string) iris.Runner
 	Iris() *iris.Application
 	Logger() *golog.Logger
