@@ -139,7 +139,11 @@ func (hr *H2CRequest) ToJSON(obj interface{}) (r Response) {
 	if r.Error != nil {
 		return
 	}
-	r.Error = json.Unmarshal(hr.body(), obj)
+	body := hr.body()
+	r.Error = json.Unmarshal(body, obj)
+	if r.Error != nil {
+		r.Error = fmt.Errorf("%s, body:%s", r.Error.Error(), string(body))
+	}
 	return
 }
 
@@ -221,7 +225,7 @@ func (hr *H2CRequest) do() (e error) {
 	}
 	hr.resq.URL = u
 	if !hr.skipBus && hr.bus != "" {
-		hr.SetHeader("Freedom-Bus", hr.bus)
+		hr.SetHeader("X-Freedom-Bus", hr.bus)
 	}
 
 	hr.resp, e = h2cclient.Do(hr.resq)

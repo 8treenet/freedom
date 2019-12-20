@@ -150,7 +150,7 @@ type Request requests.Request
 // NewFastRequest .
 func (repo *Repository) NewFastRequest(url string) Request {
 	bus := GetBus(repo.Runtime.Ctx())
-	req := requests.NewFastRequest(url, bus.toJson())
+	req := requests.NewFastRequest(url, bus.ToJson())
 
 	return req
 }
@@ -158,7 +158,7 @@ func (repo *Repository) NewFastRequest(url string) Request {
 // NewH2CRequest .
 func (repo *Repository) NewH2CRequest(url string) Request {
 	bus := GetBus(repo.Runtime.Ctx())
-	req := requests.NewH2CRequest(url, bus.toJson())
+	req := requests.NewH2CRequest(url, bus.ToJson())
 	return req
 }
 

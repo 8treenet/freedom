@@ -50,7 +50,7 @@ func (c *Component) Redis() redis.Cmdable {
 // NewFastRequest .
 func (c *Component) NewFastRequest(url string) Request {
 	bus := GetBus(c.Runtime.Ctx())
-	req := requests.NewFastRequest(url, bus.toJson())
+	req := requests.NewFastRequest(url, bus.ToJson())
 
 	return req
 }
@@ -58,6 +58,6 @@ func (c *Component) NewFastRequest(url string) Request {
 // NewH2CRequest .
 func (c *Component) NewH2CRequest(url string) Request {
 	bus := GetBus(c.Runtime.Ctx())
-	req := requests.NewH2CRequest(url, bus.toJson())
+	req := requests.NewH2CRequest(url, bus.ToJson())
 	return req
 }

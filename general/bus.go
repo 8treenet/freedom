@@ -30,8 +30,8 @@ func (b *Bus) Get(key string) (obj interface{}, ok bool) {
 	return
 }
 
-// Get .
-func (b *Bus) toJson() string {
+// ToJson .
+func (b *Bus) ToJson() string {
 	bys, _ := json.Marshal(b.m)
 	return string(bys)
 }

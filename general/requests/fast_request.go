@@ -119,7 +119,11 @@ func (fr *FastRequest) ToJSON(obj interface{}) (r Response) {
 	if r.Error != nil {
 		return
 	}
-	r.Error = json.Unmarshal(fr.resp.Body(), obj)
+	body := fr.resp.Body()
+	r.Error = json.Unmarshal(body, obj)
+	if r.Error != nil {
+		r.Error = fmt.Errorf("%s, body:%s", r.Error.Error(), string(body))
+	}
 	return
 }
 
@@ -210,7 +214,7 @@ func (fr *FastRequest) do() error {
 	}
 
 	if !fr.skipBus && fr.bus != "" {
-		fr.SetHeader("Freedom-Bus", fr.bus)
+		fr.SetHeader("X-Freedom-Bus", fr.bus)
 	}
 
 	fr.resq.SetRequestURI(fr.URI())
