@@ -16,7 +16,7 @@ require (
 	github.com/gorilla/schema v1.1.0 // indirect
 	github.com/iris-contrib/blackfriday v2.0.0+incompatible // indirect
 	github.com/iris-contrib/formBinder v5.0.0+incompatible // indirect
-	github.com/iris-contrib/go.uuid v2.0.0+incompatible // indirect
+	github.com/iris-contrib/go.uuid v2.0.0+incompatible
 	github.com/jinzhu/gorm v1.9.11
 	github.com/kataras/golog v0.0.9
 	github.com/kataras/iris v11.1.1+incompatible

@@ -1,17 +1,15 @@
 package middleware
 
 import (
-	"hash/crc32"
+	"fmt"
 	"math/rand"
-	"os"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/8treenet/freedom/general"
 
+	uuid "github.com/iris-contrib/go.uuid"
 	"github.com/kataras/iris/context"
-	"github.com/zheng-ji/goSnowFlake"
 )
 
 // NewTrace .
@@ -19,34 +17,25 @@ func NewTrace(traceIDName string) func(context.Context) {
 	return func(ctx context.Context) {
 		bus := general.GetBus(ctx)
 		traceID, ok := bus.Get(traceIDName)
-		if !ok || traceID == "" {
-			traceID = uuid()
+		for {
+			if ok || traceID != nil {
+				fmt.Println("NewTrace2")
+				break
+			}
+			uuidv1, e := uuid.NewV1()
+			if e != nil {
+				break
+			}
+			traceID = strings.ReplaceAll(uuidv1.String(), "-", "")
+			break
 		}
+
 		ctx.Values().Set(traceIDName, traceID)
 		bus.Add(traceIDName, traceID)
 		ctx.Next()
 	}
 }
 
-// uuid .
-func uuid() string {
-	if snowFlakeWorker == nil {
-		return ""
-	}
-	ts, _ := snowFlakeWorker.NextId()
-	return strings.ToUpper(hostID + strconv.FormatInt(ts, 36))
-}
-
-var snowFlakeWorker *goSnowFlake.IdWorker
-var hostID string
-
 func init() {
-	hostName, err := os.Hostname()
-	if err != nil {
-		return
-	}
-	hostID = strconv.FormatInt(int64(crc32.ChecksumIEEE([]byte(hostName))), 36)
 	rand.Seed(time.Now().UnixNano())
-	machineID := int64(1 + rand.Intn(950))
-	snowFlakeWorker, _ = goSnowFlake.NewIdWorker(machineID)
 }
