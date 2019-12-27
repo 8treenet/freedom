@@ -2,6 +2,11 @@ package project
 
 func init() {
 	content["/business/services/default.go"] = servicesTemplate()
+	content["/business/services/interface.go"] = servicesInterfaceTemplate()
+}
+
+func servicesInterfaceTemplate() string {
+	return `package services`
 }
 
 func servicesTemplate() string {
@@ -10,7 +15,6 @@ func servicesTemplate() string {
 	import (
 		"github.com/8treenet/freedom"
 		"{{.PackagePath}}/business/repositorys"
-		"github.com/kataras/iris"
 	)
 	
 	func init() {
@@ -18,23 +22,18 @@ func servicesTemplate() string {
 			initiator.BindService(func() *DefaultService {
 				return &DefaultService{}
 			})
-			initiator.InjectController(func(ctx iris.Context) (service *DefaultService) {
+			initiator.InjectController(func(ctx freedom.Context) (service *DefaultService) {
 				initiator.GetService(ctx, &service)
 				return
 			})
 		})
 	}
 	
-	// DefaultRepoInterface .
-	type DefaultRepoInterface interface {
-		GetUA() string
-	}
-	
 	// DefaultService .
 	type DefaultService struct {
 		Runtime   freedom.Runtime
 		DefRepo   *repositorys.DefaultRepository
-		DefRepoIF DefaultRepoInterface
+		DefRepoIF repositorys.DefaultRepoInterface
 	}
 	
 	// RemoteInfo .

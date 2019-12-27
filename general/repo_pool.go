@@ -40,3 +40,37 @@ func (pool *RepositoryPool) allType() (list []reflect.Type) {
 	}
 	return
 }
+
+func (pool *RepositoryPool) diRepo(entity interface{}) {
+	allFields(entity, func(value reflect.Value) {
+		if value.Kind() == reflect.Ptr && value.IsZero() {
+			ok, newfield := pool.get(value.Type())
+			if !ok {
+				return
+			}
+			if !value.CanSet() {
+				globalApp.IrisApp.Logger().Fatal("The member variable must be publicly visible, Its type is " + value.Type().String())
+			}
+			value.Set(newfield)
+		}
+
+		if value.Kind() == reflect.Interface && value.IsZero() {
+			typeList := pool.allType()
+			for index := 0; index < len(typeList); index++ {
+				if !typeList[index].Implements(value.Type()) {
+					continue
+				}
+				ok, newfield := pool.get(typeList[index])
+				if !ok {
+					continue
+				}
+				if !value.CanSet() {
+					globalApp.IrisApp.Logger().Fatal("The member variable must be publicly visible, Its type is " + value.Type().String())
+				}
+				pool.diRepo(newfield.Interface())
+				value.Set(newfield)
+				return
+			}
+		}
+	})
+}

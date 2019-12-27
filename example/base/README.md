@@ -1,49 +1,44 @@
 # freedom
 ### base - 基础示例
 
-> 目录结构
+#### 目录结构
 
 - business - 业务逻辑
     - controllers - 控制器目录
     - service - 服务目录
     - repositorys - 数据仓库目录
+    - entity - 如果是DDD风格,实体对象目录.
 
 - cmd - 启动入口
     - conf - toml配置文件
     - main.go - 主函数
 
-- components - 组件
-    - config - 配置组件目录 *go
+- infra - 基础设施
+    - config - 配置组件
 
 - models - 模型
 
 ---
-> main.go
+#### 入口main.go
 ```go
 
 //创建应用
 app := freedom.NewApplication()
+//安装中间件
+installMiddleware(app)
 
 //应用启动 传入绑定地址和应用配置;
-app.Run(addrRunner, config.Get().App)
+app.Run(addrRunner, *config.Get().App)
 
-//安装中间件;
-app.InstallMiddleware(middleware.NewTrace("TRACE-ID"))
-
-//安装数据库orm, 返回要使用的 gorm 和 gcache 句柄, 如不使用可返回nil;
-app.InstallGorm(func() (db *gorm.DB, cache gcache.Plugin) {
-    //gcache.Plugin 是 gorm的缓存中间件
-})
-
-//安装redis 返回接口
-app.InstallRedis(func() (client redis.Cmdable) {
-})
-
-//安装第三方日志 logrus
-freedom.Logger().Install(logrus.StandardLogger())
+func installMiddleware(app freedom.Application) {
+    //安装TRACE中间件，框架已默认安装普罗米修斯
+    app.InstallMiddleware(middleware.NewTrace("TRACE-ID"))
+    app.InstallMiddleware(middleware.NewLogger("TRACE-ID", true))
+    app.InstallMiddleware(middleware.NewRuntimeLogger("TRACE-ID"))
+}
 ```
 
-> 接口介绍
+#### 接口介绍
 ```go
  /*
     每一个请求都会串行的创建一系列对象(controller,service,repository)，不用太担心内存问题，因为底层有对象池。
@@ -52,7 +47,7 @@ freedom.Logger().Install(logrus.StandardLogger())
 type Runtime interface {
     //获取iris的上下文
     Ctx() iris.Context
-    //获取带上下文的日志实例，可以注入上下文的trace。
+    //获取带上下文的日志实例。
     Logger() Logger
     //获取一级缓存实例，请求结束，该缓存生命周期结束。
     Store() *memstore.Store
@@ -60,7 +55,7 @@ type Runtime interface {
     Prometheus() *Prometheus
 }
 
-// Initiator 初始化接口，在Booting使用。
+// Initiator 实例初始化接口，在Booting使用。
 type Initiator interface {
     //创建 iris.Party 中间件
     CreateParty(relativePath string, handlers ...context.Handler) iris.Party
@@ -74,20 +69,20 @@ type Initiator interface {
     InjectController(f interface{})
     //绑定Repo
     BindRepository(f interface{})
-    //获取服务，freedom内部有 服务的对象池可复用。
+    //获取服务
     GetService(ctx iris.Context, service interface{})
     //异步缓存预热
     AsyncCachePreheat(f func(repo *Repository))
     //同步缓存预热
     CachePreheat(f func(repo *Repository))
-    //绑定组件 如果组件是单例 com是对象， 如果组件是多例com是创建方法。
-    BindComponent(single bool, com interface{})
-    //获取组件, 只有控制器获取组件需要在booting内调用， service和repository可直接依赖注入
-    GetComponent(ctx iris.Context, com interface{})
+    //绑定基础设施组件 如果组件是单例 com是对象， 如果组件是多例com是创建函数。
+    BindInfra(single bool, com interface{})
+    //获取基础设施组件, 只有控制器获取组件需要在booting内调用， service和repository可直接依赖注入
+    GetInfra(ctx iris.Context, com interface{})
 }
 ```
 
-> controllers/default.go
+#### controllers/default.go
 ```go
 func init() {
     freedom.Booting(func(initiator freedom.Initiator) {
@@ -101,8 +96,8 @@ func init() {
     Sev : 使用服务对象定义成员变量，与init里的依赖注入相关。可以声明接口成员变量接收。
 */
 type DefaultController struct {
-    Sev     *services.DefaultService
-    Runtime freedom.Runtime
+    Sev     *services.DefaultService //被注入的变量名，必须是大写开头。go规范小写变量名，反射是无法注入的。
+    Runtime freedom.Runtime //注入请求运行时
 }
 
 /* 
@@ -124,7 +119,7 @@ func (c *DefaultController) Get() (result struct {
 }
 ```
 
-> service/default.go
+#### service/default.go
 ```go
 func init() {
     freedom.Booting(func(initiator freedom.Initiator) {
@@ -133,8 +128,8 @@ func init() {
             return &DefaultService{}
         })
 
-        //控制器中使用依赖注入需要注入到控制器.
-        initiator.InjectController(func(ctx iris.Context) (ds *DefaultService) {
+        //控制器中使用依赖注入, 需要注入到控制器.
+        initiator.InjectController(func(ctx freedom.Context) (ds *DefaultService) {
             //从对象池中获取service
             initiator.GetService(ctx, &ds)
             return
@@ -145,10 +140,7 @@ func init() {
 //  服务 DefaultService
 type DefaultService struct {
     Runtime freedom.Runtime
-
-    //以下是实体调用和接口调用的2种成员变量，推荐使用接口隔离
-    DefRepo   *repositorys.DefaultRepository // repository/default.go
-    DefRepoIF DefaultRepoInterface
+    DefRepo   *repositorys.DefaultRepository
 }
 
 // RemoteInfo .
@@ -160,17 +152,12 @@ func (s *DefaultService) RemoteInfo() (result struct {
 
     //调用repo获取数据
     result.IP = s.DefRepo.GetIP()
-    result.UA = s.DefRepoIF.GetUA()
+    result.UA = s.DefRepo.GetUA()
     return
-}
-
-// 接口声明
-type DefaultRepoInterface interface {
-    GetUA() string
 }
 ```
 
-> repositorys/default.go
+#### repositorys/default.go
 ```go
 func init() {
     freedom.Booting(func(initiator freedom.Initiator) {
@@ -183,7 +170,7 @@ func init() {
 
 /* 
     数据仓库 DefaultRepository 
-    数据仓库主要用于 db、缓存、http、消息队列...的数据组织和抽象，示例直接返回上下文里的数据。
+    数据仓库主要用于 db、缓存、http...的数据组织和抽象，示例直接返回上下文里的ip数据。
 */
 type DefaultRepository struct {
     freedom.Repository
@@ -191,7 +178,6 @@ type DefaultRepository struct {
 
 // GetIP .
 func (repo *DefaultRepository) GetIP() string {
-    //repo.DB().Find()
     repo.Runtime.Logger().Infof("我是Repository GetIP")
     return repo.Runtime.Ctx().RemoteAddr()
 }
@@ -203,3 +189,14 @@ func (repo *DefaultRepository) GetUA() string {
     return repo.Runtime.Ctx().Request().UserAgent()
 }  
 ```
+
+#### 配置文件
+
+|文件 | 作用 |
+| ----- | :---: |
+|cmd/conf/app.toml|服务配置|
+|cmd/conf/db.toml|db配置|
+|cmd/conf/redis.toml|缓存配置|
+
+#### 生命周期
+###### 每一个请求接入都会创建若干依赖对象，从controller、service、repository、infra。简单的讲每一个请求都是独立的创建和使用这一系列对象，不会导致并发的问题。当然也无需担心效率问题，框架已经做了池。可以参见 initiator 里的各种Bind方法。

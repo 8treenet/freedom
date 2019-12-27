@@ -3,7 +3,6 @@ package general
 import (
 	"sync"
 
-	"github.com/kataras/golog"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/context"
 	"github.com/kataras/iris/core/memstore"
@@ -20,18 +19,17 @@ type Initiator interface {
 	GetService(ctx iris.Context, service interface{})
 	AsyncCachePreheat(f func(repo *Repository))
 	CachePreheat(f func(repo *Repository))
-	//BindComponent 如果是单例 com是对象， 如果是多例，com是函数
-	BindComponent(single bool, com interface{})
-	GetComponent(ctx iris.Context, com interface{})
-	//监听消息
-	ListenMessage(controller interface{}, funName string)
+	//BindInfra 如果是单例 com是对象， 如果是多例，com是函数
+	BindInfra(single bool, com interface{})
+	GetInfra(ctx iris.Context, com interface{})
+	//监听事件
+	ListenEvent(eventName string, fun interface{}, appointInfra ...interface{})
 }
 
 // SingleBoot .
 type SingleBoot interface {
 	Iris() *iris.Application
-	Logger() *golog.Logger
-	MessagesPath() map[string]string
+	EventsPath(infra interface{}) map[string][]string
 }
 
 // BeginRequest .

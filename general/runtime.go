@@ -22,7 +22,7 @@ func newRuntime(ctx iris.Context) *appRuntime {
 	rt.coms = make(map[reflect.Type]interface{})
 	rt.ctx = ctx
 	rt.store = ctx.Values()
-	busStr := ctx.GetHeader("X-Freedom-Bus")
+	busStr := ctx.GetHeader("x-freedom-bus")
 	rt.bus = newBus(busStr)
 	return rt
 }

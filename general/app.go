@@ -27,9 +27,10 @@ func NewApplication() *Application {
 	globalAppOnce.Do(func() {
 		globalApp = new(Application)
 		globalApp.IrisApp = iris.New()
+		globalApp.IrisApp.Logger().SetLevel("debug")
 		globalApp.pool = newServicePool()
 		globalApp.rpool = newRepoPool()
-		globalApp.comPool = newComponentPool()
+		globalApp.comPool = newInfraPool()
 		globalApp.msgsBus = newMessageBus()
 		globalApp.IrisApp.Logger().SetTimeFormat("2006-01-02 15:04:05.000")
 	})
@@ -41,8 +42,8 @@ type Application struct {
 	IrisApp     *iris.Application
 	pool        *ServicePool
 	rpool       *RepositoryPool
-	comPool     *ComponentPool
-	msgsBus     *MessageBus
+	comPool     *InfraPool
+	msgsBus     *EventBus
 	prefixParty string
 	Database    struct {
 		db            *gorm.DB
@@ -82,6 +83,7 @@ func (app *Application) BindController(relativePath string, controller interface
 	deps := append(app.generalDep(), service...)
 	mvcApp.Register(deps...)
 	mvcApp.Handle(controller)
+	app.msgsBus.addController(controller)
 	return
 }
 
@@ -119,17 +121,17 @@ func (app *Application) BindRepository(f interface{}) {
 }
 
 // ListenMessage .
-func (app *Application) ListenMessage(controller interface{}, funName string) {
-	app.msgsBus.add(controller, funName)
+func (app *Application) ListenEvent(eventName string, fun interface{}, appointInfra ...interface{}) {
+	app.msgsBus.addEvent(fun, eventName, appointInfra...)
 }
 
-// MessagesPath .
-func (app *Application) MessagesPath() map[string]string {
-	return app.msgsBus.MessagesPath()
+// EventsPath .
+func (app *Application) EventsPath(infra interface{}) map[string][]string {
+	return app.msgsBus.EventsPath(infra)
 }
 
-// BindComponent .
-func (app *Application) BindComponent(single bool, com interface{}) {
+// BindInfra .
+func (app *Application) BindInfra(single bool, com interface{}) {
 	if !single {
 		outType, err := parsePoolFunc(com)
 		if err != nil {
@@ -139,13 +141,13 @@ func (app *Application) BindComponent(single bool, com interface{}) {
 		return
 	}
 	if reflect.TypeOf(com).Kind() != reflect.Ptr {
-		panic("single:true, The component must be an object")
+		panic("single:true, The infra must be an object")
 	}
 	app.comPool.bind(single, reflect.TypeOf(com), com)
 }
 
-// GetComponent .
-func (app *Application) GetComponent(ctx iris.Context, com interface{}) {
+// GetInfra .
+func (app *Application) GetInfra(ctx iris.Context, com interface{}) {
 	app.comPool.get(ctx.Values().Get(runtimeKey).(*appRuntime), reflect.ValueOf(com).Elem())
 }
 
@@ -182,11 +184,9 @@ func (app *Application) Run(serve iris.Runner, irisConf iris.Configuration) {
 	for index := 0; index < len(boots); index++ {
 		boots[index](app)
 	}
-	for _, r := range app.IrisApp.GetRoutes() {
-		fmt.Println("[route]", r.Method, r.Path, r.MainHandlerName)
-	}
 
 	repositoryAPIRun(irisConf)
+	app.msgsBus.building()
 	app.comPool.singleBooting(app)
 	app.IrisApp.Run(serve, iris.WithConfiguration(irisConf))
 }
@@ -271,6 +271,7 @@ func (app *Application) Iris() *iris.Application {
 func (app *Application) addMiddlewares(irisConf iris.Configuration) {
 	app.IrisApp.Use(newRuntimeHandle())
 	app.IrisApp.Use(globalApp.pool.freeHandle())
+	app.IrisApp.Use(globalApp.comPool.freeHandle())
 	if pladdr, ok := irisConf.Other["prometheus_listen_addr"]; ok {
 		app.Prometheus = newPrometheus(irisConf.Other["service_name"].(string), pladdr.(string))
 		globalApp.IrisApp.Use(newPrometheusHandle(app.Prometheus))

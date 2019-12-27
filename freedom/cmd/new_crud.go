@@ -3,6 +3,7 @@ package cmd
 import (
 	"os"
 	"os/exec"
+	"strings"
 	"text/template"
 
 	"github.com/8treenet/freedom/freedom/template/crud"
@@ -33,6 +34,10 @@ var (
 				pdata := map[string]interface{}{
 					"Name":    list[index].Name,
 					"Content": list[index].Content,
+					"Time":    false,
+				}
+				if strings.Contains(list[index].Content, "time.Time") {
+					pdata["Time"] = true
 				}
 
 				var pf *os.File

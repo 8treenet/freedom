@@ -30,6 +30,9 @@ var (
 				"PackagePath": projectPath,
 				"PackageName": projectName,
 			}
+			if !strings.Contains(sysPath, build.Default.GOPATH) {
+				pdata["PackagePath"] = projectName
+			}
 
 			mkdirAll(sysPath)
 			m := project.FileContent()
@@ -59,7 +62,7 @@ func mkdirAll(projectPath string) {
 	os.MkdirAll(projectPath+"/cmd/conf", os.ModePerm)
 	os.MkdirAll(projectPath+"/business/controllers", os.ModePerm)
 	os.MkdirAll(projectPath+"/models", os.ModePerm)
-	os.MkdirAll(projectPath+"/components/config", os.ModePerm)
+	os.MkdirAll(projectPath+"/infra/config", os.ModePerm)
 	os.MkdirAll(projectPath+"/business/repositorys", os.ModePerm)
 	os.MkdirAll(projectPath+"/business/services", os.ModePerm)
 }

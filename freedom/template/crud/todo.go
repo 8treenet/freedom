@@ -4,7 +4,12 @@ func CrudTemplate() string {
 
 	return `
 package models
-import "github.com/8treenet/freedom"
+import (
+	"github.com/8treenet/freedom"
+	{{- if .Time}}
+	"time"
+	{{- end}}
+)
 
 // {{.Name}} .
 {{.Content}}

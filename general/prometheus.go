@@ -1,7 +1,6 @@
 package general
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -61,9 +60,10 @@ func newPrometheus(name, listen string) *Prometheus {
 	http.Handle("/", promhttp.Handler())
 	go func() {
 		if strings.Index(listen, ":") == 0 {
-			fmt.Printf("Now prometheus listening on: http://0.0.0.0%s\n", listen)
+
+			globalApp.Logger().Debugf("Now prometheus listening on: http://0.0.0.0%s\n", listen)
 		} else {
-			fmt.Printf("Now prometheus listening on: http://%s\n", listen)
+			globalApp.Logger().Debugf("Now prometheus listening on: http://%s\n", listen)
 		}
 		http.ListenAndServe(listen, nil)
 	}()

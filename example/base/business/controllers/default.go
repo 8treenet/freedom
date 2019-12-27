@@ -27,23 +27,3 @@ func (c *DefaultController) Get() (result struct {
 	result.UA = remote.UA
 	return
 }
-
-// GetHello handles the GET: /hello route.
-func (c *DefaultController) GetHello() string {
-	return "hello"
-}
-
-// GetUserBy handles the GET: /user/{username:string} route.
-func (c *DefaultController) GetUserBy(username string) string {
-	return username
-}
-
-// GetAgeByUserBy handles the GET: /age/{age:int}/user/{user:string} route.
-func (c *DefaultController) GetAgeByUserBy(age int, user string) (result struct {
-	User string
-	Age  int
-}, e error) {
-	result.Age = age
-	result.User = user
-	return
-}

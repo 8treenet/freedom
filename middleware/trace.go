@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"math/rand"
 	"strings"
 	"time"
@@ -19,7 +18,6 @@ func NewTrace(traceIDName string) func(context.Context) {
 		traceID, ok := bus.Get(traceIDName)
 		for {
 			if ok || traceID != nil {
-				fmt.Println("NewTrace2")
 				break
 			}
 			uuidv1, e := uuid.NewV1()

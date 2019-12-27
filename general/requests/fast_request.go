@@ -214,7 +214,7 @@ func (fr *FastRequest) do() error {
 	}
 
 	if !fr.skipBus && fr.bus != "" {
-		fr.SetHeader("X-Freedom-Bus", fr.bus)
+		fr.SetHeader("x-freedom-bus", fr.bus)
 	}
 
 	fr.resq.SetRequestURI(fr.URI())
@@ -223,7 +223,7 @@ func (fr *FastRequest) do() error {
 	}
 
 	code := fr.resp.Header.StatusCode()
-	if code >= 400 {
+	if code >= 400 && code <= 600 {
 		return fmt.Errorf("The FastRequested URL returned error: %d", code)
 	}
 	return nil

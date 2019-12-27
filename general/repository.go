@@ -1,7 +1,6 @@
 package general
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -15,27 +14,35 @@ import (
 
 // Repository .
 type Repository struct {
-	Runtime       Runtime
-	transactionDB *gorm.DB
-	selectDB      *gorm.DB
+	Runtime         Runtime
+	selectDBName    string
+	selectRedisName string
 }
 
 // BeginRequest .
 func (repo *Repository) BeginRequest(rt Runtime) {
 	repo.Runtime = rt
-	repo.selectDB = nil
-	repo.transactionDB = nil
+	repo.selectDBName = ""
 }
 
 // DB .
 func (repo *Repository) DB() (db *gorm.DB) {
-	if repo.transactionDB != nil {
-		return repo.transactionDB
+	transactionData := repo.Runtime.Store().Get("freedom_local_transaction_db")
+	for {
+		if transactionData != nil {
+			m := transactionData.(map[string]interface{})
+			name := m["name"].(string)
+			transactionDB := m["db"].(*gorm.DB)
+			if name == repo.selectDBName {
+				db = transactionDB
+				return
+			}
+		}
+		if repo.selectDBName != "" {
+			return globalApp.Database.Multi[repo.selectDBName].db
+		}
+		break
 	}
-	if repo.selectDB != nil {
-		return repo.selectDB
-	}
-
 	return globalApp.Database.db
 }
 
@@ -47,61 +54,30 @@ func (repo *Repository) SelectDB(name string) *Repository {
 
 	newRepository := new(Repository)
 	newRepository.Runtime = repo.Runtime
-	newRepository.selectDB = globalApp.Database.Multi[name].db
+	newRepository.selectDBName = name
+	newRepository.selectRedisName = repo.selectRedisName
 	return newRepository
 }
 
-// DBByName .
-func (repo *Repository) DBByName(name string) (db *gorm.DB) {
-	if _, ok := globalApp.Database.Multi[name]; !ok {
-		return nil
+// SelectDB .
+func (repo *Repository) SelectRedis(name string) *Repository {
+	if _, ok := globalApp.Redis.Multi[name]; !ok {
+		panic(fmt.Sprintf("redis '%s' does not exist", name))
 	}
-	return globalApp.Database.Multi[name].db
+
+	newRepository := new(Repository)
+	newRepository.Runtime = repo.Runtime
+	newRepository.selectDBName = repo.selectDBName
+	newRepository.selectRedisName = name
+	return newRepository
 }
 
 // DBCache .
 func (repo *Repository) DBCache() gcache.Plugin {
-	return globalApp.Database.cache
-}
-
-// DBCacheByName .
-func (repo *Repository) DBCacheByName(name string) gcache.Plugin {
-	if _, ok := globalApp.Database.Multi[name]; !ok {
-		return nil
+	if repo.selectDBName != "" {
+		return globalApp.Database.Multi[repo.selectDBName].cache
 	}
-	return globalApp.Database.Multi[name].cache
-}
-
-func (repo *Repository) transaction(db *gorm.DB, fun func() error) (e error) {
-	repo.transactionDB = db.Begin()
-	defer func() {
-		if perr := recover(); perr != nil {
-			repo.transactionDB.Rollback()
-			repo.transactionDB = nil
-			e = errors.New(fmt.Sprint(perr))
-			return
-		}
-
-		deferdb := repo.transactionDB
-		repo.transactionDB = nil
-		if e != nil {
-			e2 := deferdb.Rollback()
-			if e2.Error != nil {
-				e = errors.New(e.Error() + "," + e2.Error.Error())
-			}
-			return
-		}
-		e = deferdb.Commit().Error
-	}()
-
-	e = fun()
-	return
-}
-
-// Transaction .
-func (repo *Repository) Transaction(fun func() error) (e error) {
-	e = repo.transaction(repo.DB(), fun)
-	return
+	return globalApp.Database.cache
 }
 
 // NewDescOrder .
@@ -134,14 +110,6 @@ func (repo *Repository) Redis() redis.Cmdable {
 		panic("Redis not installed")
 	}
 	return globalApp.Redis.client
-}
-
-// RedisByName .
-func (repo *Repository) RedisByName(name string) redis.Cmdable {
-	if _, ok := globalApp.Redis.Multi[name]; !ok {
-		return nil
-	}
-	return globalApp.Redis.Multi[name]
 }
 
 // Request .

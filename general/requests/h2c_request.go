@@ -225,7 +225,7 @@ func (hr *H2CRequest) do() (e error) {
 	}
 	hr.resq.URL = u
 	if !hr.skipBus && hr.bus != "" {
-		hr.SetHeader("X-Freedom-Bus", hr.bus)
+		hr.SetHeader("x-freedom-bus", hr.bus)
 	}
 
 	hr.resp, e = h2cclient.Do(hr.resq)
@@ -234,7 +234,7 @@ func (hr *H2CRequest) do() (e error) {
 	}
 
 	code := hr.resp.StatusCode
-	if code >= 400 {
+	if code >= 400 && code <= 600 {
 		return fmt.Errorf("The FastRequested URL returned error: %d", code)
 	}
 	return

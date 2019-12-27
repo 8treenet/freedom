@@ -3,10 +3,10 @@ package project
 import "fmt"
 
 func init() {
-	content["/components/config/config.go"] = confTemplate()
-	content["/components/config/app.go"] = appConfTemplate()
-	content["/components/config/db.go"] = dbConfTemplate()
-	content["/components/config/redis.go"] = redisConfTemplate()
+	content["/infra/config/config.go"] = confTemplate()
+	content["/infra/config/app.go"] = appConfTemplate()
+	content["/infra/config/db.go"] = dbConfTemplate()
+	content["/infra/config/redis.go"] = redisConfTemplate()
 }
 
 func confTemplate() string {

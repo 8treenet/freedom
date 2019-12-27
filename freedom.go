@@ -1,6 +1,7 @@
 package freedom
 
 import (
+	"github.com/kataras/iris/hero"
 	"os"
 
 	"github.com/8treenet/freedom/general"
@@ -34,11 +35,15 @@ type (
 	// QueryBuilder .
 	QueryBuilder = general.QueryBuilder
 
-	// Component .
-	Component = general.Component
+	// Infra .
+	Infra = general.Infra
 
 	// SingleBoot .
 	SingleBoot = general.SingleBoot
+
+	Result = hero.Result
+
+	Context = iris.Context
 )
 
 // NewApplication .

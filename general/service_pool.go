@@ -69,37 +69,7 @@ func (pool *ServicePool) bind(t reflect.Type, f interface{}) {
 			}
 
 			newService := values[0].Interface()
-			allFields(newService, func(value reflect.Value) {
-				if value.Kind() == reflect.Ptr {
-					ok, newfield := globalApp.rpool.get(value.Type())
-					if !ok {
-						return
-					}
-					if !value.CanSet() {
-						globalApp.IrisApp.Logger().Fatal("The member variable must be publicly visible, Its type is " + value.Type().String())
-					}
-					value.Set(newfield)
-				}
-
-				if value.Kind() == reflect.Interface {
-					typeList := globalApp.rpool.allType()
-					for index := 0; index < len(typeList); index++ {
-						if !typeList[index].Implements(value.Type()) {
-							continue
-						}
-						ok, newfield := globalApp.rpool.get(typeList[index])
-						if !ok {
-							continue
-						}
-						if !value.CanSet() {
-							globalApp.IrisApp.Logger().Fatal("The member variable must be publicly visible, Its type is " + value.Type().String())
-						}
-						value.Set(newfield)
-						return
-					}
-				}
-			})
-
+			globalApp.rpool.diRepo(newService)
 			return newService
 		},
 	}
@@ -115,6 +85,13 @@ func (pool *ServicePool) malloc(t reflect.Type) interface{} {
 		panic("BindService func return to empty")
 	}
 	return newSercice
+}
+
+func (pool *ServicePool) allType() (list []reflect.Type) {
+	for t := range pool.instancePool {
+		list = append(list, t)
+	}
+	return
 }
 
 func (pool *ServicePool) objBeginRequest(rt *appRuntime, obj interface{}) {
@@ -134,11 +111,7 @@ func (pool *ServicePool) objBeginRequest(rt *appRuntime, obj interface{}) {
 		}
 		br, ok := vi.(BeginRequest)
 		if ok {
-			allFields(vi, func(repoValue reflect.Value) {
-				if globalApp.comPool.get(rt, repoValue) {
-					return
-				}
-			})
+			globalApp.comPool.diInfra(rt, vi)
 			br.BeginRequest(rt)
 		}
 	})
