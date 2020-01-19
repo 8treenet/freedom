@@ -1,8 +1,10 @@
 package requests
 
 import (
+	"context"
 	"encoding/json"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -47,6 +49,13 @@ type FastRequest struct {
 	url     string
 	bus     string
 	skipBus bool
+	ctx     context.Context
+}
+
+// SetContext .
+func (fr *FastRequest) SetContext(ctx context.Context) Request {
+	fr.ctx = ctx
+	return fr
 }
 
 // Post .
@@ -115,10 +124,11 @@ func (fr *FastRequest) ToJSON(obj interface{}) (r Response) {
 		fr.resq = nil
 	}()
 	r.Error = fr.do()
-	fr.httpRespone(&r)
 	if r.Error != nil {
 		return
 	}
+
+	fr.httpRespone(&r)
 	body := fr.resp.Body()
 	r.Error = json.Unmarshal(body, obj)
 	if r.Error != nil {
@@ -136,11 +146,11 @@ func (fr *FastRequest) ToString() (value string, r Response) {
 		fr.resq = nil
 	}()
 	r.Error = fr.do()
-	fr.httpRespone(&r)
 	if r.Error != nil {
 		return
 	}
 
+	fr.httpRespone(&r)
 	value = string(fr.resp.Body())
 	return
 }
@@ -154,11 +164,11 @@ func (fr *FastRequest) ToBytes() (value []byte, r Response) {
 		fr.resq = nil
 	}()
 	r.Error = fr.do()
-	fr.httpRespone(&r)
 	if r.Error != nil {
 		return
 	}
 
+	fr.httpRespone(&r)
 	value = fr.resp.Body()
 	return
 }
@@ -172,10 +182,11 @@ func (fr *FastRequest) ToXML(v interface{}) (r Response) {
 		fr.resq = nil
 	}()
 	r.Error = fr.do()
-	fr.httpRespone(&r)
 	if r.Error != nil {
 		return
 	}
+
+	fr.httpRespone(&r)
 	r.Error = xml.Unmarshal(fr.resp.Body(), v)
 	return
 }
@@ -217,16 +228,39 @@ func (fr *FastRequest) do() error {
 		fr.SetHeader("x-freedom-bus", fr.bus)
 	}
 
-	fr.resq.SetRequestURI(fr.URI())
-	if err := fclient.Do(fr.resq, fr.resp); err != nil {
-		return err
+	waitChanErr := make(chan error)
+	defer close(waitChanErr)
+	go func(waitErr chan error) {
+		fr.resq.SetRequestURI(fr.URI())
+		waitErr <- fclient.Do(fr.resq, fr.resp)
+	}(waitChanErr)
+
+	if fr.ctx == nil {
+		if err := <-waitChanErr; err != nil {
+			return err
+		}
+		code := fr.resp.Header.StatusCode()
+		if code >= 400 && code <= 600 {
+			return fmt.Errorf("The FastRequested URL returned error: %d", code)
+		}
+		return nil
 	}
 
-	code := fr.resp.Header.StatusCode()
-	if code >= 400 && code <= 600 {
-		return fmt.Errorf("The FastRequested URL returned error: %d", code)
+	select {
+	case <-time.After(fclient.ReadTimeout):
+		return errors.New("Timeout")
+	case <-fr.ctx.Done():
+		return fr.ctx.Err()
+	case err := <-waitChanErr:
+		if err != nil {
+			return err
+		}
+		code := fr.resp.Header.StatusCode()
+		if code >= 400 && code <= 600 {
+			return fmt.Errorf("The FastRequested URL returned error: %d", code)
+		}
+		return nil
 	}
-	return nil
 }
 
 func (fr *FastRequest) httpRespone(httpRespone *Response) {

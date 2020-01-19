@@ -1,6 +1,6 @@
 module github.com/8treenet/freedom
 
-go 1.12
+go 1.13
 
 require (
 	github.com/8treenet/gcache v1.1.3

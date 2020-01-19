@@ -28,20 +28,18 @@ func (repo *Repository) BeginRequest(rt Runtime) {
 // DB .
 func (repo *Repository) DB() (db *gorm.DB) {
 	transactionData := repo.Runtime.Store().Get("freedom_local_transaction_db")
-	for {
-		if transactionData != nil {
-			m := transactionData.(map[string]interface{})
-			name := m["name"].(string)
-			transactionDB := m["db"].(*gorm.DB)
-			if name == repo.selectDBName {
-				db = transactionDB
-				return
-			}
+	if transactionData != nil {
+		m := transactionData.(map[string]interface{})
+		name := m["name"].(string)
+		transactionDB := m["db"].(*gorm.DB)
+		if name == repo.selectDBName {
+			db = transactionDB
+			return
 		}
-		if repo.selectDBName != "" {
-			return globalApp.Database.Multi[repo.selectDBName].db
-		}
-		break
+	}
+
+	if repo.selectDBName != "" {
+		return globalApp.Database.Multi[repo.selectDBName].db
 	}
 	return globalApp.Database.db
 }

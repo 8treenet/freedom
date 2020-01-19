@@ -1,6 +1,8 @@
 package transaction
 
 import (
+	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 
@@ -28,8 +30,17 @@ func (t *Transaction) BeginRequest(rt freedom.Runtime) {
 	t.Infra.BeginRequest(rt)
 }
 
-// Execute Execute local transaction.
 func (t *Transaction) Execute(fun func() error, selectDBName ...string) (e error) {
+	return t.execute(fun, nil, nil, selectDBName...)
+}
+
+// Execute Execute local transaction.
+func (t *Transaction) ExecuteTx(fun func() error, ctx context.Context, opts *sql.TxOptions, selectDBName ...string) (e error) {
+	return t.execute(fun, ctx, opts, selectDBName...)
+}
+
+// Execute Execute local transaction.
+func (t *Transaction) execute(fun func() error, ctx context.Context, opts *sql.TxOptions, selectDBName ...string) (e error) {
 	if t.db != nil {
 		panic("unknown error")
 	}
@@ -37,7 +48,12 @@ func (t *Transaction) Execute(fun func() error, selectDBName ...string) (e error
 	if len(selectDBName) > 0 {
 		name = selectDBName[0]
 	}
-	t.db = t.DB(selectDBName...).Begin()
+	if ctx != nil && opts != nil {
+		t.db = t.DB(selectDBName...).BeginTx(ctx, opts)
+	} else {
+		t.db = t.DB(selectDBName...).Begin()
+	}
+
 	t.Runtime.Store().Set("freedom_local_transaction_db", map[string]interface{}{
 		"db":   t.db,
 		"name": name,

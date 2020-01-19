@@ -3,9 +3,11 @@ package requests
 import (
 	"bytes"
 	"compress/gzip"
+	"context"
 	"crypto/tls"
 	"encoding/json"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -78,6 +80,7 @@ type H2CRequest struct {
 	url     string
 	bus     string
 	skipBus bool
+	ctx     context.Context
 }
 
 // Post .
@@ -101,6 +104,12 @@ func (hr *H2CRequest) Get() Request {
 // // Delete .
 func (hr *H2CRequest) Delete() Request {
 	hr.resq.Method = "DELETE"
+	return hr
+}
+
+// SetContext .
+func (hr *H2CRequest) SetContext(ctx context.Context) Request {
+	hr.ctx = ctx
 	return hr
 }
 
@@ -135,10 +144,11 @@ func (hr *H2CRequest) SkipBus() Request {
 // ToJSON .
 func (hr *H2CRequest) ToJSON(obj interface{}) (r Response) {
 	r.Error = hr.do()
-	hr.httpRespone(&r)
 	if r.Error != nil {
 		return
 	}
+
+	hr.httpRespone(&r)
 	body := hr.body()
 	r.Error = json.Unmarshal(body, obj)
 	if r.Error != nil {
@@ -150,10 +160,11 @@ func (hr *H2CRequest) ToJSON(obj interface{}) (r Response) {
 // ToString .
 func (hr *H2CRequest) ToString() (value string, r Response) {
 	r.Error = hr.do()
-	hr.httpRespone(&r)
 	if r.Error != nil {
 		return
 	}
+
+	hr.httpRespone(&r)
 	value = string(hr.body())
 	return
 }
@@ -161,10 +172,11 @@ func (hr *H2CRequest) ToString() (value string, r Response) {
 // ToBytes .
 func (hr *H2CRequest) ToBytes() (value []byte, r Response) {
 	r.Error = hr.do()
-	hr.httpRespone(&r)
 	if r.Error != nil {
 		return
 	}
+
+	hr.httpRespone(&r)
 	value = hr.body()
 	return
 }
@@ -172,10 +184,11 @@ func (hr *H2CRequest) ToBytes() (value []byte, r Response) {
 // ToXML .
 func (hr *H2CRequest) ToXML(v interface{}) (r Response) {
 	r.Error = hr.do()
-	hr.httpRespone(&r)
 	if r.Error != nil {
 		return
 	}
+
+	hr.httpRespone(&r)
 	r.Error = xml.Unmarshal(hr.body(), v)
 	return
 }
@@ -228,16 +241,41 @@ func (hr *H2CRequest) do() (e error) {
 		hr.SetHeader("x-freedom-bus", hr.bus)
 	}
 
-	hr.resp, e = h2cclient.Do(hr.resq)
-	if e != nil {
-		return
+	waitChanErr := make(chan error)
+	defer close(waitChanErr)
+
+	go func(waitErr chan error) {
+		hr.resp, e = h2cclient.Do(hr.resq)
+		waitErr <- e
+	}(waitChanErr)
+
+	if hr.ctx == nil {
+		if err := <-waitChanErr; err != nil {
+			return err
+		}
+
+		code := hr.resp.StatusCode
+		if code >= 400 && code <= 600 {
+			return fmt.Errorf("The FastRequested URL returned error: %d", code)
+		}
+		return nil
 	}
 
-	code := hr.resp.StatusCode
-	if code >= 400 && code <= 600 {
-		return fmt.Errorf("The FastRequested URL returned error: %d", code)
+	select {
+	case <-time.After(h2cclient.Timeout):
+		return errors.New("Timeout")
+	case <-hr.ctx.Done():
+		return hr.ctx.Err()
+	case err := <-waitChanErr:
+		if err != nil {
+			return err
+		}
+		code := hr.resp.StatusCode
+		if code >= 400 && code <= 600 {
+			return fmt.Errorf("The FastRequested URL returned error: %d", code)
+		}
+		return nil
 	}
-	return
 }
 
 func (hr *H2CRequest) body() (body []byte) {

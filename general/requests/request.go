@@ -1,5 +1,7 @@
 package requests
 
+import "context"
+
 // Request .
 type Request interface {
 	Post() Request
@@ -17,6 +19,7 @@ type Request interface {
 	SetHeader(key, value string) Request
 	SetParam(key string, value interface{}) Request
 	URI() string
+	SetContext(context.Context) Request
 }
 
 // Response .
