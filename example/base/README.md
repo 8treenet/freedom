@@ -3,20 +3,19 @@
 
 #### 目录结构
 
-- business - 业务逻辑
-    - controllers - 控制器目录
+- domain - 领域
     - service - 服务目录
     - repositorys - 数据仓库目录
-    - entity - 如果是DDD风格,实体对象目录.
+    - entity - 实体.
 
 - cmd - 启动入口
     - conf - toml配置文件
     - main.go - 主函数
-
+- controllers - 控制器目录
 - infra - 基础设施
     - config - 配置组件
 
-- models - 模型
+- objects - 值对象
 
 ---
 #### 入口main.go

@@ -2,8 +2,7 @@ package main
 
 import (
 	"github.com/8treenet/freedom"
-	_ "github.com/8treenet/freedom/example/http2/business/controllers"
-	_ "github.com/8treenet/freedom/example/http2/business/repositorys"
+	_ "github.com/8treenet/freedom/example/http2/controllers"
 	"github.com/8treenet/freedom/example/http2/infra/config"
 	"github.com/8treenet/freedom/middleware"
 	_ "github.com/jinzhu/gorm/dialects/mysql"

@@ -80,7 +80,7 @@ func mainTemplate() string {
 		"time"
 		_ "github.com/jinzhu/gorm/dialects/mysql"
 		"github.com/8treenet/freedom"
-		_ "{{.PackagePath}}/business/controllers"
+		_ "{{.PackagePath}}/controllers"
 		"{{.PackagePath}}/infra/config"
 		"github.com/8treenet/gcache"
 		"github.com/go-redis/redis"

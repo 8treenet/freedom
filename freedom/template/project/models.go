@@ -1,10 +1,10 @@
 package project
 
 func init() {
-	content["/models/models.go"] = modelsTemplate()
+	content["/objects/objects.go"] = objectsTemplate()
 }
 
-func modelsTemplate() string {
-	return `package models
+func objectsTemplate() string {
+	return `package objects
 	`
 }

@@ -60,9 +60,9 @@ func init() {
 func mkdirAll(projectPath string) {
 	os.MkdirAll(projectPath+"/cmd", os.ModePerm)
 	os.MkdirAll(projectPath+"/cmd/conf", os.ModePerm)
-	os.MkdirAll(projectPath+"/business/controllers", os.ModePerm)
-	os.MkdirAll(projectPath+"/models", os.ModePerm)
+	os.MkdirAll(projectPath+"/controllers", os.ModePerm)
+	os.MkdirAll(projectPath+"/objects", os.ModePerm)
 	os.MkdirAll(projectPath+"/infra/config", os.ModePerm)
-	os.MkdirAll(projectPath+"/business/repositorys", os.ModePerm)
-	os.MkdirAll(projectPath+"/business/services", os.ModePerm)
+	os.MkdirAll(projectPath+"/domain/repositorys", os.ModePerm)
+	os.MkdirAll(projectPath+"/domain/services", os.ModePerm)
 }

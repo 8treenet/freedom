@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/8treenet/freedom"
-	_ "github.com/8treenet/freedom/example/infra-example/business/controllers"
+	_ "github.com/8treenet/freedom/example/infra-example/controllers"
 	"github.com/8treenet/freedom/example/infra-example/infra/config"
 	"github.com/8treenet/freedom/middleware"
 	"github.com/8treenet/gcache"

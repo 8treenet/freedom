@@ -3,7 +3,7 @@ package crud
 func CrudTemplate() string {
 
 	return `
-package models
+package objects
 import (
 	"github.com/8treenet/freedom"
 	{{- if .Time}}

@@ -1,8 +1,8 @@
 package project
 
 func init() {
-	content["/business/services/default.go"] = servicesTemplate()
-	content["/business/services/interface.go"] = servicesInterfaceTemplate()
+	content["/domain/services/default.go"] = servicesTemplate()
+	content["/domain/services/interface.go"] = servicesInterfaceTemplate()
 }
 
 func servicesInterfaceTemplate() string {
@@ -14,7 +14,7 @@ func servicesTemplate() string {
 
 	import (
 		"github.com/8treenet/freedom"
-		"{{.PackagePath}}/business/repositorys"
+		"{{.PackagePath}}/domain/repositorys"
 	)
 	
 	func init() {

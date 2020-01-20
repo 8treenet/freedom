@@ -1,8 +1,8 @@
 package project
 
 func init() {
-	content["/business/repositorys/default.go"] = repositoryTemplate()
-	content["/business/repositorys/interface.go"] = repositoryInterfaceTemplate()
+	content["/domain/repositorys/default.go"] = repositoryTemplate()
+	content["/domain/repositorys/interface.go"] = repositoryInterfaceTemplate()
 }
 
 func repositoryInterfaceTemplate() string {

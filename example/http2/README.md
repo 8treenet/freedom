@@ -61,7 +61,7 @@ func (s *ShopController) GetBy(id int) string {
 	文件 repositorys/interface.go
 */
 type GoodsInterface interface {
-	GetGoods(goodsID int) models.GoodsModel
+	GetGoods(goodsID int) objects.GoodsModel
 }
 
 /*
@@ -92,7 +92,7 @@ type GoodsRepository struct {
 }
 
 // GetGoods implment Goods interface
-func (repo *GoodsRepository) GetGoods(goodsID int) (result models.GoodsModel) {
+func (repo *GoodsRepository) GetGoods(goodsID int) (result objects.GoodsModel) {
 	//篇幅所限，示例直接调用自身服务的其他http接口，而不是下游。
 	addr := "http://127.0.0.1:8000/goods/" + strconv.Itoa(goodsID)
 	repo.NewH2CRequest(addr).Get().ToJSON(&result)

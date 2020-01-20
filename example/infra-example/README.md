@@ -25,8 +25,8 @@ package repositorys
 
 import (
 	"github.com/8treenet/freedom"
-	//models 目录下的模型 已通过crud生成
-	"github.com/8treenet/freedom/example/infra-example/models"
+	//objects 目录下的模型 已通过crud生成
+	"github.com/8treenet/freedom/example/infra-example/objects"
 )
 
 func init() {
@@ -43,21 +43,21 @@ type GoodsRepository struct {
 	freedom.Repository	//仓库必须继承 freedom.Repository，否则无法使用数据源
 }
 
-func (repo *GoodsRepository) Get(id int) (result models.Goods, e error) {
+func (repo *GoodsRepository) Get(id int) (result objects.Goods, e error) {
 	//通过主键id 查询该商品
-	result, e = models.FindGoodsByPrimary(repo, id)
+	result, e = objects.FindGoodsByPrimary(repo, id)
 	return
 }
 
-func (repo *GoodsRepository) GetAll() (result []models.Goods, e error) {
+func (repo *GoodsRepository) GetAll() (result []objects.Goods, e error) {
 	//查看全部商品
-	result, e = models.FindGoodss(repo, models.Goods{})
+	result, e = objects.FindGoodss(repo, objects.Goods{})
 	return
 }
 
-func (repo *GoodsRepository) ChangeStock(goods *models.Goods, num int) (e error) {
+func (repo *GoodsRepository) ChangeStock(goods *objects.Goods, num int) (e error) {
 	//修改该商品库存
-	models.UpdateGoods(repo, goods, models.Goods{
+	objects.UpdateGoods(repo, goods, objects.Goods{
 		Stock: goods.Stock + num,
 	})
 	return
@@ -70,8 +70,8 @@ func (repo *GoodsRepository) ChangeStock(goods *models.Goods, num int) (e error)
 ```go
 import (
 	"github.com/8treenet/freedom"
-	"github.com/8treenet/freedom/example/infra-example/business/repositorys"
-	"github.com/8treenet/freedom/example/infra-example/models"
+	"github.com/8treenet/freedom/example/infra-example/domain/repositorys"
+	"github.com/8treenet/freedom/example/infra-example/objects"
 	"github.com/8treenet/freedom/infra/transaction"
 )
 func init() {
