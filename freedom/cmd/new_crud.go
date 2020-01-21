@@ -13,7 +13,7 @@ import (
 
 var (
 	packageName = "objects"
-	Conf        = "./cmd/conf/db.toml"
+	Conf        = "./application/conf/db.toml"
 	Out         = "./objects"
 	NewCRUDCmd  = &cobra.Command{
 		Use:   "new-crud",
@@ -74,7 +74,7 @@ func configure(obj interface{}, fileName string) error {
 }
 
 func init() {
-	NewCRUDCmd.Flags().StringVarP(&Conf, "conf", "c", "./cmd/conf/db.toml", "mysql profile path")
+	NewCRUDCmd.Flags().StringVarP(&Conf, "conf", "c", "./application/conf/db.toml", "mysql profile path")
 	NewCRUDCmd.Flags().StringVarP(&Out, "out", "o", "./objects", "The resulting model path")
 	AddCommand(NewCRUDCmd)
 }
