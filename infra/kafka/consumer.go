@@ -2,13 +2,16 @@ package kafka
 
 import (
 	"runtime"
-	"strings"
 
 	"github.com/8treenet/freedom/general/requests"
 
 	"github.com/8treenet/freedom"
 	cluster "github.com/8treenet/freedom/infra/kafka/cluster"
 	"github.com/Shopify/sarama"
+)
+
+const (
+	MessageKeyHeader = "x-message-key"
 )
 
 func init() {
@@ -99,7 +102,7 @@ func (kc *Consumer) call(msg *sarama.ConsumerMessage, conf *consumerConf) {
 	}
 
 	for _, path := range paths {
-		path = strings.ReplaceAll(path, ":param1", string(msg.Key))
+		//path = strings.ReplaceAll(path, ":param1", string(msg.Key))
 		var request requests.Request
 		if kc.conf.Consumer.ProxyHTTP2 {
 			request = requests.NewH2CRequest(kc.conf.Consumer.ProxyAddr + path)
@@ -110,6 +113,7 @@ func (kc *Consumer) call(msg *sarama.ConsumerMessage, conf *consumerConf) {
 		for index := 0; index < len(msg.Headers); index++ {
 			request = request.SetHeader(string(msg.Headers[index].Key), string(msg.Headers[index].Value))
 		}
+		request.SetHeader("x-message-key", string(msg.Key))
 		_, resp := request.Post().ToString()
 
 		if resp.Error != nil || resp.StatusCode != 200 {

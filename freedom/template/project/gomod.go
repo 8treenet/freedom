@@ -11,7 +11,7 @@ module {{.PackageName}}
 go 1.13
 
 require (
-	github.com/8treenet/freedom v1.3.2
+	github.com/8treenet/freedom v1.3.3
 	github.com/8treenet/gcache v1.1.4
 	github.com/BurntSushi/toml v0.3.1
 	github.com/Joker/jade v1.0.0 // indirect

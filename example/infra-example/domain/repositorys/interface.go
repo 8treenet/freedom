@@ -7,7 +7,7 @@ import (
 type GoodsInterface interface {
 	Get(id int) (objects.Goods, error)
 	GetAll() ([]objects.Goods, error)
-	ChangeStock(*objects.Goods, int) error
+	Update(*objects.Goods) error
 }
 
 type OrderInterface interface {

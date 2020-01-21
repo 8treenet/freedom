@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/8treenet/freedom"
-	_ "github.com/8treenet/freedom/example/msg-example/controllers"
+	_ "github.com/8treenet/freedom/example/msg-example/application/controllers"
 	"github.com/8treenet/freedom/example/msg-example/infra/config"
 	"github.com/8treenet/freedom/infra/kafka"
 	"github.com/8treenet/freedom/middleware"

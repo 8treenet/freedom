@@ -14,6 +14,7 @@
 - 依赖注入
 - CRUD 代码生成
 - 消息总线
+- DDD
 
 ## 进行中
 - XA强一致分布事务
@@ -29,7 +30,7 @@ $ go get github.com/8treenet/freedom/freedom
 $ freedom new-project [project-name]
 ```
 
-## 生成crud
+## 生成crud 值对象
 ```sh
 # 编辑 [project-name]/cmd/conf/db.toml 填入数据库地址
 # 可指定配置地址和输出目录 freedom new-crud -h 查看更多
@@ -39,8 +40,8 @@ $ freedom new-crud
 
 ## Example
 
-#### [基础示例](https://github.com/8treenet/freedom/blob/master/example/base)
+#### [基础教程](https://github.com/8treenet/freedom/blob/master/example/base)
 #### [http2监听和依赖倒置](https://github.com/8treenet/freedom/blob/master/example/http2)
 #### [repository和事务组件](https://github.com/8treenet/freedom/blob/master/example/infra-example)
 #### [消息总线](https://github.com/8treenet/freedom/blob/master/example/msg-example)
-#### [DDD领域模型示例](https://github.com/8treenet/freedom/blob/master/example/ddd-example)
+#### [entity 示例](https://github.com/8treenet/freedom/blob/master/example/ddd-example)

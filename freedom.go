@@ -79,7 +79,7 @@ func Configure(obj interface{}, fileName string, def bool) {
 	}
 
 	if path == "" {
-		path = "./cmd/conf"
+		path = "./application/conf"
 		_, err := os.Stat(path)
 		if err != nil {
 			path = ""
@@ -87,7 +87,7 @@ func Configure(obj interface{}, fileName string, def bool) {
 	}
 
 	if path == "" {
-		panic("No profile directory found:" + "'$FREEDOM_PROJECT_CONFIG' or './conf' or './cmd/conf'")
+		panic("No profile directory found:" + "'$FREEDOM_PROJECT_CONFIG' or './conf' or './application/conf'")
 	}
 	_, err := toml.DecodeFile(path+"/"+fileName, obj)
 	if err != nil && !def {

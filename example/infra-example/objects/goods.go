@@ -7,6 +7,7 @@ import (
 
 // Goods .
 type Goods struct {
+	changes map[string]interface{}
 	ID      int       `gorm:"primary_key" column:"id"`
 	Name    string    `gorm:"column:name"`  // 商品名称
 	Price   int       `gorm:"column:price"` // 价格
@@ -15,8 +16,73 @@ type Goods struct {
 	Updated time.Time `gorm:"column:updated"`
 }
 
-func (m *Goods) TableName() string {
+func (obj *Goods) TableName() string {
 	return "goods"
+}
+
+// Updates .
+func (obj *Goods) Updates(rep freedom.GORMRepository) (affected int64, e error) {
+	if obj.changes == nil {
+		return
+	}
+	db := rep.DB().Model(obj).Updates(obj.changes)
+	e = db.Error
+	affected = db.RowsAffected
+	return
+}
+
+// SetID .
+func (obj *Goods) SetID(iD int) {
+	if obj.changes == nil {
+		obj.changes = make(map[string]interface{})
+	}
+	obj.ID = iD
+	obj.changes["id"] = iD
+}
+
+// SetName .
+func (obj *Goods) SetName(name string) {
+	if obj.changes == nil {
+		obj.changes = make(map[string]interface{})
+	}
+	obj.Name = name
+	obj.changes["name"] = name
+}
+
+// SetPrice .
+func (obj *Goods) SetPrice(price int) {
+	if obj.changes == nil {
+		obj.changes = make(map[string]interface{})
+	}
+	obj.Price = price
+	obj.changes["price"] = price
+}
+
+// SetStock .
+func (obj *Goods) SetStock(stock int) {
+	if obj.changes == nil {
+		obj.changes = make(map[string]interface{})
+	}
+	obj.Stock = stock
+	obj.changes["stock"] = stock
+}
+
+// SetCreated .
+func (obj *Goods) SetCreated(created time.Time) {
+	if obj.changes == nil {
+		obj.changes = make(map[string]interface{})
+	}
+	obj.Created = created
+	obj.changes["created"] = created
+}
+
+// SetUpdated .
+func (obj *Goods) SetUpdated(updated time.Time) {
+	if obj.changes == nil {
+		obj.changes = make(map[string]interface{})
+	}
+	obj.Updated = updated
+	obj.changes["updated"] = updated
 }
 
 // FindGoodsByPrimary .
@@ -93,21 +159,13 @@ func CreateGoods(rep freedom.GORMRepository, entity *Goods) (rowsAffected int64,
 	return
 }
 
-// UpdateGoods .
-func UpdateGoods(rep freedom.GORMRepository, query *Goods, value Goods) (affected int64, e error) {
-	db := rep.DB().Model(query).Updates(value)
-	e = db.Error
-	affected = db.RowsAffected
-	return
-}
-
 // FindToUpdateGoodss .
-func FindToUpdateGoodss(rep freedom.GORMRepository, query Goods, value Goods, builders ...freedom.QueryBuilder) (affected int64, e error) {
+func FindToUpdateGoodss(rep freedom.GORMRepository, query Goods, values map[string]interface{}, builders ...freedom.QueryBuilder) (affected int64, e error) {
 	db := rep.DB()
 	if len(builders) > 0 {
-		db = db.Model(&Goods{}).Where(query).Order(builders[0].Order()).Limit(builders[0].Limit()).Updates(value)
+		db = db.Model(&Goods{}).Where(query).Order(builders[0].Order()).Limit(builders[0].Limit()).Updates(values)
 	} else {
-		db = db.Model(&Goods{}).Where(query).Updates(value)
+		db = db.Model(&Goods{}).Where(query).Updates(values)
 	}
 
 	affected = db.RowsAffected
@@ -116,12 +174,12 @@ func FindToUpdateGoodss(rep freedom.GORMRepository, query Goods, value Goods, bu
 }
 
 // FindByWhereToUpdateGoodss .
-func FindByWhereToUpdateGoodss(rep freedom.GORMRepository, query string, args []interface{}, value Goods, builders ...freedom.QueryBuilder) (affected int64, e error) {
+func FindByWhereToUpdateGoodss(rep freedom.GORMRepository, query string, args []interface{}, values map[string]interface{}, builders ...freedom.QueryBuilder) (affected int64, e error) {
 	db := rep.DB()
 	if len(builders) > 0 {
-		db = db.Model(&Goods{}).Where(query, args...).Order(builders[0].Order()).Limit(builders[0].Limit()).Updates(value)
+		db = db.Model(&Goods{}).Where(query, args...).Order(builders[0].Order()).Limit(builders[0].Limit()).Updates(values)
 	} else {
-		db = db.Model(&Goods{}).Where(query, args...).Updates(value)
+		db = db.Model(&Goods{}).Where(query, args...).Updates(values)
 	}
 
 	affected = db.RowsAffected

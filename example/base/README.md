@@ -3,18 +3,17 @@
 
 #### 目录结构
 
-- domain - 领域
-    - service - 服务目录
-    - repositorys - 数据仓库目录
-    - entity - 实体.
+- domain - 领域层
+    - service - 领域服务目录
+    - repositorys - 资源库目录
+    - entity - 实体目录
 
-- cmd - 启动入口
+- application - 应用层
     - conf - toml配置文件
     - main.go - 主函数
-- controllers - 控制器目录
+    - controllers - 入口控制器
 - infra - 基础设施
     - config - 配置组件
-
 - objects - 值对象
 
 ---
@@ -193,9 +192,9 @@ func (repo *DefaultRepository) GetUA() string {
 
 |文件 | 作用 |
 | ----- | :---: |
-|cmd/conf/app.toml|服务配置|
-|cmd/conf/db.toml|db配置|
-|cmd/conf/redis.toml|缓存配置|
+|application/conf/app.toml|服务配置|
+|application/conf/db.toml|db配置|
+|application/conf/redis.toml|缓存配置|
 
 #### 生命周期
 ###### 每一个请求接入都会创建若干依赖对象，从controller、service、repository、infra。简单的讲每一个请求都是独立的创建和使用这一系列对象，不会导致并发的问题。当然也无需担心效率问题，框架已经做了池。可以参见 initiator 里的各种Bind方法。

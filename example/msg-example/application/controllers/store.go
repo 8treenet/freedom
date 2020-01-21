@@ -3,6 +3,7 @@ package controllers
 import (
 	"github.com/8treenet/freedom"
 	"github.com/8treenet/freedom/example/msg-example/objects"
+	"github.com/8treenet/freedom/infra/kafka"
 	//"github.com/8treenet/freedom/infra/kafka"
 )
 
@@ -11,7 +12,7 @@ func init() {
 		store := &StoreController{}
 		initiator.BindController("/store", store)
 
-		initiator.ListenEvent("event-sell", store.PostSellGoodsBy)
+		initiator.ListenEvent("event-sell", store.PostSellGoods)
 		/*
 			绑定事件 ListenEvent(eventName string, fun interface{}, appointInfra ...interface{})
 			eventName : 事件名称
@@ -29,11 +30,13 @@ type StoreController struct {
 }
 
 // PostSellGoodsBy 事件方法为 Post开头, 参数是事件id
-func (s *StoreController) PostSellGoodsBy(eventID string) error {
+func (s *StoreController) PostSellGoods() error {
 	//rawData, err := ioutil.ReadAll(s.Runtime.Ctx().Request().Body)
 	var goods objects.Goods
 	s.Runtime.Ctx().ReadJSON(&goods)
 
-	s.Runtime.Logger().Infof("消耗商品ID:%d, %d件, 行为:%s", goods.ID, goods.Amount, s.Runtime.Ctx().GetHeader("Action"))
+	action := s.Runtime.Ctx().GetHeader("x-action")
+	msgKey := s.Runtime.Ctx().GetHeader(kafka.MessageKeyHeader)
+	s.Runtime.Logger().Infof("消耗商品ID:%d, %d件, 行为:%s, 消息key:%s", goods.ID, goods.Amount, action, msgKey)
 	return nil
 }

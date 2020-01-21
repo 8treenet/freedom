@@ -26,6 +26,6 @@ func (s *ShopController) GetBy(id int) string {
 		Amount: 10,
 	})
 	msg := s.Producer.NewMsg("event-sell", data)
-	msg.SetHeaders(map[string]string{"Action": "购买"}).SetRuntime(s.Runtime).Send()
+	msg.SetHeaders(map[string]string{"x-action": "购买"}).SetRuntime(s.Runtime).Send()
 	return "ok"
 }

@@ -35,6 +35,7 @@ var (
 					"Name":    list[index].Name,
 					"Content": list[index].Content,
 					"Time":    false,
+					"Fields":  list[index].Fields,
 				}
 				if strings.Contains(list[index].Content, "time.Time") {
 					pdata["Time"] = true
@@ -46,6 +47,9 @@ var (
 					return err
 				}
 				tmpl, err := template.New("").Parse(tl)
+				if err != nil {
+					panic(err)
+				}
 				if err = tmpl.Execute(pf, pdata); err != nil {
 					return err
 				}

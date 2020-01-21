@@ -83,10 +83,19 @@ func (t *Table2Struct) DB(d *sql.DB) *Table2Struct {
 	return t
 }
 
+type Field struct {
+	Column     string
+	Type       string
+	Value      string
+	Arg        string
+	StructName string
+}
+
 type SturctContent struct {
 	Name          string
 	TableRealName string
 	Content       string
+	Fields        []Field
 }
 
 func (t *Table2Struct) Run() (result []SturctContent, e error) {
@@ -113,6 +122,7 @@ func (t *Table2Struct) Run() (result []SturctContent, e error) {
 		tableName := tableRealName
 		sc := SturctContent{
 			TableRealName: tableName,
+			Fields:        make([]Field, 0),
 		}
 
 		switch len(tableName) {
@@ -128,7 +138,9 @@ func (t *Table2Struct) Run() (result []SturctContent, e error) {
 		tableName = t.camelCase(tableName)
 		sc.Name = tableName
 		structContent += "type " + tableName + " struct {\n"
+		structContent += "	changes map[string]interface{}\n"
 		for _, v := range item {
+			column := v.Tag
 			if v.Primary == "PRI" {
 				v.Tag = "`" + `gorm:"primary_key" column:"` + v.Tag + `"` + "`"
 			} else {
@@ -142,13 +154,21 @@ func (t *Table2Struct) Run() (result []SturctContent, e error) {
 			}
 			structContent += fmt.Sprintf("%s%s %s %s%s\n",
 				tab(depth), v.ColumnName, v.Type, v.Tag, clumnComment)
+
+			sc.Fields = append(sc.Fields, Field{
+				Column:     column,
+				Type:       v.Type,
+				Value:      v.ColumnName,
+				StructName: tableName,
+				Arg:        lowerCamelCase(v.ColumnName),
+			})
 		}
 		structContent += tab(depth-1) + "}\n\n"
 
 		t.realNameMethod = "TableName"
 		// 添加 method 获取真实表名
 		if t.realNameMethod != "" {
-			structContent += fmt.Sprintf("func (m *%s) %s() string {\n",
+			structContent += fmt.Sprintf("func (obj *%s) %s() string {\n",
 				tableName, t.realNameMethod)
 			structContent += fmt.Sprintf("%sreturn \"%s\"\n",
 				tab(depth), tableRealName)
@@ -357,4 +377,17 @@ var commonInitialisms = map[string]bool{
 	"XMPP":  true,
 	"XSRF":  true,
 	"XSS":   true,
+}
+
+func lowerCamelCase(field string) string {
+	var lowerStr string
+	vv := []rune(field)
+	for i := 0; i < len(vv); i++ {
+		if i == 0 {
+			lowerStr += strings.ToLower(string(vv[i]))
+		} else {
+			lowerStr += string(vv[i])
+		}
+	}
+	return lowerStr
 }

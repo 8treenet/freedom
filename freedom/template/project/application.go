@@ -1,10 +1,10 @@
 package project
 
 func init() {
-	content["/cmd/conf/app.toml"] = appTomlConf()
-	content["/cmd/conf/db.toml"] = dbTomlConf()
-	content["/cmd/conf/redis.toml"] = redisConf()
-	content["/cmd/main.go"] = mainTemplate()
+	content["/application/conf/app.toml"] = appTomlConf()
+	content["/application/conf/db.toml"] = dbTomlConf()
+	content["/application/conf/redis.toml"] = redisConf()
+	content["/application/main.go"] = mainTemplate()
 }
 
 func appTomlConf() string {
@@ -80,7 +80,7 @@ func mainTemplate() string {
 		"time"
 		_ "github.com/jinzhu/gorm/dialects/mysql"
 		"github.com/8treenet/freedom"
-		_ "{{.PackagePath}}/controllers"
+		_ "{{.PackagePath}}/application/controllers"
 		"{{.PackagePath}}/infra/config"
 		"github.com/8treenet/gcache"
 		"github.com/go-redis/redis"

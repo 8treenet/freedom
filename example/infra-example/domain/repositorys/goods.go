@@ -28,9 +28,7 @@ func (repo *GoodsRepository) GetAll() (result []objects.Goods, e error) {
 	return
 }
 
-func (repo *GoodsRepository) ChangeStock(goods *objects.Goods, num int) (e error) {
-	objects.UpdateGoods(repo, goods, objects.Goods{
-		Stock: goods.Stock + num,
-	})
+func (repo *GoodsRepository) Update(goods *objects.Goods) (e error) {
+	_, e = goods.Updates(repo)
 	return
 }

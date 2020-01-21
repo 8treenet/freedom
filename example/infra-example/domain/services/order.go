@@ -77,9 +77,10 @@ func (srv *OrderService) Add(goodsID, num, userId int) (resp string, e error) {
 		resp = "库存不足"
 		return
 	}
+	goodsObj.SetStock(goodsObj.Stock - num)
 
 	e = srv.Tx.Execute(func() error {
-		if err := srv.GoodsRepo.ChangeStock(&goodsObj, -num); err != nil {
+		if err := srv.GoodsRepo.Update(&goodsObj); err != nil {
 			return err
 		}
 

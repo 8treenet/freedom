@@ -58,5 +58,6 @@ func (srv *GoodsService) AddStock(goodsID, num int) error {
 		return e
 	}
 
-	return srv.GoodsRepo.ChangeStock(&obj, num)
+	obj.SetStock(obj.Stock + num)
+	return srv.GoodsRepo.Update(&obj)
 }

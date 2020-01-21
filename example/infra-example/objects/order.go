@@ -7,6 +7,7 @@ import (
 
 // Order .
 type Order struct {
+	changes map[string]interface{}
 	ID      int       `gorm:"primary_key" column:"id"`
 	UserID  int       `gorm:"column:user_id"`  // 用户id
 	GoodsID int       `gorm:"column:goods_id"` // 商品id
@@ -15,8 +16,73 @@ type Order struct {
 	Updated time.Time `gorm:"column:updated"`
 }
 
-func (m *Order) TableName() string {
+func (obj *Order) TableName() string {
 	return "order"
+}
+
+// Updates .
+func (obj *Order) Updates(rep freedom.GORMRepository) (affected int64, e error) {
+	if obj.changes == nil {
+		return
+	}
+	db := rep.DB().Model(obj).Updates(obj.changes)
+	e = db.Error
+	affected = db.RowsAffected
+	return
+}
+
+// SetID .
+func (obj *Order) SetID(iD int) {
+	if obj.changes == nil {
+		obj.changes = make(map[string]interface{})
+	}
+	obj.ID = iD
+	obj.changes["id"] = iD
+}
+
+// SetUserID .
+func (obj *Order) SetUserID(userID int) {
+	if obj.changes == nil {
+		obj.changes = make(map[string]interface{})
+	}
+	obj.UserID = userID
+	obj.changes["user_id"] = userID
+}
+
+// SetGoodsID .
+func (obj *Order) SetGoodsID(goodsID int) {
+	if obj.changes == nil {
+		obj.changes = make(map[string]interface{})
+	}
+	obj.GoodsID = goodsID
+	obj.changes["goods_id"] = goodsID
+}
+
+// SetNum .
+func (obj *Order) SetNum(num int) {
+	if obj.changes == nil {
+		obj.changes = make(map[string]interface{})
+	}
+	obj.Num = num
+	obj.changes["num"] = num
+}
+
+// SetCreated .
+func (obj *Order) SetCreated(created time.Time) {
+	if obj.changes == nil {
+		obj.changes = make(map[string]interface{})
+	}
+	obj.Created = created
+	obj.changes["created"] = created
+}
+
+// SetUpdated .
+func (obj *Order) SetUpdated(updated time.Time) {
+	if obj.changes == nil {
+		obj.changes = make(map[string]interface{})
+	}
+	obj.Updated = updated
+	obj.changes["updated"] = updated
 }
 
 // FindOrderByPrimary .
@@ -93,21 +159,13 @@ func CreateOrder(rep freedom.GORMRepository, entity *Order) (rowsAffected int64,
 	return
 }
 
-// UpdateOrder .
-func UpdateOrder(rep freedom.GORMRepository, query *Order, value Order) (affected int64, e error) {
-	db := rep.DB().Model(query).Updates(value)
-	e = db.Error
-	affected = db.RowsAffected
-	return
-}
-
 // FindToUpdateOrders .
-func FindToUpdateOrders(rep freedom.GORMRepository, query Order, value Order, builders ...freedom.QueryBuilder) (affected int64, e error) {
+func FindToUpdateOrders(rep freedom.GORMRepository, query Order, values map[string]interface{}, builders ...freedom.QueryBuilder) (affected int64, e error) {
 	db := rep.DB()
 	if len(builders) > 0 {
-		db = db.Model(&Order{}).Where(query).Order(builders[0].Order()).Limit(builders[0].Limit()).Updates(value)
+		db = db.Model(&Order{}).Where(query).Order(builders[0].Order()).Limit(builders[0].Limit()).Updates(values)
 	} else {
-		db = db.Model(&Order{}).Where(query).Updates(value)
+		db = db.Model(&Order{}).Where(query).Updates(values)
 	}
 
 	affected = db.RowsAffected
@@ -116,12 +174,12 @@ func FindToUpdateOrders(rep freedom.GORMRepository, query Order, value Order, bu
 }
 
 // FindByWhereToUpdateOrders .
-func FindByWhereToUpdateOrders(rep freedom.GORMRepository, query string, args []interface{}, value Order, builders ...freedom.QueryBuilder) (affected int64, e error) {
+func FindByWhereToUpdateOrders(rep freedom.GORMRepository, query string, args []interface{}, values map[string]interface{}, builders ...freedom.QueryBuilder) (affected int64, e error) {
 	db := rep.DB()
 	if len(builders) > 0 {
-		db = db.Model(&Order{}).Where(query, args...).Order(builders[0].Order()).Limit(builders[0].Limit()).Updates(value)
+		db = db.Model(&Order{}).Where(query, args...).Order(builders[0].Order()).Limit(builders[0].Limit()).Updates(values)
 	} else {
-		db = db.Model(&Order{}).Where(query, args...).Updates(value)
+		db = db.Model(&Order{}).Where(query, args...).Updates(values)
 	}
 
 	affected = db.RowsAffected

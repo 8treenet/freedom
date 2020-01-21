@@ -1,7 +1,7 @@
 package project
 
 func init() {
-	content["/controllers/default.go"] = controllerTemplate()
+	content["/application/controllers/default.go"] = controllerTemplate()
 }
 
 func controllerTemplate() string {

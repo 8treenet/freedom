@@ -13,7 +13,7 @@
 ###### 生成Goods和Order的模型
 ```sh
 #前置1. 导入./freedom.sql 到数据库
-#前置2. 编辑./cmd/conf/db.toml
+#前置2. 编辑./application/conf/db.toml
 #创建表模型 freedom new-crud
 $ freedom new-crud
 ```
@@ -129,7 +129,7 @@ func (srv *OrderService) Add(goodsID, num, userId int) (resp string, e error) {
 - 多例组件一个请求会话中共享一个实例，简单的讲 controller、service、repository 如果引用同一多例组件，本质使用同一实例。
 - 框架已提供的组件目录 github.com/8treenet/freedom/infra
 - 用户自定义的组件目录 [project]/infra/[custom]
-- 组件可以独立使用组件的配置文件, 配置文件放在 [project]/cmd/conf/infra/[custom.toml]
+- 组件可以独立使用组件的配置文件, 配置文件放在 [project]/application/conf/infra/[custom.toml]
 
 
 ##### 单例的组件
