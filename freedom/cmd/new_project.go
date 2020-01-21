@@ -29,6 +29,7 @@ var (
 			pdata := map[string]interface{}{
 				"PackagePath": projectPath,
 				"PackageName": projectName,
+				"VersionNum":  versionNum,
 			}
 			if !strings.Contains(sysPath, build.Default.GOPATH) {
 				pdata["PackagePath"] = projectName
