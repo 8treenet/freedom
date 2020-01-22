@@ -27,7 +27,6 @@ func NewApplication() *Application {
 	globalAppOnce.Do(func() {
 		globalApp = new(Application)
 		globalApp.IrisApp = iris.New()
-		globalApp.IrisApp.Logger().SetLevel("debug")
 		globalApp.pool = newServicePool()
 		globalApp.rpool = newRepoPool()
 		globalApp.comPool = newInfraPool()
@@ -184,6 +183,12 @@ func (app *Application) Run(serve iris.Runner, irisConf iris.Configuration) {
 	for index := 0; index < len(boots); index++ {
 		boots[index](app)
 	}
+
+	logLevel := "debug"
+	if level, ok := irisConf.Other["logger_level"]; ok {
+		logLevel = level.(string)
+	}
+	globalApp.IrisApp.Logger().SetLevel(logLevel)
 
 	repositoryAPIRun(irisConf)
 	app.msgsBus.building()

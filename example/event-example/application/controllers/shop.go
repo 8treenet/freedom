@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/8treenet/freedom"
-	"github.com/8treenet/freedom/example/msg-example/objects"
+	"github.com/8treenet/freedom/example/event-example/objects"
 	"github.com/8treenet/freedom/infra/kafka"
 )
 
@@ -25,7 +25,7 @@ func (s *ShopController) GetBy(id int) string {
 		ID:     id,
 		Amount: 10,
 	})
-	msg := s.Producer.NewMsg("event-sell", data)
-	msg.SetHeaders(map[string]string{"x-action": "购买"}).SetRuntime(s.Runtime).Send()
+	msg := s.Producer.NewMsg(EventSell, data)
+	msg.SetHeaders(map[string]string{"x-action": "购买"}).SetRuntime(s.Runtime).Publish()
 	return "ok"
 }

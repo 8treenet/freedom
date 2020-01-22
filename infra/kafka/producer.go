@@ -90,13 +90,3 @@ func (p *Producer) NewMsg(topic string, content []byte, producerName ...string) 
 		producerName: "",
 	}
 }
-
-// NewMsgByName .
-func (p *Producer) NewMsgByName(topic string, content []byte, producerName string) *Msg {
-	return &Msg{
-		topic:        topic,
-		key:          producer.generateMessageKey(),
-		content:      content,
-		producerName: producerName,
-	}
-}

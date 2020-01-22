@@ -62,8 +62,11 @@ func (msgBus *EventBus) building() {
 			}
 			method := t.Method(index)
 			ft := method.Func.Type()
-			if ft.NumIn() != 1 {
-				panic("Event route has no path parameter:" + t.Elem().String() + "." + method.Name)
+			if ft.NumIn() != 2 {
+				panic("Event routing parameters must be 'eventID string', MainHandlerName:" + t.Elem().String() + "." + method.Name)
+			}
+			if ft.In(1).Kind() != reflect.String {
+				panic("Event routing parameters must be 'eventID string', MainHandlerName:" + t.Elem().String() + "." + method.Name)
 			}
 			eventsRoute[eventName] = append(eventsRoute[eventName], t.Elem().String()+"."+method.Name)
 		}

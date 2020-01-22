@@ -22,6 +22,7 @@ func (obj *{{.Name}})Updates(rep freedom.GORMRepository) (affected int64, e erro
 	db := rep.DB().Model(obj).Updates(obj.changes)
 	e = db.Error
 	affected = db.RowsAffected
+	obj.changes = make(map[string]interface{})
 	return
 }
 
@@ -75,6 +76,18 @@ func Find{{.Name}}ByWhere(rep freedom.GORMRepository, query string, args []inter
 	return
 }
 
+// Find{{.Name}}ByMap .
+func Find{{.Name}}ByMap(rep freedom.GORMRepository, query map[string]interface{}, builders ...freedom.QueryBuilder) (result {{.Name}}, e error) {
+	db := rep.DB().Where(query)
+	if len(builders) == 0 {
+		e = db.Last(&result).Error
+		return
+	}
+
+	e = db.Limit(1).Order(builders[0].Order()).Find(&result).Error
+	return
+}
+
 // Find{{.Name}}s .
 func Find{{.Name}}s(rep freedom.GORMRepository, query {{.Name}}, builders ...freedom.QueryBuilder) (results []{{.Name}}, e error) {
 	db := rep.DB().Where(query)
@@ -102,6 +115,18 @@ func Find{{.Name}}sByWhere(rep freedom.GORMRepository, query string, args []inte
 	return
 }
 
+// Find{{.Name}}sByMap .
+func Find{{.Name}}sByMap(rep freedom.GORMRepository, query map[string]interface{}, builders ...freedom.QueryBuilder) (results []{{.Name}}, e error) {
+	db := rep.DB().Where(query)
+
+	if len(builders) == 0 {
+		e = db.Find(&results).Error
+		return
+	}
+	e = builders[0].Execute(db, &results)
+	return
+}
+
 // Create{{.Name}} .
 func Create{{.Name}}(rep freedom.GORMRepository, entity *{{.Name}}) (rowsAffected int64, e error) {
 	db := rep.DB().Create(entity)
@@ -109,33 +134,5 @@ func Create{{.Name}}(rep freedom.GORMRepository, entity *{{.Name}}) (rowsAffecte
 	e = db.Error
 	return
 }
-
-// FindToUpdate{{.Name}}s .
-func FindToUpdate{{.Name}}s(rep freedom.GORMRepository, query {{.Name}}, values map[string]interface{}, builders ...freedom.QueryBuilder) (affected int64, e error) {
-	db := rep.DB()
-	if len(builders) > 0 {
-		db = db.Model(&{{.Name}}{}).Where(query).Order(builders[0].Order()).Limit(builders[0].Limit()).Updates(values)
-	} else {
-		db = db.Model(&{{.Name}}{}).Where(query).Updates(values)
-	}
-
-	affected = db.RowsAffected
-	e = db.Error
-	return
-}
-
-// FindByWhereToUpdate{{.Name}}s .
-func FindByWhereToUpdate{{.Name}}s(rep freedom.GORMRepository, query string, args []interface{}, values map[string]interface{}, builders ...freedom.QueryBuilder) (affected int64, e error) {
-	db := rep.DB()
-	if len(builders) > 0 {
-		db = db.Model(&{{.Name}}{}).Where(query, args...).Order(builders[0].Order()).Limit(builders[0].Limit()).Updates(values)
-	} else {
-		db = db.Model(&{{.Name}}{}).Where(query, args...).Updates(values)
-	}
-
-	affected = db.RowsAffected
-	e = db.Error
-	return
-}`
-
+`
 }

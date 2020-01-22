@@ -22,14 +22,6 @@ func (o *Reorder) NewPager(page, pageSize int) *Pager {
 	return pager
 }
 
-// NewLimiter .
-func (o *Reorder) NewLimiter(limit int) *Limiter {
-	limiter := new(Limiter)
-	limiter.reorder = *o
-	limiter.limit = limit
-	return limiter
-}
-
 // Order .
 func (o *Reorder) Order() interface{} {
 	args := []string{}
@@ -76,32 +68,4 @@ func (p *Pager) Execute(db *gorm.DB, object interface{}) (e error) {
 // Order .
 func (p *Pager) Order() interface{} {
 	return p.reorder.Order()
-}
-
-// Limit .
-func (o *Pager) Limit() int {
-	panic("Subclass implementation")
-}
-
-// Limiter 行数限制器
-type Limiter struct {
-	reorder Reorder
-	limit   int
-}
-
-// Limit .
-func (l *Limiter) Limit() int {
-	return l.limit
-}
-
-// Execute .
-func (l *Limiter) Execute(db *gorm.DB, object interface{}) (e error) {
-	orderBy := l.reorder.Order()
-	e = db.Order(orderBy).Limit(l.limit).Find(object).Error
-	return
-}
-
-// Order .
-func (l *Limiter) Order() interface{} {
-	return l.reorder.Order()
 }

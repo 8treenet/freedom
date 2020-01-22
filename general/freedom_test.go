@@ -109,20 +109,6 @@ func newReorder(sort, field string, args ...string) *Reorder {
 	}
 }
 
-func TestTotalPage(t *testing.T) {
-	addr := "root:123123@tcp(127.0.0.1:3306)/octree_matrix?charset=utf8&parseTime=True&loc=Local"
-	db, e := gorm.Open("mysql", addr)
-	if e != nil {
-		panic(e)
-	}
-	db.LogMode(true)
-	p := newReorder("desc", "age", "id").NewLimiter(5)
-
-	var list []TestUser
-	p.Execute(db, &list)
-	t.Log(list)
-	return
-}
 
 type parsePool struct {
 }

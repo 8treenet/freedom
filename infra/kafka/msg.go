@@ -25,8 +25,8 @@ func (msg *Msg) SetRuntime(rt freedom.Runtime) *Msg {
 	return msg
 }
 
-// Send .
-func (msg *Msg) Send() {
+// Publish .
+func (msg *Msg) Publish() {
 	saramaMsg := &sarama.ProducerMessage{
 		Topic:     msg.topic,
 		Key:       sarama.StringEncoder(msg.key),
@@ -65,5 +65,11 @@ func (msg *Msg) SetHeaders(headers map[string]string) *Msg {
 	for key, value := range headers {
 		msg.headers[key] = value
 	}
+	return msg
+}
+
+// SelectClient .
+func (msg *Msg) SelectClient(producer string) *Msg {
+	msg.producerName = producer
 	return msg
 }

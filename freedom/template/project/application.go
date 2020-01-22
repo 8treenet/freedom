@@ -12,7 +12,9 @@ func appTomlConf() string {
 listen_addr = ":8000"
 service_name = "{{.PackageName}}"
 repository_request_timeout = 5
-prometheus_listen_addr = ":9090"`
+prometheus_listen_addr = ":9090"
+# "fatal" "error" "warn" "info"  "debug"
+logger_level = "debug"`
 }
 
 func dbTomlConf() string {
