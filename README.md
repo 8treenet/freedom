@@ -11,9 +11,9 @@
 - infra容器 基于组件的基础设施
 - http2 server
 - http2 client
-- 依赖注入
+- 依赖注入&依赖倒置
 - CRUD 代码生成
-- DDD
+- DDD&六边形架构
 - 事件总线
 
 ## 进行中

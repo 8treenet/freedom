@@ -3,6 +3,8 @@ package general
 import (
 	"sync"
 
+	"github.com/go-redis/redis"
+	"github.com/jinzhu/gorm"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/context"
 	"github.com/kataras/iris/core/memstore"
@@ -30,6 +32,8 @@ type Initiator interface {
 type SingleBoot interface {
 	Iris() *iris.Application
 	EventsPath(infra interface{}) map[string][]string
+	DB() *gorm.DB
+	Redis() redis.Cmdable
 }
 
 // BeginRequest .

@@ -2,7 +2,6 @@ package general
 
 import (
 	"github.com/8treenet/freedom/general/requests"
-	"github.com/8treenet/gcache"
 	"github.com/go-redis/redis"
 	"github.com/jinzhu/gorm"
 )
@@ -18,36 +17,13 @@ func (c *Infra) BeginRequest(rt Runtime) {
 }
 
 // DB .
-func (c *Infra) DB(name ...string) (db *gorm.DB) {
-	if len(name) != 0 {
-		if _, ok := globalApp.Database.Multi[name[0]]; !ok {
-			return nil
-		}
-		return globalApp.Database.Multi[name[0]].db
-	}
+func (c *Infra) DB() (db *gorm.DB) {
 	return globalApp.Database.db
 }
 
-// DBCache .
-func (c *Infra) DBCache(name ...string) gcache.Plugin {
-	if len(name) != 0 {
-		if _, ok := globalApp.Database.Multi[name[0]]; !ok {
-			return nil
-		}
-		return globalApp.Database.Multi[name[0]].cache
-	}
-	return globalApp.Database.cache
-}
-
 // Redis .
-func (c *Infra) Redis(name ...string) redis.Cmdable {
-	if len(name) != 0 {
-		if _, ok := globalApp.Redis.Multi[name[0]]; !ok {
-			return nil
-		}
-		return globalApp.Redis.Multi[name[0]]
-	}
-	return globalApp.Redis.client
+func (c *Infra) Redis() redis.Cmdable {
+	return globalApp.Cache.client
 }
 
 // NewFastRequest .

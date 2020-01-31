@@ -14,7 +14,6 @@ import (
 	"github.com/kataras/golog"
 	"github.com/kataras/iris/mvc"
 
-	"github.com/8treenet/gcache"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/context"
 )
@@ -45,21 +44,13 @@ type Application struct {
 	msgsBus     *EventBus
 	prefixParty string
 	Database    struct {
-		db            *gorm.DB
-		cache         gcache.Plugin
-		Install       func() (db *gorm.DB, cache gcache.Plugin)
-		InstallByName []func() (name string, db *gorm.DB, cache gcache.Plugin)
-		Multi         map[string]struct {
-			db    *gorm.DB
-			cache gcache.Plugin
-		}
+		db      *gorm.DB
+		Install func() (db *gorm.DB)
 	}
 
-	Redis struct {
-		client        redis.Cmdable
-		Install       func() (client redis.Cmdable)
-		InstallByName []func() (name string, client redis.Cmdable)
-		Multi         map[string]redis.Cmdable
+	Cache struct {
+		client  redis.Cmdable
+		Install func() (client redis.Cmdable)
 	}
 	Middleware    []context.Handler
 	Prometheus    *Prometheus
@@ -212,49 +203,22 @@ func (app *Application) CreateH2CRunner(addr string) iris.Runner {
 }
 
 // InstallGorm .
-func (app *Application) InstallGorm(f func() (db *gorm.DB, cache gcache.Plugin)) {
+func (app *Application) InstallGorm(f func() (db *gorm.DB)) {
 	app.Database.Install = f
 }
 
 // InstallRedis .
 func (app *Application) InstallRedis(f func() (client redis.Cmdable)) {
-	app.Redis.Install = f
-}
-
-// InstallGorm .
-func (app *Application) InstallGormByName(f func() (name string, db *gorm.DB, cache gcache.Plugin)) {
-	app.Database.InstallByName = append(app.Database.InstallByName, f)
-}
-
-// InstallRedis .
-func (app *Application) InstallRedisByName(f func() (name string, client redis.Cmdable)) {
-	app.Redis.InstallByName = append(app.Redis.InstallByName, f)
+	app.Cache.Install = f
 }
 
 func (app *Application) installDB() {
 	if app.Database.Install != nil {
-		app.Database.db, app.Database.cache = app.Database.Install()
+		app.Database.db = app.Database.Install()
 	}
 
-	if app.Redis.Install != nil {
-		app.Redis.client = app.Redis.Install()
-	}
-	NewMap(&app.Database.Multi)
-	NewMap(&app.Redis.Multi)
-
-	for index := 0; index < len(app.Database.InstallByName); index++ {
-		var item struct {
-			db    *gorm.DB
-			cache gcache.Plugin
-		}
-		var name string
-		name, item.db, item.cache = app.Database.InstallByName[index]()
-		app.Database.Multi[name] = item
-	}
-
-	for index := 0; index < len(app.Redis.InstallByName); index++ {
-		name, client := app.Redis.InstallByName[index]()
-		app.Redis.Multi[name] = client
+	if app.Cache.Install != nil {
+		app.Cache.client = app.Cache.Install()
 	}
 }
 
@@ -283,4 +247,13 @@ func (app *Application) addMiddlewares(irisConf iris.Configuration) {
 	}
 	globalApp.IrisApp.Use(app.Middleware...)
 	globalApp.IrisApp.Use(newRecover())
+}
+
+// DB() .
+func (app *Application) DB() *gorm.DB {
+	return app.Database.db
+}
+
+func (app *Application) Redis() redis.Cmdable {
+	return app.Cache.client
 }

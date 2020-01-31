@@ -1,11 +1,11 @@
 package freedom
 
 import (
-	"github.com/kataras/iris/hero"
 	"os"
 
+	"github.com/kataras/iris/hero"
+
 	"github.com/8treenet/freedom/general"
-	"github.com/8treenet/gcache"
 	"github.com/BurntSushi/toml"
 	"github.com/go-redis/redis"
 	"github.com/jinzhu/gorm"
@@ -79,7 +79,7 @@ func Configure(obj interface{}, fileName string, def bool) {
 	}
 
 	if path == "" {
-		path = "./application/conf"
+		path = "./server/conf"
 		_, err := os.Stat(path)
 		if err != nil {
 			path = ""
@@ -87,7 +87,7 @@ func Configure(obj interface{}, fileName string, def bool) {
 	}
 
 	if path == "" {
-		panic("No profile directory found:" + "'$FREEDOM_PROJECT_CONFIG' or './conf' or './application/conf'")
+		panic("No profile directory found:" + "'$FREEDOM_PROJECT_CONFIG' or './conf' or './server/conf'")
 	}
 	_, err := toml.DecodeFile(path+"/"+fileName, obj)
 	if err != nil && !def {
@@ -97,10 +97,8 @@ func Configure(obj interface{}, fileName string, def bool) {
 
 // Application .
 type Application interface {
-	InstallGorm(f func() (db *gorm.DB, cache gcache.Plugin))
-	InstallGormByName(f func() (name string, db *gorm.DB, cache gcache.Plugin))
+	InstallGorm(f func() (db *gorm.DB))
 	InstallRedis(f func() (client redis.Cmdable))
-	InstallRedisByName(f func() (name string, client redis.Cmdable))
 	InstallMiddleware(handler iris.Handler)
 	InstallParty(relativePath string)
 	CreateH2CRunner(addr string) iris.Runner

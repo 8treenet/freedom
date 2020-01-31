@@ -1,7 +1,7 @@
 package project
 
 func init() {
-	content["/application/controllers/default.go"] = controllerTemplate()
+	content["/adapter/controllers/default.go"] = controllerTemplate()
 }
 
 func controllerTemplate() string {
@@ -9,7 +9,7 @@ func controllerTemplate() string {
 
 	import (
 		"github.com/8treenet/freedom"
-		"{{.PackagePath}}/domain/services"
+		"{{.PackagePath}}/application"
 	)
 	
 	func init() {
@@ -19,7 +19,7 @@ func controllerTemplate() string {
 	}
 	
 	type DefaultController struct {
-		Sev     *services.DefaultService
+		Sev     *application.DefaultService
 		Runtime freedom.Runtime
 	}
 	

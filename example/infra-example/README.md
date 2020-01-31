@@ -13,7 +13,7 @@
 ###### 生成Goods和Order的模型
 ```sh
 #前置1. 导入./freedom.sql 到数据库
-#前置2. 编辑./application/conf/db.toml
+#前置2. 编辑./server/conf/db.toml
 #创建表模型 freedom new-crud
 $ freedom new-crud
 ```
@@ -55,11 +55,12 @@ func (repo *GoodsRepository) GetAll() (result []objects.Goods, e error) {
 	return
 }
 
-func (repo *GoodsRepository) ChangeStock(goods *objects.Goods, num int) (e error) {
-	//修改该商品库存
-	objects.UpdateGoods(repo, goods, objects.Goods{
-		Stock: goods.Stock + num,
-	})
+func (repo *GoodsRepository) Save(goods *objects.Goods) (e error) {
+	/*
+		保存更新商品
+		updateGoods 为生成代码
+	*/
+	_, e = updateGoods(repo, goods)
 	return
 }
 ```
@@ -104,6 +105,7 @@ func (srv *OrderService) Add(goodsID, num, userId int) (resp string, e error) {
 		resp = "库存不足"
 		return
 	}
+	goodsObj.SetStock(goodsObj.Stock - num)
 
 	/*
 		事务执行
@@ -112,7 +114,7 @@ func (srv *OrderService) Add(goodsID, num, userId int) (resp string, e error) {
 		如果错误不为nil, 触发 db.Rollback
 	*/
 	e = srv.Tx.Execute(func() error {
-		if err := srv.GoodsRepo.ChangeStock(&goodsObj, -num); err != nil {
+		if err := srv.GoodsRepo.Save(&goodsObj); err != nil {
 			return err
 		}
 
@@ -129,7 +131,7 @@ func (srv *OrderService) Add(goodsID, num, userId int) (resp string, e error) {
 - 多例组件一个请求会话中共享一个实例，简单的讲 controller、service、repository 如果引用同一多例组件，本质使用同一实例。
 - 框架已提供的组件目录 github.com/8treenet/freedom/infra
 - 用户自定义的组件目录 [project]/infra/[custom]
-- 组件可以独立使用组件的配置文件, 配置文件放在 [project]/application/conf/infra/[custom.toml]
+- 组件可以独立使用组件的配置文件, 配置文件放在 [project]/server/conf/infra/[custom.toml]
 
 
 ##### 单例的组件
@@ -159,7 +161,6 @@ func init() {
 	不论单例组件还是多例组件 必须继承freedom.Infra, freedom.Infra提供了一些基础设施相关的功能。
 */
 type Single struct {
-	freedom.Infra
 	life int //生命
 }
 

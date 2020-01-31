@@ -36,7 +36,7 @@ func installLogrus(app freedom.Application) {
 /*
 	购买的接口定义 
 	ShoppingInterface 接口声明在 service包， 由controller使用
-	文件 services/interface.go
+	文件 application/interface.go
 */
 type ShoppingInterface interface {
 	Shopping(goodsID int) string
@@ -65,7 +65,7 @@ type GoodsInterface interface {
 }
 
 /*
-	文件 services/shop.go
+	文件 application/shop.go
 */
 type ShopService struct {
 	Goods   repositorys.GoodsInterface //定义接口变量, 框架会自动注入该接口的实现

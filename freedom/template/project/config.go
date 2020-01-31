@@ -68,24 +68,17 @@ func dbConfTemplate() string {
 		return result
 	}
 	
-	
-	// DBCacheConf .
-	type DBCacheConf struct {
-		RedisConf
-		Expires int %stoml:"expires"%s
-	}
-	
 	// DBConf .
 	type DBConf struct {
 		Addr            string      %stoml:"addr"%s
 		MaxOpenConns    int         %stoml:"max_open_conns"%s
 		MaxIdleConns    int         %stoml:"max_idle_conns"%s
 		ConnMaxLifeTime int         %stoml:"conn_max_life_time"%s
-		Cache           DBCacheConf %stoml:"cache"%s
-	}`
+	}
+`
 
 	list := []interface{}{}
-	for index := 0; index < 12; index++ {
+	for index := 0; index < 8; index++ {
 		list = append(list, "`")
 	}
 	return fmt.Sprintf(result, list...)

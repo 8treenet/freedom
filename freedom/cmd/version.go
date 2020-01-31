@@ -5,7 +5,7 @@ import "github.com/spf13/cobra"
 import "fmt"
 
 const (
-	versionNum = "v1.3.5"
+	versionNum = "v1.3.6"
 )
 
 var (

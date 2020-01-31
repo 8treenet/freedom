@@ -18,7 +18,6 @@ func init() {
 
 // Single .
 type Single struct {
-	freedom.Infra
 	life int //生命
 }
 

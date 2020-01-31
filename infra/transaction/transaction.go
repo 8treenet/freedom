@@ -30,34 +30,27 @@ func (t *Transaction) BeginRequest(rt freedom.Runtime) {
 	t.Infra.BeginRequest(rt)
 }
 
-func (t *Transaction) Execute(fun func() error, selectDBName ...string) (e error) {
-	return t.execute(fun, nil, nil, selectDBName...)
+func (t *Transaction) Execute(fun func() error) (e error) {
+	return t.execute(fun, nil, nil)
 }
 
 // Execute Execute local transaction.
-func (t *Transaction) ExecuteTx(fun func() error, ctx context.Context, opts *sql.TxOptions, selectDBName ...string) (e error) {
-	return t.execute(fun, ctx, opts, selectDBName...)
+func (t *Transaction) ExecuteTx(fun func() error, ctx context.Context, opts *sql.TxOptions) (e error) {
+	return t.execute(fun, ctx, opts)
 }
 
 // Execute Execute local transaction.
-func (t *Transaction) execute(fun func() error, ctx context.Context, opts *sql.TxOptions, selectDBName ...string) (e error) {
+func (t *Transaction) execute(fun func() error, ctx context.Context, opts *sql.TxOptions) (e error) {
 	if t.db != nil {
 		panic("unknown error")
 	}
-	name := ""
-	if len(selectDBName) > 0 {
-		name = selectDBName[0]
-	}
 	if ctx != nil && opts != nil {
-		t.db = t.DB(selectDBName...).BeginTx(ctx, opts)
+		t.db = t.DB().BeginTx(ctx, opts)
 	} else {
-		t.db = t.DB(selectDBName...).Begin()
+		t.db = t.DB().Begin()
 	}
 
-	t.Runtime.Store().Set("freedom_local_transaction_db", map[string]interface{}{
-		"db":   t.db,
-		"name": name,
-	})
+	t.Runtime.Store().Set("freedom_local_transaction_db", t.db)
 
 	defer func() {
 		if perr := recover(); perr != nil {

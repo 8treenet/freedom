@@ -3,18 +3,22 @@
 
 #### 目录结构
 
-- domain - 领域层
-    - service - 领域服务目录
-    - repositorys - 资源库目录
-    - entity - 实体目录
+- application - 领域服务
+    - aggregates - 聚合
+    - entitys - 实体
+    - objects - 值对象
 
-- application - 应用层
+- adapter - 端口适配器
+    - controllers - 输入适配器
+    - repositorys - 输出适配器
+
+- server - 服务
     - conf - toml配置文件
     - main.go - 主函数
-    - controllers - 入口控制器
+
 - infra - 基础设施
     - config - 配置组件
-- objects - 值对象
+
 
 ---
 #### 入口main.go
@@ -117,7 +121,7 @@ func (c *DefaultController) Get() (result struct {
 }
 ```
 
-#### service/default.go
+#### application/default.go
 ```go
 func init() {
     freedom.Booting(func(initiator freedom.Initiator) {
@@ -182,7 +186,7 @@ func (repo *DefaultRepository) GetIP() string {
 
 // GetUA - implment DefaultRepoInterface interface
 func (repo *DefaultRepository) GetUA() string {
-    //该方法的接口声明在service/default.go, 推荐创建接口目录来声明一揽子接口。
+    //该方法的接口声明在application/default.go
     repo.Runtime.Logger().Infof("我是Repository GetUA")
     return repo.Runtime.Ctx().Request().UserAgent()
 }  
@@ -192,9 +196,9 @@ func (repo *DefaultRepository) GetUA() string {
 
 |文件 | 作用 |
 | ----- | :---: |
-|application/conf/app.toml|服务配置|
-|application/conf/db.toml|db配置|
-|application/conf/redis.toml|缓存配置|
+|server/conf/app.toml|服务配置|
+|server/conf/db.toml|db配置|
+|server/conf/redis.toml|缓存配置|
 
 #### 生命周期
 ###### 每一个请求接入都会创建若干依赖对象，从controller、service、repository、infra。简单的讲每一个请求都是独立的创建和使用这一系列对象，不会导致并发的问题。当然也无需担心效率问题，框架已经做了池。可以参见 initiator 里的各种Bind方法。
