@@ -109,7 +109,6 @@ func newReorder(sort, field string, args ...string) *Reorder {
 	}
 }
 
-
 type parsePool struct {
 }
 
@@ -134,4 +133,34 @@ func TestParsePoolFunc(t *testing.T) {
 
 func TestParsePoolFunc2(t *testing.T) {
 	t.Log(strings.Split("asdasdasdsad", "?"))
+}
+
+type testEntity struct {
+	Entity
+	name string
+}
+
+func (entity *testEntity) Test(fuck int) {
+	jsonData := struct {
+		Value int
+	}{
+		Value: fuck,
+	}
+	entity.DomainEvent(entity.Test, jsonData)
+}
+
+type testEventInfra struct {
+}
+
+func (tei *testEventInfra) DomainEvent(producer, topic string, data []byte, runtime Runtime, header ...map[string]string) {
+	fmt.Println(topic, data, header)
+}
+
+func TestEntity(t *testing.T) {
+	NewApplication()
+	globalApp.eventInfra = new(testEventInfra)
+	tn := new(testEntity)
+	newEntity(nil, tn)
+	t.Log(tn.Identity())
+	tn.Test(100)
 }

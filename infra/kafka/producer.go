@@ -19,6 +19,10 @@ func init() {
 	})
 }
 
+func GetDomainEventInfra() freedom.DomainEventInfra {
+	return producer
+}
+
 var producer *Producer = new(Producer)
 
 // Producer .
@@ -83,10 +87,23 @@ func (p *Producer) generateMessageKey() string {
 
 // NewMsg .
 func (p *Producer) NewMsg(topic string, content []byte, producerName ...string) *Msg {
+	pName := ""
+	if len(producerName) > 0 {
+		pName = producerName[0]
+	}
 	return &Msg{
 		topic:        topic,
 		key:          producer.generateMessageKey(),
 		content:      content,
-		producerName: "",
+		producerName: pName,
 	}
+}
+
+// DomainEvent .
+func (p *Producer) DomainEvent(producer, topic string, data []byte, runtime freedom.Runtime, header ...map[string]string) {
+	msg := p.NewMsg(topic, data, producer)
+	if len(header) > 0 {
+		msg = msg.SetHeaders(header[0])
+	}
+	msg.SetRuntime(runtime).Publish()
 }

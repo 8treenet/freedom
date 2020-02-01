@@ -22,6 +22,9 @@ func main() {
 	app := freedom.NewApplication()
 	installMiddleware(app)
 	addrRunner := iris.Addr(config.Get().App.Other["listen_addr"].(string))
+
+	//获取领域事件的kafka基础设施并安装
+	app.InstallDomainEventInfra(kafka.GetDomainEventInfra())
 	app.Run(addrRunner, *config.Get().App)
 }
 

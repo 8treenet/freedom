@@ -44,6 +44,10 @@ type (
 	Result = hero.Result
 
 	Context = iris.Context
+
+	Entity = general.Entity
+
+	DomainEventInfra = general.DomainEventInfra
 )
 
 // NewApplication .
@@ -105,4 +109,5 @@ type Application interface {
 	Iris() *iris.Application
 	Logger() *golog.Logger
 	Run(serve iris.Runner, c iris.Configuration)
+	InstallDomainEventInfra(eventInfra DomainEventInfra)
 }

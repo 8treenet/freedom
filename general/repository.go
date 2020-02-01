@@ -79,6 +79,12 @@ func (repo *Repository) NewH2CRequest(url string) Request {
 	return req
 }
 
+// MadeEntity .
+func (repo *Repository) MadeEntity(entity interface{}) {
+	newEntity(repo.Runtime, entity)
+	return
+}
+
 func repositoryAPIRun(irisConf iris.Configuration) {
 	sec := int64(5)
 	if v, ok := irisConf.Other["repository_request_timeout"]; ok {

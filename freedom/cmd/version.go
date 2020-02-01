@@ -1,11 +1,13 @@
 package cmd
 
-import "github.com/spf13/cobra"
+import (
+	"fmt"
 
-import "fmt"
+	"github.com/spf13/cobra"
+)
 
 const (
-	versionNum = "v1.3.6"
+	versionNum = "v1.3.7"
 )
 
 var (

@@ -55,6 +55,7 @@ type Application struct {
 	Middleware    []context.Handler
 	Prometheus    *Prometheus
 	ControllerDep []interface{}
+	eventInfra    DomainEventInfra
 }
 
 // InstallParty .
@@ -220,6 +221,11 @@ func (app *Application) installDB() {
 	if app.Cache.Install != nil {
 		app.Cache.client = app.Cache.Install()
 	}
+}
+
+// InstallDomainEventInfra .
+func (app *Application) InstallDomainEventInfra(eventInfra DomainEventInfra) {
+	app.eventInfra = eventInfra
 }
 
 // Logger .

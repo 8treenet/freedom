@@ -81,7 +81,6 @@ func (s *StoreController) PostSellGoodsBy(eventID string) error {
 }
 ```
 
-
 #### 配置文件
 ```sh
 # conf/infra/kafka.toml
@@ -107,4 +106,43 @@ servers = [":9092"]
 [[consumer_clients]]
 servers = [":9092"]
 group_id = "freedom"
+```
+
+
+#### 领域事件风格
+```go
+/*
+    1.先要安装领域事件的基础设施，freedom 已经实现了kafka。可自行定义其他，但领域事件只支持唯一的安装。
+    2.安装以后 entity 可以直接使用 DomanEvent 方法触发。
+*/
+func main() {
+	//获取领域事件的kafka基础设施并安装
+	app.InstallDomainEventInfra(kafka.GetDomainEventInfra())
+	app.Run(addrRunner, *config.Get().App)
+}
+```
+
+
+```go
+package entity
+
+import (
+	"strconv"
+	"github.com/8treenet/freedom"
+	"github.com/8treenet/freedom/example/infra-example/application/objects"
+)
+
+//更多参照实体教程，本代码只介绍领域事件
+type Goods struct {
+	freedom.Entity //继承实体接口
+	goodsObj objects.Goods //商品值对象
+}
+
+func (g *Goods) Shop() {
+	g.DomainEvent(g.Shop, g.goodsObj)
+}
+
+func (g *Goods) Identity() string {
+	return strconv.Itoa(g.goodsObj.ID)
+}
 ```
