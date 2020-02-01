@@ -248,12 +248,3 @@ func (app *Application) addMiddlewares(irisConf iris.Configuration) {
 	globalApp.IrisApp.Use(app.Middleware...)
 	globalApp.IrisApp.Use(newRecover())
 }
-
-// DB() .
-func (app *Application) DB() *gorm.DB {
-	return app.Database.db
-}
-
-func (app *Application) Redis() redis.Cmdable {
-	return app.Cache.client
-}

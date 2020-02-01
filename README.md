@@ -6,7 +6,6 @@
 - 集成iris
 - 集成普罗米修斯
 - 集成gorm
-- 集成gcache
 - 链路追踪
 - infra容器 基于组件的基础设施
 - http2 server
