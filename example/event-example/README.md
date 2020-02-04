@@ -132,6 +132,12 @@ import (
     "github.com/8treenet/freedom"
     "github.com/8treenet/freedom/example/infra-example/application/objects"
 )
+
+type Goods struct {
+    freedom.Entity             //继承实体接口
+    goodsObj objects.Goods     //商品值对象
+}
+
 /*
     DomainEvent(fun interface{}, object interface{}, header ...map[string]string)
     fun : 为触发事件的方法。 基于强类型的原则，框架已经做了方法和字符串Topic的映射,`实体名字:方法名`
@@ -148,6 +154,6 @@ func (g *Goods) Shop() {
 }
 
 func (g *Goods) Identity() string {
-	return strconv.Itoa(g.goodsObj.ID)
+    return strconv.Itoa(g.goodsObj.ID)
 }
 ```
