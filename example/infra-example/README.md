@@ -25,7 +25,7 @@ package repositorys
 
 import (
 	"github.com/8treenet/freedom"
-	//objects 目录下的模型 已通过crud生成
+	//objects 目录下的模型 和repositorys/generate.go 由crud生成
 	"github.com/8treenet/freedom/example/infra-example/application/objects"
 )
 

@@ -1,6 +1,9 @@
 package infra
 
 import (
+	"encoding/json"
+
+	"github.com/8treenet/freedom/general"
 	"github.com/kataras/iris/context"
 	"github.com/kataras/iris/hero"
 )
@@ -68,6 +71,13 @@ func (r Response) Dispatch(ctx context.Context) {
 	obj.Data = r.Object
 	obj.ErrCode = r.ErrCode
 	obj.ErrMsg = r.ErrMsg
+	loggger := ctx.Values().Get("logger_impl")
+
+	objData, _ := json.Marshal(obj)
+	if loggger != nil {
+		log := loggger.(general.Logger)
+		log.Info("Response:", string(objData))
+	}
 
 	hero.DispatchCommon(ctx, r.Code, r.ContentType, r.Content, obj, r.Err, true)
 }

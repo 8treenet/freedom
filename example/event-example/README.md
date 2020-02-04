@@ -9,7 +9,7 @@
 - producer
 - 代理机制
 ###### 本篇的示例使用kafka消息队列，可自行实现infra组件，如编排服务、定时任务、rocket等。
-###### 篇幅有限,只展示了2个控制器。使用DDD风格的领域事件，请在聚合内使用producer。
+###### 篇幅有限,只展示了2个控制器。使用DDD风格的领域事件，请在聚合或实体内使用DomainEvent。
 
 #### producer
 ```go
@@ -144,13 +144,13 @@ type Goods struct {
     object : 结构体数据,会做json转换
     header : k/v 附加数据
 */
-func (g *Goods) Shop() {
+func (g *Goods) Shopping() {
     /*
         相关购买逻辑。。。
     */
 
-    //触发领域事件 `Goods:Shop`
-    g.DomainEvent(g.Shop, g.goodsObj)
+    //触发领域事件 `Goods:Shopping`
+    g.DomainEvent(g.Shopping, g.goodsObj)
 }
 
 func (g *Goods) Identity() string {

@@ -85,6 +85,7 @@ type Initiator interface {
 ```
 
 #### controllers/default.go
+##### [iris路由文档](https://github.com/kataras/iris/wiki/MVC)
 ```go
 func init() {
     freedom.Booting(func(initiator freedom.Initiator) {
@@ -139,7 +140,7 @@ func init() {
     })
 }
 
-//  服务 DefaultService
+//  领域服务 DefaultService
 type DefaultService struct {
     Runtime freedom.Runtime
     DefRepo   *repositorys.DefaultRepository
