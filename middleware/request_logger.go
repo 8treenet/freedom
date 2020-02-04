@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
-	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -96,36 +95,6 @@ func (l *requestLoggerMiddleware) ServeHTTP(ctx context.Context) {
 				message = msg
 			} else {
 				message = fmt.Sprintf(" %v %v", message, msg)
-			}
-		}
-		outBody := ""
-		for {
-			writer := reflect.ValueOf(ctx.ResponseWriter().Naive())
-			if !writer.IsValid() || writer.Kind() != reflect.Ptr {
-				break
-			}
-			writer = writer.Elem().FieldByName("w")
-			if !writer.IsValid() || writer.Kind() != reflect.Ptr {
-				break
-			}
-			writer = writer.Elem().FieldByName("buf")
-			if !writer.IsValid() {
-				break
-			}
-
-			buf := writer.Bytes()
-			index := bytes.IndexByte(buf, 0)
-			buf = buf[0:index]
-			outBody = string(buf)
-			break
-		}
-		if outBody != "" {
-			outBody = strings.Replace(outBody, "\n", "", -1)
-			outBody = strings.Replace(outBody, " ", "", -1)
-			if message == nil {
-				message = outBody
-			} else {
-				message = fmt.Sprintf(" %v %v", message, outBody)
 			}
 		}
 	}

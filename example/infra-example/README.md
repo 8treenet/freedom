@@ -26,7 +26,7 @@ package repositorys
 import (
 	"github.com/8treenet/freedom"
 	//objects 目录下的模型 已通过crud生成
-	"github.com/8treenet/freedom/example/infra-example/objects"
+	"github.com/8treenet/freedom/example/infra-example/application/objects"
 )
 
 func init() {
@@ -44,21 +44,27 @@ type GoodsRepository struct {
 }
 
 func (repo *GoodsRepository) Get(id int) (result objects.Goods, e error) {
-	//通过主键id 查询该商品
-	result, e = objects.FindGoodsByPrimary(repo, id)
+	/*
+		通过主键id 查询该商品
+		findGoodsByPrimary 由代码生成
+	*/
+	result, e = findGoodsByPrimary(repo, id)
 	return
 }
 
 func (repo *GoodsRepository) GetAll() (result []objects.Goods, e error) {
-	//查看全部商品
-	result, e = objects.FindGoodss(repo, objects.Goods{})
+	/*
+		查看全部商品
+		findGoodss由代码生成
+	*/
+	result, e = findGoodss(repo, objects.Goods{})
 	return
 }
 
 func (repo *GoodsRepository) Save(goods *objects.Goods) (e error) {
 	/*
 		保存更新商品
-		updateGoods 为生成代码
+		updateGoods 由代码生成
 	*/
 	_, e = updateGoods(repo, goods)
 	return

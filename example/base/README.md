@@ -12,7 +12,7 @@
     - controllers - 输入适配器
     - repositorys - 输出适配器
 
-- server - 服务
+- server - 应用程序服务
     - conf - toml配置文件
     - main.go - 主函数
 
@@ -48,7 +48,7 @@ func installMiddleware(app freedom.Application) {
  */
 type Runtime interface {
     //获取iris的上下文
-    Ctx() iris.Context
+    Ctx() freedom.Context
     //获取带上下文的日志实例。
     Logger() Logger
     //获取一级缓存实例，请求结束，该缓存生命周期结束。

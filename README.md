@@ -17,6 +17,7 @@
 
 ## 进行中
 - aggregate最终一致
+- aggregate强一致
 
 ## 安装
 ```sh
