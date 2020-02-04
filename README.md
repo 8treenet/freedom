@@ -1,6 +1,6 @@
 # freedom
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/8treenet/gotree/blob/master/LICENSE) [![Go Report Card](https://goreportcard.com/badge/github.com/8treenet/tcp)](https://goreportcard.com/report/github.com/8treenet/tcp) [![Build Status](https://travis-ci.org/8treenet/gotree.svg?branch=master)](https://travis-ci.org/8treenet/gotree) [![GoDoc](https://godoc.org/github.com/8treenet/gotree?status.svg)](https://godoc.org/github.com/8treenet/gotree)
-###### freedom是一个六边形架构框架，可以支撑充血的领域模型范式。。
+###### freedom是一个基于六边形架构的框架，可以支撑充血的领域模型范式。
 
 ## Overview
 - 集成iris

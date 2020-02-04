@@ -4,7 +4,7 @@ import (
 	"strconv"
 
 	"github.com/8treenet/freedom"
-	"github.com/8treenet/freedom/example/infra-example/application/objects"
+	"github.com/8treenet/freedom/example/event-example/application/objects"
 )
 
 type Goods struct {
