@@ -21,25 +21,25 @@ type OrderController struct {
 func (c *OrderController) GetBy(goodsID int) freedom.Result {
 	userId, err := c.Runtime.Ctx().URLParamInt("userId")
 	if err != nil {
-		return &infra.Response{ErrCode: -1, ErrMsg: err.Error()}
+		return &infra.JSONResponse{Err: err}
 	}
 	obj, err := c.OrderSev.Get(goodsID, userId)
 	if err != nil {
-		return &infra.Response{ErrCode: -1, ErrMsg: err.Error()}
+		return &infra.JSONResponse{Err: err}
 	}
 
-	return &infra.Response{Object: obj}
+	return &infra.JSONResponse{Object: obj}
 }
 
 // GetBy handles the GET: /order route 获取全部订单.
 func (c *OrderController) Get() freedom.Result {
 	userId, err := c.Runtime.Ctx().URLParamInt("userId")
 	if err != nil {
-		return &infra.Response{ErrCode: -1, ErrMsg: err.Error()}
+		return &infra.JSONResponse{Err: err}
 	}
 	objs, err := c.OrderSev.GetAll(userId)
 	if err != nil {
-		return &infra.Response{ErrCode: -1, ErrMsg: err.Error()}
+		return &infra.JSONResponse{Err: err}
 	}
-	return &infra.Response{Object: objs}
+	return &infra.JSONResponse{Object: objs}
 }

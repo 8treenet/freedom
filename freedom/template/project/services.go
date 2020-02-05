@@ -38,12 +38,12 @@ func servicesTemplate() string {
 	
 	// RemoteInfo .
 	func (s *DefaultService) RemoteInfo() (result struct {
-		IP string
-		UA string
+		Ip string
+		Ua string
 	}) {
 		s.Runtime.Logger().Infof("我是service")
-		result.IP = s.DefRepo.GetIP()
-		result.UA = s.DefRepoIF.GetUA()
+		result.Ip = s.DefRepo.GetIP()
+		result.Ua = s.DefRepoIF.GetUA()
 		return
 	}
 

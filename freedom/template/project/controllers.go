@@ -10,6 +10,7 @@ func controllerTemplate() string {
 	import (
 		"github.com/8treenet/freedom"
 		"{{.PackagePath}}/application"
+		"{{.PackagePath}}/infra"
 	)
 	
 	func init() {
@@ -24,15 +25,10 @@ func controllerTemplate() string {
 	}
 	
 	// Get handles the GET: / route.
-	func (c *DefaultController) Get() (result struct {
-		IP string
-		UA string
-	}, e error) {
+	func (c *DefaultController) Get() freedom.Result {
 		c.Runtime.Logger().Infof("我是控制器")
 		remote := c.Sev.RemoteInfo()
-		result.IP = remote.IP
-		result.UA = remote.UA
-		return
+		return &infra.JSONResponse{Object: remote}
 	}
 	
 	// GetHello handles the GET: /hello route.
@@ -46,13 +42,15 @@ func controllerTemplate() string {
 	}
 	
 	// GetAgeByUserBy handles the GET: /age/{age:int}/user/{user:string} route.
-	func (c *DefaultController) GetAgeByUserBy(age int, user string) (result struct {
-		User string
-		Age  int
-	}, e error) {
+	func (c *DefaultController) GetAgeByUserBy(age int, user string) freedom.Result {
+		var result struct {
+			User string
+			Age  int
+		}
 		result.Age = age
 		result.User = user
-		return
+
+		return &infra.JSONResponse{Object: result}
 	}
 	`
 }

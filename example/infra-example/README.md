@@ -182,35 +182,72 @@ func (mu *Single) GetLife() int {
 }
 ```
 
-##### 多例的组件
+##### 多例组件
+###### 实现一个读取json数据的组件，并且做数据验证。
 ```go
+//使用展示
+type GoodsController struct {
+	JSONRequest *infra.JSONRequest
+}
+// GetBy handles the PUT: /goods/stock route 增加商品库存.
+func (goods *GoodsController) PutStock() freedom.Result {
+	var request struct {
+		GoodsID int `json:"goodsId" validate:"required"` //商品id
+		Num     int `validate:"min=1,max=15"`//只能增加的范围1-15，其他报错
+	}
+
+	//使用自定义的json组件读取请求数据, 并且处理数据验证。
+	if e := goods.JSONRequest.ReadBodyJSON(&request); e != nil {
+		return &infra.JSONResponse{Err: e}
+	}
+}
+```
+
+```go
+//组件的实现
 func init() {
+	validate = validator.New()
 	freedom.Booting(func(initiator freedom.Initiator) {
-		initiator.BindInfra(false, func() *Multiton {
-			return &Multiton{}
+		initiator.BindInfra(false, func() *JSONRequest {
+			//绑定该组件到基础设施池。
+			return &JSONRequest{}
 		})
-		initiator.InjectController(func(ctx freedom.Context) (com *Multiton) {
+		initiator.InjectController(func(ctx freedom.Context) (com *JSONRequest) {
+			//从基础设施池里取出注入到控制器。
 			initiator.GetInfra(ctx, &com)
 			return
 		})
 	})
 }
 
-// Multiton .
-type Multiton struct {
-	freedom.Infra
-	life int //生命
+// Transaction .
+type JSONRequest struct {
+	freedom.Infra	//继承freedom.Infra
 }
 
-// BeginRequest 多例组件入口，每个请求只调用一次。
-func (mu *Multiton) BeginRequest(rt freedom.Runtime) {
-	mu.Infra.BeginRequest(rt)
-	rt.Logger().Info("Multiton 初始化拉")
-	mu.life = rand.Intn(100)
+// BeginRequest 每一个请求只会触发一次
+func (req *JSONRequest) BeginRequest(rt freedom.Runtime) {
+	// 调用基类初始化请求运行时
+	req.Infra.BeginRequest(rt)
 }
 
-func (mu *Multiton) GetLife() int {
-	//每个请求不一样的life
-	return mu.life
+// ReadBodyJSON .
+func (req *JSONRequest) ReadBodyJSON(obj interface{}) error {
+	//从上下文读取io数据
+	rawData, err := ioutil.ReadAll(req.Runtime.Ctx().Request().Body)
+	if err != nil {
+		return err
+	}
+
+	/*
+		使用第三方 extjson 反序列化
+		使用第三方 validate 做数据验证
+	*/
+	err = extjson.Unmarshal(rawData, obj)
+	if err != nil {
+		return err
+	}
+
+	return validate.Struct(obj)
 }
 ```

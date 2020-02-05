@@ -68,5 +68,6 @@ func mkdirAll(projectPath string) {
 	os.MkdirAll(projectPath+"/application/objects", os.ModePerm)
 	os.MkdirAll(projectPath+"/application/aggregates", os.ModePerm)
 	os.MkdirAll(projectPath+"/application/entitys", os.ModePerm)
+	os.MkdirAll(projectPath+"/infra", os.ModePerm)
 	os.MkdirAll(projectPath+"/infra/config", os.ModePerm)
 }

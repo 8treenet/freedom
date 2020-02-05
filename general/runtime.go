@@ -13,6 +13,9 @@ func newRuntimeHandle() context.Handler {
 		rt := newRuntime(ctx)
 		ctx.Values().Set(runtimeKey, rt)
 		ctx.Next()
+		ctx.Values().Reset()
+		rt.ctx = nil
+		rt.store = nil
 	}
 }
 

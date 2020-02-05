@@ -61,9 +61,9 @@ func newPrometheus(name, listen string) *Prometheus {
 	go func() {
 		if strings.Index(listen, ":") == 0 {
 
-			globalApp.Logger().Debugf("Now prometheus listening on: http://0.0.0.0%s\n", listen)
+			globalApp.Logger().Infof("Now prometheus listening on: http://0.0.0.0%s\n", listen)
 		} else {
-			globalApp.Logger().Debugf("Now prometheus listening on: http://%s\n", listen)
+			globalApp.Logger().Infof("Now prometheus listening on: http://%s\n", listen)
 		}
 		http.ListenAndServe(listen, nil)
 	}()

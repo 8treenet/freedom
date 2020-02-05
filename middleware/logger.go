@@ -3,12 +3,23 @@ package middleware
 import (
 	"fmt"
 	"strings"
+	"sync"
 
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/context"
 
 	"github.com/kataras/golog"
 )
+
+var loggerPool sync.Pool
+
+func init() {
+	loggerPool = sync.Pool{
+		New: func() interface{} {
+			return &freedomLogger{}
+		},
+	}
+}
 
 // NewLogger .
 func NewLogger(traceIDName string, body bool) func(context.Context) {
@@ -28,14 +39,15 @@ func NewRuntimeLogger(traceIDName string) func(context.Context) {
 		freelog := newFreedomLogger(ctx, traceIDName)
 		ctx.Values().Set("logger_impl", freelog)
 		ctx.Next()
+		loggerPool.Put(freelog)
 	}
 }
 
 func newFreedomLogger(ctx iris.Context, traceIDName string) *freedomLogger {
-	return &freedomLogger{
-		ctx:         ctx,
-		traceIDName: traceIDName,
-	}
+	logger := loggerPool.New().(*freedomLogger)
+	logger.ctx = ctx
+	logger.traceIDName = traceIDName
+	return logger
 }
 
 type freedomLogger struct {

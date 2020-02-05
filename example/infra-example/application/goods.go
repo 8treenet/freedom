@@ -29,7 +29,7 @@ func (srv *GoodsService) Get(id int) (rep objects.GoodsRep, e error) {
 	if e != nil {
 		return
 	}
-	rep.ID = obj.ID
+	rep.Id = obj.ID
 	rep.Name = obj.Name
 	rep.Stock = obj.Stock
 	rep.Price = obj.Price
@@ -43,7 +43,7 @@ func (srv *GoodsService) GetAll() (result []objects.GoodsRep, e error) {
 	}
 	for _, goodsModel := range objs {
 		result = append(result, objects.GoodsRep{
-			ID:    goodsModel.ID,
+			Id:    goodsModel.ID,
 			Name:  goodsModel.Name,
 			Price: goodsModel.Price,
 			Stock: goodsModel.Stock,

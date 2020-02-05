@@ -14,40 +14,43 @@ func init() {
 }
 
 type GoodsController struct {
-	Runtime  freedom.Runtime
-	GoodsSev *application.GoodsService
+	Runtime     freedom.Runtime
+	GoodsSev    *application.GoodsService
+	JSONRequest *infra.JSONRequest
 }
 
 // GetBy handles the GET: /goods/:id route 获取指定商品.
-func (c *GoodsController) GetBy(goodsID int) freedom.Result {
-	obj, err := c.GoodsSev.Get(goodsID)
+func (goods *GoodsController) GetBy(goodsID int) freedom.Result {
+	obj, err := goods.GoodsSev.Get(goodsID)
 	if err != nil {
-		return &infra.Response{ErrCode: -1, ErrMsg: err.Error()}
+		return &infra.JSONResponse{Err: err}
 	}
-	return &infra.Response{Object: obj}
+	return &infra.JSONResponse{Object: obj}
 }
 
 // GetBy handles the GET: /goods/:id route 获取商品列表.
-func (c *GoodsController) Get() freedom.Result {
-	objs, err := c.GoodsSev.GetAll()
+func (goods *GoodsController) Get() freedom.Result {
+	objs, err := goods.GoodsSev.GetAll()
 	if err != nil {
-		return &infra.Response{ErrCode: -1, ErrMsg: err.Error()}
+		return &infra.JSONResponse{Err: err}
 	}
 
-	return &infra.Response{Object: objs}
+	return &infra.JSONResponse{Object: objs}
 }
 
 // GetBy handles the PUT: /goods/stock route 增加商品库存.
-func (c *GoodsController) PutStock() freedom.Result {
+func (goods *GoodsController) PutStock() freedom.Result {
 	var request struct {
-		GoodsID int `json:"goodsId"` //商品id
-		Num     int `json:"num"`     //增加数量
+		GoodsID int `json:"goodsId" validate:"required"` //商品id
+		Num     int `validate:"min=1,max=15"`
 	}
-	if e := c.Runtime.Ctx().ReadJSON(&request); e != nil {
-		return &infra.Response{ErrCode: -1, ErrMsg: e.Error()}
+	//使用自定义的json基础设施
+	if e := goods.JSONRequest.ReadBodyJSON(&request); e != nil {
+		return &infra.JSONResponse{Err: e}
 	}
-	if e := c.GoodsSev.AddStock(request.GoodsID, request.Num); e != nil {
-		return &infra.Response{ErrCode: -1, ErrMsg: e.Error()}
+
+	if e := goods.GoodsSev.AddStock(request.GoodsID, request.Num); e != nil {
+		return &infra.JSONResponse{Err: e}
 	}
-	return &infra.Response{}
+	return &infra.JSONResponse{}
 }

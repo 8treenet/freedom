@@ -58,13 +58,22 @@ var (
 
 			for index := 0; index < len(list); index++ {
 				pdata := map[string]interface{}{
-					"Name":    list[index].Name,
-					"Content": list[index].Content,
-					"Time":    false,
-					"Fields":  list[index].Fields,
+					"Name":         list[index].Name,
+					"Content":      list[index].Content,
+					"Time":         false,
+					"Fields":       list[index].Fields,
+					"NumberFields": list[index].NumberFields,
+					"Import":       "",
 				}
 				if strings.Contains(list[index].Content, "time.Time") {
-					pdata["Time"] = true
+					pdata["Import"] = "import (" + "\n" + `"time"`
+				}
+				if len(list[index].NumberFields) > 0 {
+					pdata["Import"] = pdata["Import"].(string) + "\n" + `"github.com/jinzhu/gorm"`
+				}
+
+				if pdata["Import"].(string) != "" {
+					pdata["Import"] = pdata["Import"].(string) + "\n)"
 				}
 
 				var pf *os.File

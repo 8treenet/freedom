@@ -25,12 +25,12 @@ func (c *ShopController) Post() freedom.Result {
 		UserID  int `json:"userId"`  //用户id
 	}
 	if e := c.Runtime.Ctx().ReadJSON(&request); e != nil {
-		return &infra.Response{ErrCode: -1, ErrMsg: e.Error()}
+		return &infra.JSONResponse{Err: e}
 	}
 
 	resp, e := c.OrderSev.Add(request.GoodsID, request.Num, request.UserID)
 	if e != nil {
-		return &infra.Response{ErrCode: -1, ErrMsg: e.Error()}
+		return &infra.JSONResponse{Err: e}
 	}
-	return &infra.Response{Object: resp}
+	return &infra.JSONResponse{Object: resp}
 }

@@ -36,8 +36,8 @@ func (srv *OrderService) Get(id, userId int) (result objects.OrderRep, e error) 
 	if e != nil {
 		return
 	}
-	result.ID = obj.ID
-	result.GoodsID = obj.GoodsID
+	result.Id = obj.ID
+	result.GoodsId = obj.GoodsID
 	result.Num = obj.Num
 	result.DateTime = obj.Created.Format("2006-01-02 15:04:05")
 	result.GoodsName = goodsObj.Name
@@ -58,8 +58,8 @@ func (srv *OrderService) GetAll(userId int) (result []objects.OrderRep, e error)
 		}
 
 		result = append(result, objects.OrderRep{
-			ID:        obj.ID,
-			GoodsID:   obj.GoodsID,
+			Id:        obj.ID,
+			GoodsId:   obj.GoodsID,
 			GoodsName: goodsObj.Name,
 			Num:       obj.Num,
 			DateTime:  obj.Created.Format("2006-01-02 15:04:05"),

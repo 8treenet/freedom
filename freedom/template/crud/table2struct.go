@@ -96,6 +96,7 @@ type SturctContent struct {
 	TableRealName string
 	Content       string
 	Fields        []Field
+	NumberFields  []Field
 }
 
 func (t *Table2Struct) Run() (result []SturctContent, e error) {
@@ -155,13 +156,20 @@ func (t *Table2Struct) Run() (result []SturctContent, e error) {
 			structContent += fmt.Sprintf("%s%s %s %s%s\n",
 				tab(depth), v.ColumnName, v.Type, v.Tag, clumnComment)
 
-			sc.Fields = append(sc.Fields, Field{
+			if v.Primary == "PRI" {
+				continue
+			}
+			fieldItem := Field{
 				Column:     column,
 				Type:       v.Type,
 				Value:      v.ColumnName,
 				StructName: tableName,
 				Arg:        lowerCamelCase(v.ColumnName),
-			})
+			}
+			sc.Fields = append(sc.Fields, fieldItem)
+			if v.Type == "int" || v.Type == "float64" {
+				sc.NumberFields = append(sc.NumberFields, fieldItem)
+			}
 		}
 		structContent += tab(depth-1) + "}\n\n"
 
@@ -339,44 +347,44 @@ func lintName(name string) (should string) {
 }
 
 var commonInitialisms = map[string]bool{
-	"ACL":   true,
-	"API":   true,
-	"ASCII": true,
-	"CPU":   true,
-	"CSS":   true,
-	"DNS":   true,
-	"EOF":   true,
-	"GUID":  true,
-	"HTML":  true,
-	"HTTP":  true,
-	"HTTPS": true,
-	"ID":    true,
-	"IP":    true,
-	"JSON":  true,
-	"LHS":   true,
-	"QPS":   true,
-	"RAM":   true,
-	"RHS":   true,
-	"RPC":   true,
-	"SLA":   true,
-	"SMTP":  true,
-	"SQL":   true,
-	"SSH":   true,
-	"TCP":   true,
-	"TLS":   true,
-	"TTL":   true,
-	"UDP":   true,
-	"UI":    true,
-	"UID":   true,
-	"UUID":  true,
-	"URI":   true,
-	"URL":   true,
-	"UTF8":  true,
-	"VM":    true,
-	"XML":   true,
-	"XMPP":  true,
-	"XSRF":  true,
-	"XSS":   true,
+	// "ACL":   true,
+	// "API":   true,
+	// "ASCII": true,
+	// "CPU":   true,
+	// "CSS":   true,
+	// "DNS":   true,
+	// "EOF":   true,
+	// "GUID":  true,
+	// "HTML":  true,
+	// "HTTP":  true,
+	// "HTTPS": true,
+	// "ID":    true,
+	// "IP":    true,
+	// "JSON":  true,
+	// "LHS":   true,
+	// "QPS":   true,
+	// "RAM":   true,
+	// "RHS":   true,
+	// "RPC":   true,
+	// "SLA":   true,
+	// "SMTP":  true,
+	// "SQL":   true,
+	// "SSH":   true,
+	// "TCP":   true,
+	// "TLS":   true,
+	// "TTL":   true,
+	// "UDP":   true,
+	// "UI":    true,
+	// "UID":   true,
+	// "UUID":  true,
+	// "URI":   true,
+	// "URL":   true,
+	// "UTF8":  true,
+	// "VM":    true,
+	// "XML":   true,
+	// "XMPP":  true,
+	// "XSRF":  true,
+	// "XSS":   true,
 }
 
 func lowerCamelCase(field string) string {
