@@ -2,6 +2,8 @@ package freedom
 
 import (
 	"os"
+	"runtime"
+	"strings"
 
 	"github.com/kataras/iris/hero"
 
@@ -48,11 +50,17 @@ type (
 	Entity = general.Entity
 
 	DomainEventInfra = general.DomainEventInfra
+
+	UnitTest = general.UnitTest
 )
 
 // NewApplication .
 func NewApplication() Application {
 	return app
+}
+
+func NewUnitTest() *UnitTest {
+	return new(general.UnitTest)
 }
 
 // Booting .
@@ -65,15 +73,18 @@ func Logger() *golog.Logger {
 	return app.Logger()
 }
 
+var path string
+
 // Configure .
 func Configure(obj interface{}, fileName string, def bool) {
-	path := os.Getenv("FREEDOM_PROJECT_CONFIG")
-	if path != "" {
+	if path == "" {
+		path = os.Getenv("FREEDOM_PROJECT_CONFIG")
 		_, err := os.Stat(path)
 		if err != nil {
 			path = ""
 		}
 	}
+
 	if path == "" {
 		path = "./conf"
 		_, err := os.Stat(path)
@@ -89,9 +100,21 @@ func Configure(obj interface{}, fileName string, def bool) {
 			path = ""
 		}
 	}
-
+	callerProjectDir := ""
 	if path == "" {
-		panic("No profile directory found:" + "'$FREEDOM_PROJECT_CONFIG' or './conf' or './server/conf'")
+		_, filego, _, _ := runtime.Caller(1)
+		list := strings.Split(filego, "/infra/config")
+		if len(list) == 2 {
+			callerProjectDir = list[0] + "/server/conf"
+			path = callerProjectDir
+			_, err := os.Stat(path)
+			if err != nil {
+				path = ""
+			}
+		}
+	}
+	if path == "" {
+		panic("No profile directory found:" + "'$FREEDOM_PROJECT_CONFIG' or './conf' or './server/conf' or '" + callerProjectDir + "'")
 	}
 	_, err := toml.DecodeFile(path+"/"+fileName, obj)
 	if err != nil && !def {
