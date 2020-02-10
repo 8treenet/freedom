@@ -9,17 +9,30 @@ import (
 	"github.com/kataras/iris/context"
 )
 
-type UnitTest struct {
+var _ UnitTest = new(UnitTestImpl)
+
+type UnitTest interface {
+	GetService(service interface{})
+	GetRepository(repository interface{})
+	InstallGorm(f func() (db *gorm.DB))
+	InstallRedis(f func() (client redis.Cmdable))
+	Run()
+	SetRequest(request *http.Request)
+	MadeEntity(entity interface{})
+	InstallDomainEventInfra(eventInfra DomainEventInfra)
+	NewDomainEventInfra(call ...func(producer, topic string, data []byte, header map[string]string)) DomainEventInfra
+}
+
+type UnitTestImpl struct {
 	rt      Runtime
 	request *http.Request
 }
 
-func (u *UnitTest) GetService(service interface{}) *UnitTest {
+func (u *UnitTestImpl) GetService(service interface{}) {
 	globalApp.GetService(u.rt.Ctx(), service)
-	return u
 }
 
-func (u *UnitTest) GetRepository(repository interface{}) *UnitTest {
+func (u *UnitTestImpl) GetRepository(repository interface{}) {
 	value := reflect.ValueOf(repository).Elem()
 	ok, newfield := globalApp.rpool.get(value.Type())
 	if !ok {
@@ -34,20 +47,17 @@ func (u *UnitTest) GetRepository(repository interface{}) *UnitTest {
 		br.BeginRequest(u.rt)
 	}
 	value.Set(newfield)
-	return u
 }
 
-func (u *UnitTest) InstallGorm(f func() (db *gorm.DB)) *UnitTest {
+func (u *UnitTestImpl) InstallGorm(f func() (db *gorm.DB)) {
 	globalApp.InstallGorm(f)
-	return u
 }
 
-func (u *UnitTest) InstallRedis(f func() (client redis.Cmdable)) *UnitTest {
+func (u *UnitTestImpl) InstallRedis(f func() (client redis.Cmdable)) {
 	globalApp.InstallRedis(f)
-	return u
 }
 
-func (u *UnitTest) Run() {
+func (u *UnitTestImpl) Run() {
 	for index := 0; index < len(boots); index++ {
 		boots[index](globalApp)
 	}
@@ -58,7 +68,7 @@ func (u *UnitTest) Run() {
 	globalApp.comPool.singleBooting(globalApp)
 }
 
-func (u *UnitTest) newRuntime() Runtime {
+func (u *UnitTestImpl) newRuntime() Runtime {
 	ctx := context.NewContext(globalApp.IrisApp)
 	if u.request == nil {
 		u.request = new(http.Request)
@@ -69,14 +79,12 @@ func (u *UnitTest) newRuntime() Runtime {
 	return rt
 }
 
-func (u *UnitTest) SetRequest(request *http.Request) *UnitTest {
+func (u *UnitTestImpl) SetRequest(request *http.Request) {
 	u.request = request
-	return u
 }
 
-func (u *UnitTest) InstallDomainEventInfra(eventInfra DomainEventInfra) *UnitTest {
+func (u *UnitTestImpl) InstallDomainEventInfra(eventInfra DomainEventInfra) {
 	globalApp.InstallDomainEventInfra(eventInfra)
-	return u
 }
 
 type logEvent struct {
@@ -97,7 +105,7 @@ func (log *logEvent) DomainEvent(producer, topic string, data []byte, runtime Ru
 	runtime.Logger().Infof("Domain event:  %s   %s   %v", topic, string(data), header, h)
 }
 
-func (u *UnitTest) NewDomainEventInfra(call ...func(producer, topic string, data []byte, header map[string]string)) DomainEventInfra {
+func (u *UnitTestImpl) NewDomainEventInfra(call ...func(producer, topic string, data []byte, header map[string]string)) DomainEventInfra {
 	result := new(logEvent)
 	if len(call) > 0 {
 		result.call = call[0]
@@ -105,6 +113,7 @@ func (u *UnitTest) NewDomainEventInfra(call ...func(producer, topic string, data
 	return result
 }
 
-func (u *UnitTest) MadeEntity(entity interface{}) {
+func (u *UnitTestImpl) MadeEntity(entity interface{}) {
 	newEntity(u.rt, entity)
+	return
 }

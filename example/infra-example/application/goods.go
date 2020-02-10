@@ -3,7 +3,7 @@ package application
 import (
 	"github.com/8treenet/freedom"
 	"github.com/8treenet/freedom/example/infra-example/adapter/repositorys"
-	"github.com/8treenet/freedom/example/infra-example/application/objects"
+	"github.com/8treenet/freedom/example/infra-example/application/dto"
 )
 
 func init() {
@@ -24,7 +24,7 @@ type GoodsService struct {
 	GoodsRepo repositorys.GoodsInterface
 }
 
-func (srv *GoodsService) Get(id int) (rep objects.GoodsRep, e error) {
+func (srv *GoodsService) Get(id int) (rep dto.GoodsRep, e error) {
 	obj, e := srv.GoodsRepo.Get(id)
 	if e != nil {
 		return
@@ -36,13 +36,13 @@ func (srv *GoodsService) Get(id int) (rep objects.GoodsRep, e error) {
 	return
 }
 
-func (srv *GoodsService) GetAll() (result []objects.GoodsRep, e error) {
+func (srv *GoodsService) GetAll() (result []dto.GoodsRep, e error) {
 	objs, e := srv.GoodsRepo.GetAll()
 	if e != nil {
 		return
 	}
 	for _, goodsModel := range objs {
-		result = append(result, objects.GoodsRep{
+		result = append(result, dto.GoodsRep{
 			Id:    goodsModel.ID,
 			Name:  goodsModel.Name,
 			Price: goodsModel.Price,
@@ -58,6 +58,6 @@ func (srv *GoodsService) AddStock(goodsID, num int) error {
 		return e
 	}
 
-	obj.SetStock(obj.Stock + num)
+	obj.AddStock(num)
 	return srv.GoodsRepo.Save(&obj)
 }

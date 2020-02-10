@@ -57,7 +57,7 @@ func mainTemplate() string {
 		"time"
 		_ "github.com/jinzhu/gorm/dialects/mysql"
 		"github.com/8treenet/freedom"
-		_ "{{.PackagePath}}/adapter/controllers"
+		_ "{{.PackagePath}}/adapter/controller"
 		"{{.PackagePath}}/infra/config"
 		"github.com/go-redis/redis"
 		"github.com/jinzhu/gorm"

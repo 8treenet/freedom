@@ -1,4 +1,4 @@
-package objects
+package dto
 
 type GoodsRep struct {
 	Id    int

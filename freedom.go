@@ -59,8 +59,8 @@ func NewApplication() Application {
 	return app
 }
 
-func NewUnitTest() *UnitTest {
-	return new(general.UnitTest)
+func NewUnitTest() UnitTest {
+	return new(general.UnitTestImpl)
 }
 
 // Booting .

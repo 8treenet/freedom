@@ -4,9 +4,10 @@
 
 #### 本篇概要 
 - 围绕购物项目
-- 事务组件
-- repository
 - CRUD代码生成 
+- repository
+- 事务组件
+- 单元测试
 - 如何自定义基础设施组件
 
 #### CRUD代码生成
@@ -111,7 +112,7 @@ func (srv *OrderService) Add(goodsID, num, userId int) (resp string, e error) {
 		resp = "库存不足"
 		return
 	}
-	goodsObj.SetStock(goodsObj.Stock - num)
+	goodsObj.AddStock(-num)
 
 	/*
 		事务执行
@@ -130,6 +131,64 @@ func (srv *OrderService) Add(goodsID, num, userId int) (resp string, e error) {
 }
 ```
 
+#### 单元测试
+```go
+// application/goods_test.go
+func TestGoodsService_Get(t *testing.T) {
+	//创建单元测试工具
+	unitTest := freedom.NewUnitTest()
+	unitTest.InstallGorm(func() (db *gorm.DB) {
+		//这是连接数据库方式，mock方式参见TestGoodsService_MockGet
+		conf := config.Get().DB
+		var e error
+		db, e = gorm.Open("mysql", conf.Addr)
+		if e != nil {
+			freedom.Logger().Fatal(e.Error())
+		}
+
+		db.DB().SetMaxIdleConns(conf.MaxIdleConns)
+		db.DB().SetMaxOpenConns(conf.MaxOpenConns)
+		db.DB().SetConnMaxLifetime(time.Duration(conf.ConnMaxLifeTime) * time.Second)
+		return
+	})
+
+	//启动单元测试
+	unitTest.Run()
+
+	var srv *GoodsService
+	//获取领域服务
+	unitTest.GetService(&srv)
+	//调用服务方法。 篇幅有限，没有具体逻辑 只是读取个数据
+	rep, err := srv.Get(1)
+	if err != nil {
+		panic(rep)
+	}
+	//在这里做 rep的case，如果不满足条件 触发panic
+}
+```
+###### 单测工具介绍
+```go
+type UnitTest interface {
+	//获取领域服务
+	GetService(service interface{})
+	//获取资源库
+	GetRepository(repository interface{})
+	//安装gorm
+	InstallGorm(f func() (db *gorm.DB))
+	//安装redis
+	InstallRedis(f func() (client redis.Cmdable))
+	//启动
+	Run()
+	//设置请求
+	SetRequest(request *http.Request)
+	//创建实体
+	MadeEntity(entity interface{})
+	//安装领域事件
+	InstallDomainEventInfra(eventInfra DomainEventInfra)
+	//创建一个领域事件的回调函数
+	NewDomainEventInfra(call ...func(producer, topic string, data []byte, header map[string]string)) DomainEventInfra
+}
+```
 
 #### 如何自定义基础设施组件
 - 单例组件入口是 Booting, 生命周期为常驻

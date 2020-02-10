@@ -4,15 +4,16 @@
 #### 目录结构
 
 - application - 领域服务
-    - aggregates - 聚合
-    - entitys - 实体
-    - objects - 值对象
+    - aggregate - 聚合
+    - entity - 实体
+    - object - 值对象
+    - dto - 传输对象
 
 - adapter - 端口适配器
-    - controllers - 输入适配器
-    - repositorys - 输出适配器
+    - controller - 输入适配器
+    - repository - 输出适配器
 
-- server - 应用程序服务
+- server - 服务端程序入口
     - conf - toml配置文件
     - main.go - 主函数
 

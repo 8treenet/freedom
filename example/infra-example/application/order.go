@@ -3,7 +3,7 @@ package application
 import (
 	"github.com/8treenet/freedom"
 	"github.com/8treenet/freedom/example/infra-example/adapter/repositorys"
-	"github.com/8treenet/freedom/example/infra-example/application/objects"
+	"github.com/8treenet/freedom/example/infra-example/application/dto"
 	"github.com/8treenet/freedom/infra/transaction"
 )
 
@@ -27,7 +27,7 @@ type OrderService struct {
 	Tx        *transaction.Transaction
 }
 
-func (srv *OrderService) Get(id, userId int) (result objects.OrderRep, e error) {
+func (srv *OrderService) Get(id, userId int) (result dto.OrderRep, e error) {
 	obj, e := srv.OrderRepo.Get(id, userId)
 	if e != nil {
 		return
@@ -44,7 +44,7 @@ func (srv *OrderService) Get(id, userId int) (result objects.OrderRep, e error) 
 	return
 }
 
-func (srv *OrderService) GetAll(userId int) (result []objects.OrderRep, e error) {
+func (srv *OrderService) GetAll(userId int) (result []dto.OrderRep, e error) {
 	objs, e := srv.OrderRepo.GetAll(userId)
 	if e != nil {
 		return
@@ -57,7 +57,7 @@ func (srv *OrderService) GetAll(userId int) (result []objects.OrderRep, e error)
 			return
 		}
 
-		result = append(result, objects.OrderRep{
+		result = append(result, dto.OrderRep{
 			Id:        obj.ID,
 			GoodsId:   obj.GoodsID,
 			GoodsName: goodsObj.Name,
@@ -77,7 +77,7 @@ func (srv *OrderService) Add(goodsID, num, userId int) (resp string, e error) {
 		resp = "库存不足"
 		return
 	}
-	goodsObj.SetStock(goodsObj.Stock - num)
+	goodsObj.AddStock(-num)
 
 	e = srv.Tx.Execute(func() error {
 		if err := srv.GoodsRepo.Save(&goodsObj); err != nil {

@@ -14,30 +14,30 @@ func servicesTemplate() string {
 
 	import (
 		"github.com/8treenet/freedom"
-		"{{.PackagePath}}/adapter/repositorys"
+		"{{.PackagePath}}/adapter/repository"
 	)
 	
 	func init() {
 		freedom.Booting(func(initiator freedom.Initiator) {
-			initiator.BindService(func() *DefaultService {
-				return &DefaultService{}
+			initiator.BindService(func() *Default {
+				return &Default{}
 			})
-			initiator.InjectController(func(ctx freedom.Context) (service *DefaultService) {
+			initiator.InjectController(func(ctx freedom.Context) (service *Default) {
 				initiator.GetService(ctx, &service)
 				return
 			})
 		})
 	}
 	
-	// DefaultService .
-	type DefaultService struct {
+	// Default .
+	type Default struct {
 		Runtime   freedom.Runtime
-		DefRepo   *repositorys.DefaultRepository
-		DefRepoIF repositorys.DefaultRepoInterface
+		DefRepo   *repository.Default
+		DefRepoIF repository.DefaultRepoInterface
 	}
 	
 	// RemoteInfo .
-	func (s *DefaultService) RemoteInfo() (result struct {
+	func (s *Default) RemoteInfo() (result struct {
 		Ip string
 		Ua string
 	}) {

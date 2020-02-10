@@ -1,12 +1,12 @@
 package project
 
 func init() {
-	content["/adapter/repositorys/default.go"] = repositoryTemplate()
-	content["/adapter/repositorys/interface.go"] = repositoryInterfaceTemplate()
+	content["/adapter/repository/default.go"] = repositoryTemplate()
+	content["/adapter/repository/interface.go"] = repositoryInterfaceTemplate()
 }
 
 func repositoryInterfaceTemplate() string {
-	return `package repositorys
+	return `package repository
 // DefaultRepoInterface .
 type DefaultRepoInterface interface {
 	GetUA() string
@@ -15,7 +15,7 @@ type DefaultRepoInterface interface {
 }
 
 func repositoryTemplate() string {
-	return `package repositorys
+	return `package repository
 
 	import (
 		"github.com/8treenet/freedom"
@@ -23,26 +23,26 @@ func repositoryTemplate() string {
 	
 	func init() {
 		freedom.Booting(func(initiator freedom.Initiator) {
-			initiator.BindRepository(func() *DefaultRepository {
-				return &DefaultRepository{}
+			initiator.BindRepository(func() *Default {
+				return &Default{}
 			})
 		})
 	}
 	
-	// DefaultRepository .
-	type DefaultRepository struct {
+	// Default .
+	type Default struct {
 		freedom.Repository
 	}
 	
 	// GetIP .
-	func (repo *DefaultRepository) GetIP() string {
+	func (repo *Default) GetIP() string {
 		//repo.DB().Find()
 		repo.Runtime.Logger().Infof("我是Repository GetIP")
 		return repo.Runtime.Ctx().RemoteAddr()
 	}
 	
 	// GetUA - implment DefaultRepoInterface interface
-	func (repo *DefaultRepository) GetUA() string {
+	func (repo *Default) GetUA() string {
 		repo.Runtime.Logger().Infof("我是Repository GetUA")
 		return repo.Runtime.Ctx().Request().UserAgent()
 	}
