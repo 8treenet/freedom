@@ -16,7 +16,7 @@ func init() {
 
 type ShopController struct {
 	Runtime  freedom.Runtime
-	Producer *kafka.Producer
+	Producer kafka.Producer
 }
 
 // Get handles the GET: /shop/:id route.

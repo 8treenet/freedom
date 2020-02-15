@@ -100,7 +100,15 @@ type OrderService struct {
 	Runtime   freedom.Runtime
 	GoodsRepo repositorys.GoodsInterface	//repositorys包声明的商品仓库接口
 	OrderRepo repositorys.OrderInterface	//repositorys包声明的订单仓库接口
-	Tx        *transaction.Transaction 	    //transaction包下的 事务组件
+
+	/*
+		github.com/8treenet/freedom/infra/transaction
+		type Transaction interface {
+			Execute(fun func() error) (e error)
+			ExecuteTx(fun func() error, ctx context.Context, opts *sql.TxOptions) (e error)
+		}
+	*/
+	Tx        transaction.Transaction 	    //transaction包下的 事务组件接口
 }
 
 func (srv *OrderService) Add(goodsID, num, userId int) (resp string, e error) {

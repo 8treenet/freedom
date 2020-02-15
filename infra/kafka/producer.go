@@ -12,7 +12,7 @@ func init() {
 	freedom.Booting(func(initiator freedom.Initiator) {
 		initiator.BindInfra(true, producer)
 
-		initiator.InjectController(func(ctx freedom.Context) (com *Producer) {
+		initiator.InjectController(func(ctx freedom.Context) (com *ProducerImpl) {
 			initiator.GetInfra(ctx, &com)
 			return
 		})
@@ -23,16 +23,21 @@ func GetDomainEventInfra() freedom.DomainEventInfra {
 	return producer
 }
 
-var producer *Producer = new(Producer)
+var producer *ProducerImpl = new(ProducerImpl)
+var _ Producer = new(ProducerImpl)
 
-// Producer .
-type Producer struct {
+type Producer interface {
+	NewMsg(topic string, content []byte, producerName ...string) *Msg
+}
+
+// ProducerImpl .
+type ProducerImpl struct {
 	saramaProducerMap map[string]sarama.SyncProducer
 	defaultProducer   sarama.SyncProducer
 }
 
 // Booting .
-func (p *Producer) Booting(sb freedom.SingleBoot) {
+func (p *ProducerImpl) Booting(sb freedom.SingleBoot) {
 	p.saramaProducerMap = make(map[string]sarama.SyncProducer)
 
 	conf := kafkaConf{}
@@ -67,7 +72,7 @@ func (p *Producer) Booting(sb freedom.SingleBoot) {
 }
 
 // getSaramaProducer .
-func (p *Producer) getSaramaProducer(name string) sarama.SyncProducer {
+func (p *ProducerImpl) getSaramaProducer(name string) sarama.SyncProducer {
 	if name == "" {
 		return p.defaultProducer
 	}
@@ -80,13 +85,13 @@ func (p *Producer) getSaramaProducer(name string) sarama.SyncProducer {
 }
 
 // generateMessageKey
-func (p *Producer) generateMessageKey() string {
+func (p *ProducerImpl) generateMessageKey() string {
 	u, _ := uuid.NewV1()
 	return strings.ToUpper(strings.ReplaceAll(u.String(), "-", ""))
 }
 
 // NewMsg .
-func (p *Producer) NewMsg(topic string, content []byte, producerName ...string) *Msg {
+func (p *ProducerImpl) NewMsg(topic string, content []byte, producerName ...string) *Msg {
 	pName := ""
 	if len(producerName) > 0 {
 		pName = producerName[0]
@@ -100,7 +105,7 @@ func (p *Producer) NewMsg(topic string, content []byte, producerName ...string) 
 }
 
 // DomainEvent .
-func (p *Producer) DomainEvent(producer, topic string, data []byte, runtime freedom.Runtime, header ...map[string]string) {
+func (p *ProducerImpl) DomainEvent(producer, topic string, data []byte, runtime freedom.Runtime, header ...map[string]string) {
 	msg := p.NewMsg(topic, data, producer)
 	if len(header) > 0 {
 		msg = msg.SetHeaders(header[0])

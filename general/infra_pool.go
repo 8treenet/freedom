@@ -41,24 +41,26 @@ func (pool *InfraPool) bind(single bool, t reflect.Type, com interface{}) {
 
 // get .
 func (pool *InfraPool) get(rt *appRuntime, ptr reflect.Value) bool {
-	if scom := pool.single(ptr.Type()); scom != nil {
-		ptr.Set(reflect.ValueOf(scom))
-		return true
-	}
-	if rtCom, ok := rt.coms[ptr.Type()]; ok {
+	if rtCom := pool.com(rt, ptr.Type()); rtCom != nil {
 		ptr.Set(reflect.ValueOf(rtCom))
 		return true
 	}
 
-	syncpool, ok := pool.instancePool[ptr.Type()]
+	if scom := pool.single(ptr.Type()); scom != nil {
+		ptr.Set(reflect.ValueOf(scom))
+		return true
+	}
+
+	syncpool, ok := pool.much(ptr.Type())
 	if !ok {
 		return false
 	}
 
 	newcom := syncpool.Get()
 	if newcom != nil {
-		ptr.Set(reflect.ValueOf(newcom))
-		rt.coms[ptr.Type()] = newcom
+		newValue := reflect.ValueOf(newcom)
+		ptr.Set(newValue)
+		rt.coms[newValue.Type()] = newcom
 		br, ok := newcom.(BeginRequest)
 		if ok {
 			br.BeginRequest(rt)
@@ -83,7 +85,41 @@ func (pool *InfraPool) singleBooting(app *Application) {
 }
 
 func (pool *InfraPool) single(t reflect.Type) interface{} {
-	return pool.singlemap[t]
+	if t.Kind() != reflect.Interface {
+		return pool.singlemap[t]
+	}
+	for objType, ObjValue := range pool.singlemap {
+		if objType.Implements(t) {
+			return ObjValue
+		}
+	}
+	return nil
+}
+
+func (pool *InfraPool) com(rt *appRuntime, t reflect.Type) interface{} {
+	if t.Kind() != reflect.Interface {
+		return rt.coms[t]
+	}
+	for comType, comValue := range rt.coms {
+		if comType.Implements(t) {
+			return comValue
+		}
+	}
+	return nil
+}
+
+func (pool *InfraPool) much(t reflect.Type) (*sync.Pool, bool) {
+	if t.Kind() != reflect.Interface {
+		pool, ok := pool.instancePool[t]
+		return pool, ok
+	}
+
+	for objType, ObjValue := range pool.instancePool {
+		if objType.Implements(t) {
+			return ObjValue, true
+		}
+	}
+	return nil, false
 }
 
 // freeHandle .

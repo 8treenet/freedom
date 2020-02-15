@@ -12,35 +12,40 @@ import (
 
 func init() {
 	freedom.Booting(func(initiator freedom.Initiator) {
-		initiator.BindInfra(false, func() *Transaction {
-			return &Transaction{}
+		initiator.BindInfra(false, func() *TransactionImpl {
+			return &TransactionImpl{}
 		})
 	})
 }
 
-// Transaction .
-type Transaction struct {
+type Transaction interface {
+	Execute(fun func() error) (e error)
+	ExecuteTx(fun func() error, ctx context.Context, opts *sql.TxOptions) (e error)
+}
+
+// TransactionImpl .
+type TransactionImpl struct {
 	freedom.Infra
 	db *gorm.DB
 }
 
 // BeginRequest
-func (t *Transaction) BeginRequest(rt freedom.Runtime) {
+func (t *TransactionImpl) BeginRequest(rt freedom.Runtime) {
 	t.db = nil
 	t.Infra.BeginRequest(rt)
 }
 
-func (t *Transaction) Execute(fun func() error) (e error) {
+func (t *TransactionImpl) Execute(fun func() error) (e error) {
 	return t.execute(fun, nil, nil)
 }
 
 // Execute Execute local transaction.
-func (t *Transaction) ExecuteTx(fun func() error, ctx context.Context, opts *sql.TxOptions) (e error) {
+func (t *TransactionImpl) ExecuteTx(fun func() error, ctx context.Context, opts *sql.TxOptions) (e error) {
 	return t.execute(fun, ctx, opts)
 }
 
 // Execute Execute local transaction.
-func (t *Transaction) execute(fun func() error, ctx context.Context, opts *sql.TxOptions) (e error) {
+func (t *TransactionImpl) execute(fun func() error, ctx context.Context, opts *sql.TxOptions) (e error) {
 	if t.db != nil {
 		panic("unknown error")
 	}

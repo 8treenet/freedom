@@ -24,7 +24,7 @@ type OrderService struct {
 	Runtime   freedom.Runtime
 	GoodsRepo repositorys.GoodsInterface
 	OrderRepo repositorys.OrderInterface
-	Tx        *transaction.Transaction
+	Tx        transaction.Transaction
 }
 
 func (srv *OrderService) Get(id, userId int) (result dto.OrderRep, e error) {

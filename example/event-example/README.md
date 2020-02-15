@@ -24,7 +24,13 @@ const (
 //购买控制器
 type ShopController struct {
     Runtime freedom.Runtime
-    Producer *kafka.Producer    //使用生产端组件
+    /*
+        github.com/8treenet/freedom/infra/kafka
+        type Producer interface {
+            NewMsg(topic string, content []byte, producerName ...string) *Msg
+        }
+    */
+    Producer kafka.Producer    //使用生产端组件
 }
 
 /* 
