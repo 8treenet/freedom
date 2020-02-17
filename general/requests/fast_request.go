@@ -28,8 +28,8 @@ func NewFastClient(rwTimeout time.Duration) {
 // NewFastRequest .
 func NewFastRequest(uri string, bus ...string) Request {
 	result := new(FastRequest)
-	result.resq = fasthttp.AcquireRequest()
-	result.resp = fasthttp.AcquireResponse()
+	result.resq = &fasthttp.Request{}
+	result.resp = &fasthttp.Response{}
 	result.params = make(map[string]interface{})
 	result.url = uri
 	result.bus = ""
@@ -117,12 +117,6 @@ func (fr *FastRequest) SkipBus() Request {
 
 // ToJSON .
 func (fr *FastRequest) ToJSON(obj interface{}) (r Response) {
-	defer func() {
-		fasthttp.ReleaseRequest(fr.resq)
-		fasthttp.ReleaseResponse(fr.resp)
-		fr.resq = nil
-		fr.resq = nil
-	}()
 	r.Error = fr.do()
 	if r.Error != nil {
 		return
@@ -139,12 +133,6 @@ func (fr *FastRequest) ToJSON(obj interface{}) (r Response) {
 
 // ToString .
 func (fr *FastRequest) ToString() (value string, r Response) {
-	defer func() {
-		fasthttp.ReleaseRequest(fr.resq)
-		fasthttp.ReleaseResponse(fr.resp)
-		fr.resq = nil
-		fr.resq = nil
-	}()
 	r.Error = fr.do()
 	if r.Error != nil {
 		return
@@ -157,12 +145,6 @@ func (fr *FastRequest) ToString() (value string, r Response) {
 
 // ToBytes .
 func (fr *FastRequest) ToBytes() (value []byte, r Response) {
-	defer func() {
-		fasthttp.ReleaseRequest(fr.resq)
-		fasthttp.ReleaseResponse(fr.resp)
-		fr.resq = nil
-		fr.resq = nil
-	}()
 	r.Error = fr.do()
 	if r.Error != nil {
 		return
@@ -175,12 +157,6 @@ func (fr *FastRequest) ToBytes() (value []byte, r Response) {
 
 // ToXML .
 func (fr *FastRequest) ToXML(v interface{}) (r Response) {
-	defer func() {
-		fasthttp.ReleaseRequest(fr.resq)
-		fasthttp.ReleaseResponse(fr.resp)
-		fr.resq = nil
-		fr.resq = nil
-	}()
 	r.Error = fr.do()
 	if r.Error != nil {
 		return
