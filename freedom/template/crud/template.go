@@ -168,6 +168,7 @@ func FunTemplate() string {
 	// save{{.Name}} .
 	func save{{.Name}}(rep freedom.GORMRepository, object *object.{{.Name}}) (affected int64, e error) {
 		if object.IsNew() {
+			object.TakeChanges()
 			return create{{.Name}}(rep, object)
 		}
 		db := rep.DB().Model(object).Updates(object.TakeChanges())
