@@ -21,6 +21,15 @@ func (obj *{{.Name}})TakeChanges() map[string]interface{} {
 	return result
 }
 
+func (obj *{{.Name}})IsNew() bool {
+	return obj.isNew
+}
+
+func (obj *{{.Name}})New() *{{.Name}} {
+	obj.isNew = true
+	return obj
+}
+
 {{range .Fields}}
 // Set{{.Value}} .
 func (obj *{{.StructName}}) Set{{.Value}} ({{.Arg}} {{.Type}}) {
@@ -156,8 +165,11 @@ func FunTemplate() string {
 		return
 	}
 
-	// update{{.Name}} .
-	func update{{.Name}}(rep freedom.GORMRepository, object *object.{{.Name}}) (affected int64, e error) {
+	// save{{.Name}} .
+	func save{{.Name}}(rep freedom.GORMRepository, object *object.{{.Name}}) (affected int64, e error) {
+		if object.IsNew() {
+			return create{{.Name}}(rep, object)
+		}
 		db := rep.DB().Model(object).Updates(object.TakeChanges())
 		e = db.Error
 		affected = db.RowsAffected

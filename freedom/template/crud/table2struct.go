@@ -140,6 +140,7 @@ func (t *Table2Struct) Run() (result []SturctContent, e error) {
 		sc.Name = tableName
 		structContent += "type " + tableName + " struct {\n"
 		structContent += "	changes map[string]interface{}\n"
+		structContent += "	isNew bool\n"
 		for _, v := range item {
 			column := v.Tag
 			if v.Primary == "PRI" {
