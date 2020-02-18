@@ -75,7 +75,7 @@ func (u *UnitTestImpl) newRuntime() Runtime {
 	}
 	ctx.BeginRequest(nil, u.request)
 	rt := newRuntime(ctx)
-	ctx.Values().Set(runtimeKey, rt)
+	ctx.Values().Set(RuntimeKey, rt)
 	return rt
 }
 

@@ -126,7 +126,7 @@ func (pool *InfraPool) much(t reflect.Type) (*sync.Pool, bool) {
 func (pool *InfraPool) freeHandle() context.Handler {
 	return func(ctx context.Context) {
 		ctx.Next()
-		rt := ctx.Values().Get(runtimeKey).(*appRuntime)
+		rt := ctx.Values().Get(RuntimeKey).(*appRuntime)
 		for objType, obj := range rt.coms {
 			pool.free(objType, obj)
 		}

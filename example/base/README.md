@@ -60,12 +60,12 @@ type Runtime interface {
 
 // Initiator 实例初始化接口，在Booting使用。
 type Initiator interface {
-    //创建 iris.Party 中间件
+    //创建 iris.Party，可以指定中间件。
     CreateParty(relativePath string, handlers ...context.Handler) iris.Party
     //绑定控制器到 iris.Party
-    BindControllerByParty(party iris.Party, controller interface{}, service ...interface{})
-    //直接绑定控制器到路径
-    BindController(relativePath string, controller interface{}, service ...interface{})
+    BindControllerByParty(party iris.Party, controller interface{})
+    //直接绑定控制器到路径，可以指定中间件。
+    BindController(relativePath string, controller interface{}, handlers ...context.Handler)
     //绑定服务
     BindService(f interface{})
     //注入到控制器
@@ -90,8 +90,18 @@ type Initiator interface {
 ```go
 func init() {
     freedom.Booting(func(initiator freedom.Initiator) {
-        //绑定Default控制器到路径 /
+        /*
+        普通方式绑定 Default控制器到路径 /
         initiator.BindController("/", &DefaultController{})
+        */
+
+        //中间件方式绑定， 只对本控制器生效，全局中间件请在main加入。
+        initiator.BindController("/", &DefaultController{}, func(ctx freedom.Context) {
+            runtime := freedom.PickRuntime(ctx)
+            runtime.Logger().Info("Hello middleware begin")
+            ctx.Next()
+            runtime.Logger().Info("Hello middleware end")
+        })
     })
 }
 

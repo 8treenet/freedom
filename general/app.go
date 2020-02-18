@@ -70,27 +70,25 @@ func (app *Application) CreateParty(relativePath string, handlers ...context.Han
 }
 
 // BindController .
-func (app *Application) BindController(relativePath string, controller interface{}, service ...interface{}) {
-	mvcApp := mvc.New(app.IrisApp.Party(app.prefixParty + relativePath))
-	deps := append(app.generalDep(), service...)
-	mvcApp.Register(deps...)
+func (app *Application) BindController(relativePath string, controller interface{}, handlers ...context.Handler) {
+	mvcApp := mvc.New(app.IrisApp.Party(app.prefixParty+relativePath, handlers...))
+	mvcApp.Register(app.generalDep()...)
 	mvcApp.Handle(controller)
 	app.msgsBus.addController(controller)
 	return
 }
 
 // BindControllerByParty .
-func (app *Application) BindControllerByParty(party iris.Party, controller interface{}, service ...interface{}) {
+func (app *Application) BindControllerByParty(party iris.Party, controller interface{}) {
 	mvcApp := mvc.New(party)
-	deps := append(app.generalDep(), service...)
-	mvcApp.Register(deps...)
+	mvcApp.Register(app.generalDep()...)
 	mvcApp.Handle(controller)
 	return
 }
 
 // GetService .
 func (app *Application) GetService(ctx iris.Context, service interface{}) {
-	app.pool.get(ctx.Values().Get(runtimeKey).(*appRuntime), service)
+	app.pool.get(ctx.Values().Get(RuntimeKey).(*appRuntime), service)
 	return
 }
 
@@ -140,7 +138,7 @@ func (app *Application) BindInfra(single bool, com interface{}) {
 
 // GetInfra .
 func (app *Application) GetInfra(ctx iris.Context, com interface{}) {
-	app.comPool.get(ctx.Values().Get(runtimeKey).(*appRuntime), reflect.ValueOf(com).Elem())
+	app.comPool.get(ctx.Values().Get(RuntimeKey).(*appRuntime), reflect.ValueOf(com).Elem())
 }
 
 // AsyncCachePreheat .
@@ -157,7 +155,7 @@ func (app *Application) CachePreheat(f func(repo *Repository)) {
 
 func (app *Application) generalDep() (result []interface{}) {
 	result = append(result, func(ctx iris.Context) (rt Runtime) {
-		rt = ctx.Values().Get(runtimeKey).(Runtime)
+		rt = ctx.Values().Get(RuntimeKey).(Runtime)
 		return
 	})
 	result = append(result, app.ControllerDep...)

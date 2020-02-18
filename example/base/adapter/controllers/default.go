@@ -7,7 +7,14 @@ import (
 
 func init() {
 	freedom.Booting(func(initiator freedom.Initiator) {
-		initiator.BindController("/", &DefaultController{})
+		//initiator.BindController("/", &DefaultController{})
+		//加入中间件， 只对本控制器生效，全局中间件请在main加入。
+		initiator.BindController("/", &DefaultController{}, func(ctx freedom.Context) {
+			runtime := freedom.PickRuntime(ctx)
+			runtime.Logger().Info("Hello middleware begin")
+			ctx.Next()
+			runtime.Logger().Info("Hello middleware end")
+		})
 	})
 }
 

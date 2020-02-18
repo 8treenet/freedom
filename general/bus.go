@@ -38,6 +38,6 @@ func (b *Bus) ToJson() string {
 
 // GetBus .
 func GetBus(ctx iris.Context) *Bus {
-	rt := ctx.Values().Get(runtimeKey).(*appRuntime)
+	rt := ctx.Values().Get(RuntimeKey).(*appRuntime)
 	return rt.bus
 }

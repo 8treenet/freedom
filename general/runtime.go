@@ -11,7 +11,7 @@ import (
 func newRuntimeHandle() context.Handler {
 	return func(ctx context.Context) {
 		rt := newRuntime(ctx)
-		ctx.Values().Set(runtimeKey, rt)
+		ctx.Values().Set(RuntimeKey, rt)
 		ctx.Next()
 		ctx.Values().Reset()
 		rt.ctx = nil

@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	runtimeKey = "runtime-ctx"
+	RuntimeKey = "runtime-ctx"
 )
 
 func newServicePool() *ServicePool {
@@ -42,7 +42,7 @@ func (pool *ServicePool) get(rt *appRuntime, service interface{}) {
 func (pool *ServicePool) freeHandle() context.Handler {
 	return func(ctx context.Context) {
 		ctx.Next()
-		rt := ctx.Values().Get(runtimeKey).(*appRuntime)
+		rt := ctx.Values().Get(RuntimeKey).(*appRuntime)
 		for index := 0; index < len(rt.freeServices); index++ {
 			pool.free(rt.freeServices[index])
 		}

@@ -52,7 +52,7 @@ func newRecover() context.Handler {
 					return
 				}
 
-				rt := ctx.Values().Get(runtimeKey).(*appRuntime)
+				rt := ctx.Values().Get(RuntimeKey).(*appRuntime)
 				// when stack finishes
 				logMessage := fmt.Sprintf("Recovered from path('%s')\n", ctx.Path())
 				logMessage += fmt.Sprintf("Panic: %s\n", err)

@@ -134,3 +134,10 @@ type Application interface {
 	Run(serve iris.Runner, c iris.Configuration)
 	InstallDomainEventInfra(eventInfra DomainEventInfra)
 }
+
+func PickRuntime(ctx Context) Runtime {
+	if result, ok := ctx.Values().Get(general.RuntimeKey).(Runtime); ok {
+		return result
+	}
+	return nil
+}
