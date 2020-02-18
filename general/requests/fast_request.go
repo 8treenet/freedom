@@ -2,7 +2,6 @@ package requests
 
 import (
 	"context"
-	"encoding/json"
 	"encoding/xml"
 	"errors"
 	"fmt"
@@ -84,7 +83,7 @@ func (fr *FastRequest) Delete() Request {
 
 // SetJSONBody .
 func (fr *FastRequest) SetJSONBody(obj interface{}) Request {
-	byts, e := json.Marshal(obj)
+	byts, e := Marshal(obj)
 	if e != nil {
 		fr.reqe = e
 		return fr
@@ -124,7 +123,7 @@ func (fr *FastRequest) ToJSON(obj interface{}) (r Response) {
 
 	fr.httpRespone(&r)
 	body := fr.resp.Body()
-	r.Error = json.Unmarshal(body, obj)
+	r.Error = Unmarshal(body, obj)
 	if r.Error != nil {
 		r.Error = fmt.Errorf("%s, body:%s", r.Error.Error(), string(body))
 	}

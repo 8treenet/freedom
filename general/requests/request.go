@@ -1,6 +1,21 @@
 package requests
 
-import "context"
+import (
+	"context"
+	"encoding/json"
+)
+
+var Unmarshal func(data []byte, v interface{}) error
+var Marshal func(v interface{}) ([]byte, error)
+
+func init() {
+	if Unmarshal == nil {
+		Unmarshal = json.Unmarshal
+	}
+	if Marshal == nil {
+		Marshal = json.Marshal
+	}
+}
 
 // Request .
 type Request interface {

@@ -5,8 +5,29 @@ import "fmt"
 func init() {
 	content["/infra/json_response.go"] = jsonResponseTemplate()
 	content["/infra/json_request.go"] = jsonRequestTemplate()
+	content["/infra/json_init.go"] = jsonInitTemplate()
 }
 
+func jsonInitTemplate() string {
+	return `
+	package infra
+	import (
+		"github.com/8treenet/extjson"
+		"github.com/8treenet/freedom/general/requests"
+	)
+	
+	func init() {
+		//More references github.com/8treenet/extjson
+		extjson.SetDefaultOption(extjson.ExtJSONEntityOption{
+			NamedStyle:       extjson.NamedStyleLowerCamelCase,
+			SliceNotNull:     true, //空数组不返回null, 返回[]
+			StructPtrNotNull: true, //nil结构体指针不返回null, 返回{}})
+		})
+		requests.Unmarshal = extjson.Unmarshal
+		requests.Marshal = extjson.Marshal
+	}
+	`
+}
 func jsonRequestTemplate() string {
 	return `
 	package infra
@@ -74,15 +95,6 @@ import (
 	"github.com/kataras/iris/context"
 	"github.com/kataras/iris/hero"
 )
-
-func init() {
-	//More references github.com/8treenet/extjson
-	extjson.SetDefaultOption(extjson.ExtJSONEntityOption{
-		NamedStyle:       extjson.NamedStyleLowerCamelCase,
-		SliceNotNull:     true, //空数组不返回null, 返回[]
-		StructPtrNotNull: true, //nil结构体指针不返回null, 返回{}})
-	})
-}
 
 type JSONResponse struct {
 	// Code automatically sets default 501 if the error is not empty

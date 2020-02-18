@@ -5,7 +5,6 @@ import (
 	"compress/gzip"
 	"context"
 	"crypto/tls"
-	"encoding/json"
 	"encoding/xml"
 	"errors"
 	"fmt"
@@ -115,7 +114,7 @@ func (hr *H2CRequest) SetContext(ctx context.Context) Request {
 
 // SetJSONBody .
 func (hr *H2CRequest) SetJSONBody(obj interface{}) Request {
-	byts, e := json.Marshal(obj)
+	byts, e := Marshal(obj)
 	if e != nil {
 		hr.reqe = e
 		return hr
@@ -150,7 +149,7 @@ func (hr *H2CRequest) ToJSON(obj interface{}) (r Response) {
 
 	hr.httpRespone(&r)
 	body := hr.body()
-	r.Error = json.Unmarshal(body, obj)
+	r.Error = Unmarshal(body, obj)
 	if r.Error != nil {
 		r.Error = fmt.Errorf("%s, body:%s", r.Error.Error(), string(body))
 	}
