@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"reflect"
 	"strings"
-	"unsafe"
 
 	uuid "github.com/iris-contrib/go.uuid"
 )
@@ -12,7 +11,7 @@ import (
 var _ Entity = new(entity)
 
 type Entity interface {
-	DomainEvent(fun interface{}, object interface{}, header ...map[string]string)
+	DomainEvent(fun string, object interface{}, header ...map[string]string)
 	Identity() string
 	GetRuntime() Runtime
 	SetProducer(string)
@@ -25,9 +24,6 @@ type DomainEventInfra interface {
 func newEntity(run Runtime, entityObject interface{}) *entity {
 	e := new(entity)
 	e.runtime = run
-	if globalApp.eventInfra != nil {
-		e.funcRouting(entityObject)
-	}
 	eValue := reflect.ValueOf(e)
 	ok := false
 	allFields(entityObject, func(value reflect.Value) {
@@ -48,20 +44,17 @@ type entity struct {
 	entityName string
 	identity   string
 	producer   string
-	funTopics  map[int]string
 }
 
-func (e *entity) DomainEvent(fun interface{}, object interface{}, header ...map[string]string) {
+func (e *entity) DomainEvent(fun string, object interface{}, header ...map[string]string) {
 	if globalApp.eventInfra == nil {
 		panic("Unrealized Domain Event Infrastructure.")
 	}
-
-	topic := e.getTopic(fun)
 	json, err := json.Marshal(object)
 	if err != nil {
 		panic(err)
 	}
-	globalApp.eventInfra.DomainEvent(e.producer, topic, json, e.runtime, header...)
+	globalApp.eventInfra.DomainEvent(e.producer, fun, json, e.runtime, header...)
 }
 
 func (e *entity) Identity() string {
@@ -74,30 +67,6 @@ func (e *entity) Identity() string {
 
 func (e *entity) GetRuntime() Runtime {
 	return e.runtime
-}
-
-func (e *entity) funcRouting(object interface{}) {
-	e.funTopics = make(map[int]string)
-	objectValue := reflect.ValueOf(object)
-	objectType := reflect.TypeOf(object)
-	for index := 0; index < objectValue.NumMethod(); index++ {
-		funInterface := objectValue.Method(index).Interface()
-		point := (*int)(unsafe.Pointer(&funInterface))
-		method := objectType.Method(index)
-		e.funTopics[*point] = method.Name
-	}
-
-	e.entityName = objectType.Elem().Name()
-	return
-}
-
-func (e *entity) getTopic(fun interface{}) string {
-	point := (*int)(unsafe.Pointer(&fun))
-	topic, ok := e.funTopics[*point]
-	if !ok {
-		panic("Unknown error")
-	}
-	return e.entityName + ":" + topic
 }
 
 func (e *entity) SetProducer(producer string) {

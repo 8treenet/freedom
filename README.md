@@ -13,7 +13,7 @@
 - 依赖注入&依赖倒置
 - CRUD 代码生成
 - DDD&六边形架构
-- 消息事件
+- 消息事件&领域事件
 
 ## 进行中
 - aggregate最终一致
@@ -43,4 +43,6 @@ $ freedom new-crud
 #### [http2监听和依赖倒置](https://github.com/8treenet/freedom/blob/master/example/http2)
 #### [repository和事务组件](https://github.com/8treenet/freedom/blob/master/example/infra-example)
 #### [消息事件和领域事件](https://github.com/8treenet/freedom/blob/master/example/event-example)
-#### [aggregate和entity](https://github.com/8treenet/freedom/blob/master/example/ddd-example)
+
+#### [ddd-example](https://github.com/8treenet/freedom/blob/master/example/ddd-example)
+###### 一个完整的电商项目,包含CQRS、聚合、实体、领域事件、仓库、基础设施。
