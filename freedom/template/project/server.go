@@ -14,7 +14,9 @@ service_name = "{{.PackageName}}"
 repository_request_timeout = 5
 prometheus_listen_addr = ":9090"
 # "fatal" "error" "warn" "info"  "debug"
-logger_level = "debug"`
+logger_level = "debug"
+# shutdown_second : Elegant lying off for the longest time
+shutdown_second = 3`
 }
 
 func dbTomlConf() string {
@@ -61,7 +63,6 @@ func mainTemplate() string {
 		"{{.PackagePath}}/infra/config"
 		"github.com/go-redis/redis"
 		"github.com/jinzhu/gorm"
-		"github.com/kataras/iris"
 		"github.com/sirupsen/logrus"
 		"github.com/8treenet/freedom/middleware"
 		
@@ -79,7 +80,7 @@ func mainTemplate() string {
 		*/
 
 		installMiddleware(app)
-		addrRunner := iris.Addr(config.Get().App.Other["listen_addr"].(string))
+		addrRunner := app.CreateRunner(config.Get().App.Other["listen_addr"].(string))
 		app.Run(addrRunner, *config.Get().App)
 	}
 

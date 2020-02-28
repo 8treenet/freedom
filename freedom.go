@@ -5,6 +5,7 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/kataras/iris/core/host"
 	"github.com/kataras/iris/hero"
 
 	"github.com/8treenet/freedom/general"
@@ -128,7 +129,8 @@ type Application interface {
 	InstallRedis(f func() (client redis.Cmdable))
 	InstallMiddleware(handler iris.Handler)
 	InstallParty(relativePath string)
-	CreateH2CRunner(addr string) iris.Runner
+	CreateH2CRunner(addr string, configurators ...host.Configurator) iris.Runner
+	CreateRunner(addr string, configurators ...host.Configurator) iris.Runner
 	Iris() *iris.Application
 	Logger() *golog.Logger
 	Run(serve iris.Runner, c iris.Configuration)

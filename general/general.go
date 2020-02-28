@@ -30,6 +30,7 @@ type Initiator interface {
 type SingleBoot interface {
 	Iris() *iris.Application
 	EventsPath(infra interface{}) map[string][]string
+	Closeing(func())
 }
 
 // BeginRequest .

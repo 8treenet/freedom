@@ -6,13 +6,12 @@ import (
 	"github.com/8treenet/freedom/example/base/infra/config"
 	"github.com/8treenet/freedom/middleware"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
-	"github.com/kataras/iris"
 )
 
 func main() {
 	app := freedom.NewApplication()
 	installMiddleware(app)
-	addrRunner := iris.Addr(config.Get().App.Other["listen_addr"].(string))
+	addrRunner := app.CreateRunner(config.Get().App.Other["listen_addr"].(string))
 	app.Run(addrRunner, *config.Get().App)
 }
 

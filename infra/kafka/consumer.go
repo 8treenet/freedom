@@ -40,6 +40,9 @@ func (c *Consumer) Booting(sb freedom.SingleBoot) {
 		freedom.Logger().Error("'infra/kafka.toml' file under '[[consumer_clients]]' error")
 		return
 	}
+	sb.Closeing(func() {
+		c.Close()
+	})
 	c.ReListen()
 }
 
@@ -67,7 +70,9 @@ func (c *Consumer) ReListen() {
 
 func (c *Consumer) Close() {
 	for _, instance := range c.saramaConsumers {
-		instance.Close()
+		if err := instance.Close(); err != nil {
+			freedom.Logger().Error(err)
+		}
 	}
 	c.saramaConsumers = []*cluster.Consumer{}
 }

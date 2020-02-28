@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"reflect"
-	"strings"
+	"time"
 
 	"github.com/go-redis/redis"
 	"github.com/jinzhu/gorm"
@@ -12,7 +12,10 @@ import (
 	"golang.org/x/net/http2/h2c"
 
 	"github.com/kataras/golog"
+	"github.com/kataras/iris/core/host"
 	"github.com/kataras/iris/mvc"
+
+	stdContext "context"
 
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/context"
@@ -184,22 +187,49 @@ func (app *Application) Run(serve iris.Runner, irisConf iris.Configuration) {
 	repositoryAPIRun(irisConf)
 	app.msgsBus.building()
 	app.comPool.singleBooting(app)
+	shutdownSecond := int64(2)
+	if level, ok := irisConf.Other["shutdown_second"]; ok {
+		shutdownSecond = level.(int64)
+	}
+	app.closeing(shutdownSecond)
 	app.IrisApp.Run(serve, iris.WithConfiguration(irisConf))
 }
 
-func (app *Application) CreateH2CRunner(addr string) iris.Runner {
+func (app *Application) CreateH2CRunner(addr string, configurators ...host.Configurator) iris.Runner {
 	h2cSer := &http2.Server{}
 	ser := &http.Server{
 		Addr:    addr,
 		Handler: h2c.NewHandler(app.IrisApp, h2cSer),
 	}
-
-	if strings.Index(addr, ":") == 0 {
-		fmt.Printf("Now h2c listening on: http://0.0.0.0%s\n", addr)
-	} else {
-		fmt.Printf("Now h2c listening on: http://%s\n", addr)
+	return func(irisApp *iris.Application) error {
+		return irisApp.NewHost(ser).Configure(configurators...).ListenAndServe()
 	}
-	return iris.Raw(ser.ListenAndServe)
+}
+
+func (app *Application) CreateRunner(addr string, configurators ...host.Configurator) iris.Runner {
+	return iris.Addr(addr, configurators...)
+}
+
+func (app *Application) closeing(timeout int64) {
+	iris.RegisterOnInterrupt(func() {
+		//读取配置的关闭最长时间
+		ctx, cancel := stdContext.WithTimeout(stdContext.Background(), time.Duration(timeout)*time.Second)
+		defer cancel()
+		go func() {
+			if err := recover(); err != nil {
+				app.IrisApp.Logger().Error(err)
+			}
+			app.comPool.closeing()
+		}()
+
+		//通知组件服务即将关闭
+		app.IrisApp.Shutdown(ctx)
+	})
+}
+
+// Register .
+func (app *Application) Closeing(f func()) {
+	app.comPool.Closeing(f)
 }
 
 // InstallGorm .

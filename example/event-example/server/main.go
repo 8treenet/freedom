@@ -9,7 +9,6 @@ import (
 	"github.com/8treenet/freedom/infra/kafka"
 	"github.com/8treenet/freedom/middleware"
 	"github.com/Shopify/sarama"
-	"github.com/kataras/iris"
 )
 
 // mac 启动kafka: zookeeper-server-start /usr/local/etc/kafka/zookeeper.properties & kafka-server-start /usr/local/etc/kafka/server.properties
@@ -21,7 +20,7 @@ func main() {
 	})
 	app := freedom.NewApplication()
 	installMiddleware(app)
-	addrRunner := iris.Addr(config.Get().App.Other["listen_addr"].(string))
+	addrRunner := app.CreateRunner(config.Get().App.Other["listen_addr"].(string))
 
 	//获取领域事件的kafka基础设施并安装
 	app.InstallDomainEventInfra(kafka.GetDomainEventInfra())

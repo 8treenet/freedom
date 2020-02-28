@@ -67,6 +67,11 @@ func (p *ProducerImpl) Booting(sb freedom.SingleBoot) {
 			p.defaultProducer = syncp
 			break
 		}
+		sb.Closeing(func() {
+			if err := syncp.Close(); err != nil {
+				freedom.Logger().Error(err)
+			}
+		})
 		p.saramaProducerMap[conf.Producers[index].Name] = syncp
 	}
 }
