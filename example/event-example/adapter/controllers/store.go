@@ -15,7 +15,7 @@ func init() {
 		store := &StoreController{}
 		initiator.BindController("/store", store)
 
-		initiator.ListenEvent(EventSell, store.PostSellGoodsBy)
+		initiator.ListenEvent(EventSell, "StoreController.PostSellGoodsBy")
 		/*
 			绑定事件 ListenEvent(eventName string, fun interface{}, appointInfra ...interface{})
 			eventName : 事件名称
@@ -23,7 +23,7 @@ func init() {
 			appointInfra: 指定的基础设施组件, 默认全部基础设施组件可见
 
 			//可以指定 kafka, rocket, 定时器, 等
-			initiator.ListenEvent(EventSell, store.PostSellGoodsBy, &kafka.Consumer{}) //绑定kafka消息组件
+			initiator.ListenEvent(EventSell, "StoreController.PostSellGoodsBy", &kafka.Consumer{}) //绑定kafka消息组件
 		*/
 	})
 }

@@ -23,13 +23,13 @@ type Initiator interface {
 	BindInfra(single bool, com interface{})
 	GetInfra(ctx iris.Context, com interface{})
 	//监听事件
-	ListenEvent(eventName string, fun interface{}, appointInfra ...interface{})
+	ListenEvent(eventName string, objectMethod string, appointInfra ...interface{})
 }
 
 // SingleBoot .
 type SingleBoot interface {
 	Iris() *iris.Application
-	EventsPath(infra interface{}) map[string][]string
+	EventsPath(infra interface{}) map[string]string
 	Closeing(func())
 }
 

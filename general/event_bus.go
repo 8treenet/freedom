@@ -2,28 +2,29 @@ package general
 
 import (
 	"reflect"
-	"unsafe"
 )
 
 func newMessageBus() *EventBus {
 	return &EventBus{
-		eventsPath:     make(map[string][]string),
-		eventsAddr:     make(map[string][]int),
+		eventsPath:     make(map[string]string),
+		eventsAddr:     make(map[string]string),
 		eventsInfraCom: make(map[string]reflect.Type),
 	}
 }
 
 // EventBus .
 type EventBus struct {
-	eventsPath     map[string][]string
-	eventsAddr     map[string][]int
+	eventsPath     map[string]string
+	eventsAddr     map[string]string
 	controllers    []interface{}
 	eventsInfraCom map[string]reflect.Type
 }
 
-func (msgBus *EventBus) addEvent(fun interface{}, eventName string, infraCom ...interface{}) {
-	point := (*int)(unsafe.Pointer(&fun))
-	msgBus.eventsAddr[eventName] = append(msgBus.eventsAddr[eventName], *point)
+func (msgBus *EventBus) addEvent(objectMethod, eventName string, infraCom ...interface{}) {
+	if _, ok := msgBus.eventsAddr[eventName]; ok {
+		panic("Event already bound :" + eventName)
+	}
+	msgBus.eventsAddr[eventName] = objectMethod
 	if len(infraCom) > 0 {
 		infraComType := reflect.TypeOf(infraCom[0])
 		msgBus.eventsInfraCom[eventName] = infraComType
@@ -34,9 +35,9 @@ func (msgBus *EventBus) addController(controller interface{}) {
 }
 
 // EventsPath .
-func (msgBus *EventBus) EventsPath(infra interface{}) (msgs map[string][]string) {
+func (msgBus *EventBus) EventsPath(infra interface{}) (msgs map[string]string) {
 	infraComType := reflect.TypeOf(infra)
-	msgs = make(map[string][]string)
+	msgs = make(map[string]string)
 	for k, v := range msgBus.eventsPath {
 		ty, ok := msgBus.eventsInfraCom[k]
 		if ok && ty != infraComType {
@@ -48,19 +49,16 @@ func (msgBus *EventBus) EventsPath(infra interface{}) (msgs map[string][]string)
 }
 
 func (msgBus *EventBus) building() {
-	eventsRoute := make(map[string][]string)
-
+	eventsRoute := make(map[string]string)
 	for _, controller := range msgBus.controllers {
 		v := reflect.ValueOf(controller)
 		t := reflect.TypeOf(controller)
 		for index := 0; index < v.NumMethod(); index++ {
-			funInterface := v.Method(index).Interface()
-			point := (*int)(unsafe.Pointer(&funInterface))
-			eventName := msgBus.match(*point)
+			method := t.Method(index)
+			eventName := msgBus.match(t.Elem().Name() + "." + method.Name)
 			if eventName == "" {
 				continue
 			}
-			method := t.Method(index)
 			ft := method.Func.Type()
 			if ft.NumIn() != 2 {
 				panic("Event routing parameters must be 'eventID string', MainHandlerName:" + t.Elem().String() + "." + method.Name)
@@ -68,31 +66,28 @@ func (msgBus *EventBus) building() {
 			if ft.In(1).Kind() != reflect.String {
 				panic("Event routing parameters must be 'eventID string', MainHandlerName:" + t.Elem().String() + "." + method.Name)
 			}
-			eventsRoute[eventName] = append(eventsRoute[eventName], t.Elem().String()+"."+method.Name)
+			eventsRoute[eventName] = t.Elem().String() + "." + method.Name
+			break
 		}
 	}
 	for _, r := range globalApp.IrisApp.GetRoutes() {
 		for eventName, handlersName := range eventsRoute {
-			for index := 0; index < len(handlersName); index++ {
-				if r.MainHandlerName != handlersName[index] {
-					continue
-				}
-				if r.Method != "POST" {
-					panic("Event routing must be 'post', MainHandlerName:" + r.MainHandlerName)
-				}
-				msgBus.eventsPath[eventName] = append(msgBus.eventsPath[eventName], r.Path)
+			if r.MainHandlerName != handlersName {
+				continue
 			}
+			if r.Method != "POST" {
+				panic("Event routing must be 'post', MainHandlerName:" + r.MainHandlerName)
+			}
+			msgBus.eventsPath[eventName] = r.Path
 		}
 	}
 }
 
-func (msgBus *EventBus) match(method int) (eventName string) {
+func (msgBus *EventBus) match(objectMethod string) (eventName string) {
 	for name, addrs := range msgBus.eventsAddr {
-		for _, addr := range addrs {
-			if addr == method {
-				eventName = name
-				return
-			}
+		if addrs == objectMethod {
+			eventName = name
+			return
 		}
 	}
 	return

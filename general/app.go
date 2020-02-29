@@ -114,12 +114,12 @@ func (app *Application) BindRepository(f interface{}) {
 }
 
 // ListenMessage .
-func (app *Application) ListenEvent(eventName string, fun interface{}, appointInfra ...interface{}) {
-	app.msgsBus.addEvent(fun, eventName, appointInfra...)
+func (app *Application) ListenEvent(eventName string, objectMethod string, appointInfra ...interface{}) {
+	app.msgsBus.addEvent(objectMethod, eventName, appointInfra...)
 }
 
 // EventsPath .
-func (app *Application) EventsPath(infra interface{}) map[string][]string {
+func (app *Application) EventsPath(infra interface{}) map[string]string {
 	return app.msgsBus.EventsPath(infra)
 }
 

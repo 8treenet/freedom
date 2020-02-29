@@ -64,7 +64,7 @@ func init() {
         initiator.BindController("/store", store)
 
         //绑定事件
-        initiator.ListenEvent(EventSell, store.PostSellGoodsBy)
+        initiator.ListenEvent(EventSell, "StoreController.PostSellGoodsBy")
     })
 }
 

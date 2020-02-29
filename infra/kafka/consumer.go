@@ -22,7 +22,7 @@ var consumerPtr *Consumer = new(Consumer)
 // Consumer .
 type Consumer struct {
 	saramaConsumers []*cluster.Consumer
-	topicPath       map[string][]string
+	topicPath       map[string]string
 	limiter         *Limiter
 	conf            kafkaConf
 }
@@ -98,28 +98,25 @@ func (kc *Consumer) call(msg *sarama.ConsumerMessage, conf *consumerConf) {
 	defer func() {
 		kc.limiter.Close(1)
 	}()
-	paths, ok := kc.topicPath[msg.Topic]
+	path, ok := kc.topicPath[msg.Topic]
 	if !ok {
 		freedom.Logger().Error("Undefined 'topic' :", msg.Topic, conf.Servers)
 	}
+	path = strings.ReplaceAll(path, ":param1", string(msg.Key))
+	var request requests.Request
+	if kc.conf.Consumer.ProxyHTTP2 {
+		request = requests.NewH2CRequest(kc.conf.Consumer.ProxyAddr + path)
+	} else {
+		request = requests.NewFastRequest(kc.conf.Consumer.ProxyAddr + path)
+	}
+	request = request.SetBody(msg.Value)
+	for index := 0; index < len(msg.Headers); index++ {
+		request = request.SetHeader(string(msg.Headers[index].Key), string(msg.Headers[index].Value))
+	}
+	request.SetHeader("x-message-key", string(msg.Key))
+	_, resp := request.Post().ToString()
 
-	for _, path := range paths {
-		path = strings.ReplaceAll(path, ":param1", string(msg.Key))
-		var request requests.Request
-		if kc.conf.Consumer.ProxyHTTP2 {
-			request = requests.NewH2CRequest(kc.conf.Consumer.ProxyAddr + path)
-		} else {
-			request = requests.NewFastRequest(kc.conf.Consumer.ProxyAddr + path)
-		}
-		request = request.SetBody(msg.Value)
-		for index := 0; index < len(msg.Headers); index++ {
-			request = request.SetHeader(string(msg.Headers[index].Key), string(msg.Headers[index].Value))
-		}
-		request.SetHeader("x-message-key", string(msg.Key))
-		_, resp := request.Post().ToString()
-
-		if resp.Error != nil || resp.StatusCode != 200 {
-			freedom.Logger().Errorf("Call message processing failed, path:%s, topic:%s, addr:%v, body:%v, error:%v", path, msg.Topic, conf.Servers, msg.Value, resp.Error)
-		}
+	if resp.Error != nil || resp.StatusCode != 200 {
+		freedom.Logger().Errorf("Call message processing failed, path:%s, topic:%s, addr:%v, body:%v, error:%v", path, msg.Topic, conf.Servers, msg.Value, resp.Error)
 	}
 }
