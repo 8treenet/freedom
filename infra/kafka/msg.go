@@ -48,6 +48,7 @@ func (msg *Msg) Publish() {
 			return
 		}
 		_, _, err := syncProducer.SendMessage(saramaMsg)
+		freedom.Logger().Debug("Produce topic: ", saramaMsg.Topic)
 		if err == nil {
 			return
 		}

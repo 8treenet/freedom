@@ -215,13 +215,13 @@ func (app *Application) closeing(timeout int64) {
 		//读取配置的关闭最长时间
 		ctx, cancel := stdContext.WithTimeout(stdContext.Background(), time.Duration(timeout)*time.Second)
 		defer cancel()
-		go func() {
+		close := func() {
 			if err := recover(); err != nil {
 				app.IrisApp.Logger().Error(err)
 			}
 			app.comPool.closeing()
-		}()
-
+		}
+		close()
 		//通知组件服务即将关闭
 		app.IrisApp.Shutdown(ctx)
 	})

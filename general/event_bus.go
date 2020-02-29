@@ -67,7 +67,6 @@ func (msgBus *EventBus) building() {
 				panic("Event routing parameters must be 'eventID string', MainHandlerName:" + t.Elem().String() + "." + method.Name)
 			}
 			eventsRoute[eventName] = t.Elem().String() + "." + method.Name
-			break
 		}
 	}
 	for _, r := range globalApp.IrisApp.GetRoutes() {

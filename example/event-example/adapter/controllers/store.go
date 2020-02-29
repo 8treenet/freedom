@@ -3,7 +3,7 @@ package controllers
 import (
 	"github.com/8treenet/freedom"
 	"github.com/8treenet/freedom/example/event-example/application/objects"
-	//"github.com/8treenet/freedom/infra/kafka"
+	"github.com/8treenet/freedom/infra/kafka"
 )
 
 const (
@@ -39,6 +39,7 @@ func (s *StoreController) PostSellGoodsBy(eventID string) error {
 	s.Runtime.Ctx().ReadJSON(&goods)
 
 	action := s.Runtime.Ctx().GetHeader("x-action")
-	s.Runtime.Logger().Infof("消耗商品ID:%d, %d件, 行为:%s, 消息key:%s", goods.ID, goods.Amount, action, eventID)
+	retryCount := s.Runtime.Ctx().GetHeader(kafka.XRetryCount)
+	s.Runtime.Logger().Infof("消耗商品ID:%d, %d件, 行为:%s, 消息key:%s, 重试次数:%v", goods.ID, goods.Amount, action, eventID, retryCount)
 	return nil
 }

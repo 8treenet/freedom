@@ -59,20 +59,26 @@ func (p *ProducerImpl) Booting(sb freedom.SingleBoot) {
 		if err != nil {
 			panic(err)
 		}
-		if len(conf.Producers) > 1 && conf.Producers[index].Name == "" {
-			panic("An instance name is required under multiple instances")
-		}
+		freedom.Logger().Debug("Producer connect servers: ", conf.Producers[index].Servers)
 
-		if len(conf.Producers) == 1 {
+		if conf.Producers[index].Name == "" {
 			p.defaultProducer = syncp
-			break
 		}
-		sb.Closeing(func() {
-			if err := syncp.Close(); err != nil {
-				freedom.Logger().Error(err)
-			}
-		})
 		p.saramaProducerMap[conf.Producers[index].Name] = syncp
+	}
+
+	sb.Closeing(func() {
+		p.close()
+	})
+}
+
+func (p *ProducerImpl) close() {
+	for _, producer := range p.saramaProducerMap {
+		if err := producer.Close(); err != nil {
+			freedom.Logger().Error(err)
+		} else {
+			freedom.Logger().Debug("Producer close complete")
+		}
 	}
 }
 

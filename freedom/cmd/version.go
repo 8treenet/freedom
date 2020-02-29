@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	versionNum = "v1.5.1"
+	versionNum = "v1.5.2"
 )
 
 var (

@@ -25,6 +25,7 @@ type Consumer struct {
 	topicPath       map[string]string
 	limiter         *Limiter
 	conf            kafkaConf
+	retry           *retryHandle
 }
 
 // Booting .
@@ -40,19 +41,20 @@ func (c *Consumer) Booting(sb freedom.SingleBoot) {
 		freedom.Logger().Error("'infra/kafka.toml' file under '[[consumer_clients]]' error")
 		return
 	}
+	c.retry = newRetryHandle(c.topicPath, c.conf)
 	sb.Closeing(func() {
 		c.Close()
+		c.retry.Close()
 	})
-	c.ReListen()
+
+	c.Listen()
 }
 
-func (c *Consumer) ReListen() {
+func (c *Consumer) Listen() {
 	topicNames := []string{}
-	for topic, paths := range c.topicPath {
+	for topic, path := range c.topicPath {
 		topicNames = append(topicNames, topic)
-		for _, path := range paths {
-			freedom.Logger().Debug("Consumer listening topic:", topic, ", path:", path)
-		}
+		freedom.Logger().Debug("Consumer listening topic:", topic, ", path:", path)
 	}
 	for index := 0; index < len(c.conf.Consumers); index++ {
 		cconf := newConsumerConfig(c.conf.Consumers[index])
@@ -63,8 +65,15 @@ func (c *Consumer) ReListen() {
 		if err != nil {
 			panic(err)
 		}
+
+		freedom.Logger().Debug("Consumer connect servers: ", c.conf.Consumers[index].Servers)
 		c.saramaConsumers = append(c.saramaConsumers, instance)
 		c.consume(instance, &c.conf.Consumers[index])
+
+		if c.conf.Consumers[index].RetryCount > 0 {
+			c.retry.StartProducer(&c.conf.Consumers[index])
+			go c.retry.StartConsumer(&c.conf.Consumers[index], topicNames)
+		}
 	}
 }
 
@@ -72,6 +81,8 @@ func (c *Consumer) Close() {
 	for _, instance := range c.saramaConsumers {
 		if err := instance.Close(); err != nil {
 			freedom.Logger().Error(err)
+		} else {
+			freedom.Logger().Debug("Consumer close complete")
 		}
 	}
 	c.saramaConsumers = []*cluster.Consumer{}
@@ -81,6 +92,7 @@ func (c *Consumer) Close() {
 func (kc *Consumer) consume(cluster *cluster.Consumer, conf *consumerConf) {
 	go func() {
 		for msg := range cluster.Messages() {
+			freedom.Logger().Debug("Consume topic: ", msg.Topic)
 			cluster.MarkOffset(msg, "")
 			kc.limiter.Open(1)
 			go kc.call(msg, conf)
@@ -113,10 +125,13 @@ func (kc *Consumer) call(msg *sarama.ConsumerMessage, conf *consumerConf) {
 	for index := 0; index < len(msg.Headers); index++ {
 		request = request.SetHeader(string(msg.Headers[index].Key), string(msg.Headers[index].Value))
 	}
-	request.SetHeader("x-message-key", string(msg.Key))
+	request.SetHeader("x-message-key", string(msg.Key)).SetHeader(XRetryCount, "0")
 	_, resp := request.Post().ToString()
 
 	if resp.Error != nil || resp.StatusCode != 200 {
-		freedom.Logger().Errorf("Call message processing failed, path:%s, topic:%s, addr:%v, body:%v, error:%v", path, msg.Topic, conf.Servers, msg.Value, resp.Error)
+		freedom.Logger().Errorf("Call message processing failed, path:%s, topic:%s, addr:%v, body:%v, error:%v", path, msg.Topic, conf.Servers, string(msg.Value), resp.Error)
+		if conf.RetryCount > 0 {
+			kc.retry.RetryMsg(msg.Topic, msg.Value, msg.Key, msg.Headers, conf)
+		}
 	}
 }
