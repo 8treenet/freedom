@@ -2,7 +2,6 @@ package kafka
 
 import (
 	"bytes"
-	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -20,9 +19,9 @@ const (
 	XRetryCount     = "x-retry-count"
 )
 
-func newRetryHandle(topicPath map[string]string, conf kafkaConf) *retryHandle {
+func newRetryHandle(topicPath map[string]string, conf kafkaConf, limiter *Limiter) *retryHandle {
 	handle := new(retryHandle)
-	handle.limiter = newLimiter(int32(runtime.NumCPU() * 1024))
+	handle.limiter = limiter
 	handle.topicPath = topicPath
 	handle.consumerMap = make(map[*consumerConf]*cluster.Consumer)
 	handle.producerMap = make(map[*consumerConf]sarama.SyncProducer)

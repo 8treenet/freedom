@@ -41,7 +41,7 @@ func (c *Consumer) Booting(sb freedom.SingleBoot) {
 		freedom.Logger().Error("'infra/kafka.toml' file under '[[consumer_clients]]' error")
 		return
 	}
-	c.retry = newRetryHandle(c.topicPath, c.conf)
+	c.retry = newRetryHandle(c.topicPath, c.conf, c.limiter)
 	sb.Closeing(func() {
 		c.Close()
 		c.retry.Close()
