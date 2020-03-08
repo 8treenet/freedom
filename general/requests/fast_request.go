@@ -21,7 +21,7 @@ func init() {
 
 // NewFastClient .
 func NewFastClient(rwTimeout time.Duration) {
-	fclient = &fasthttp.Client{ReadTimeout: rwTimeout, WriteTimeout: rwTimeout, Name: "freedom/1.0.0(fasthttp)"}
+	fclient = &fasthttp.Client{ReadTimeout: rwTimeout, WriteTimeout: rwTimeout, Name: "freedom/1.0.0(fasthttp)", MaxConnsPerHost: 20000}
 }
 
 // NewFastRequest .
