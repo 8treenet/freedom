@@ -1,6 +1,8 @@
 package kafka
 
 import (
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/8treenet/freedom"
@@ -42,13 +44,17 @@ func (msg *Msg) Publish() {
 	}
 
 	go func() {
+		now := time.Now()
 		syncProducer := producer.getSaramaProducer(msg.producerName)
 		if syncProducer == nil {
-			freedom.Logger().Errorf("'%s' No 'producer' found, see 'infra/kafka.toml' file configuration under multiple instances", msg.topic)
+			errMsg := fmt.Sprintf("'%s' No 'producer' found, see 'infra/kafka.toml' file configuration under multiple instances", msg.topic)
+			freedom.Logger().Error(errMsg)
+			freedom.Prometheus().KafkaProducerWithLabelValues(msg.topic, errors.New(errMsg), now)
 			return
 		}
 		_, _, err := syncProducer.SendMessage(saramaMsg)
 		freedom.Logger().Debug("Produce topic: ", saramaMsg.Topic)
+		freedom.Prometheus().KafkaProducerWithLabelValues(msg.topic, err, now)
 		if err == nil {
 			return
 		}

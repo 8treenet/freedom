@@ -26,16 +26,24 @@ func (c *Infra) Redis() redis.Cmdable {
 	return globalApp.Cache.client
 }
 
-// NewFastRequest .
-func (c *Infra) NewFastRequest(url string) Request {
+// NewHttpRequest, transferCtx : Whether to pass the context, turned on by default. Typically used for tracking internal services.
+func (c *Infra) NewHttpRequest(url string, transferCtx ...bool) Request {
+	req := requests.NewHttpRequest(url)
+	if len(transferCtx) > 0 && !transferCtx[0] {
+		return req
+	}
 	bus := GetBus(c.Runtime.Ctx())
-	req := requests.NewFastRequest(url, bus.ToJson())
+	req.SetHeader("x-freedom-bus", bus.ToJson())
 	return req
 }
 
-// NewH2CRequest .
-func (c *Infra) NewH2CRequest(url string) Request {
+// NewH2CRequest, transferCtx : Whether to pass the context, turned on by default. Typically used for tracking internal services.
+func (c *Infra) NewH2CRequest(url string, transferCtx ...bool) Request {
+	req := requests.NewH2CRequest(url)
+	if len(transferCtx) > 0 && !transferCtx[0] {
+		return req
+	}
 	bus := GetBus(c.Runtime.Ctx())
-	req := requests.NewH2CRequest(url, bus.ToJson())
+	req.SetHeader("x-freedom-bus", bus.ToJson())
 	return req
 }

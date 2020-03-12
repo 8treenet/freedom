@@ -5,6 +5,9 @@ import "github.com/jinzhu/gorm"
 // GORMRepository .
 type GORMRepository interface {
 	DB() *gorm.DB
+	MadeEntity(entity Entity)
+	MadeEntitys(entitys interface{})
+	GetRuntime() Runtime
 }
 
 // QueryBuilder .

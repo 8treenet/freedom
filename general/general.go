@@ -43,7 +43,6 @@ type Runtime interface {
 	Ctx() iris.Context
 	Logger() Logger
 	Store() *memstore.Store
-	Prometheus() *Prometheus
 }
 
 var (

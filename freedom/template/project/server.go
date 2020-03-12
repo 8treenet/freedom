@@ -11,7 +11,7 @@ func appTomlConf() string {
 	return `[other]
 listen_addr = ":8000"
 service_name = "{{.PackageName}}"
-repository_request_timeout = 5
+repository_request_timeout = 10
 prometheus_listen_addr = ":9090"
 # "fatal" "error" "warn" "info"  "debug"
 logger_level = "debug"
@@ -122,10 +122,19 @@ func mainTemplate() string {
 				MaxConnAge:         time.Duration(cfg.MaxConnAge) * time.Second,
 				PoolTimeout:        time.Duration(cfg.PoolTimeout) * time.Second,
 			}
-			client = redis.NewClient(opt)
-			if e := client.Ping().Err(); e != nil {
+			redisClient := redis.NewClient(opt)
+			redisClient.WrapProcess(func(old func(cmd redis.Cmder) error) func(cmd redis.Cmder) error {
+				return func(cmd redis.Cmder) error {
+					now := time.Now()
+					err := old(cmd)
+					freedom.Prometheus().RedisClientWithLabelValues(cmd.Name(), err, now)
+					return err
+				}
+			})
+			if e := redisClient.Ping().Err(); e != nil {
 				freedom.Logger().Fatal(e.Error())
 			}
+			client = redisClient
 			return
 		})
 	}

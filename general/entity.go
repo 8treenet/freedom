@@ -11,7 +11,7 @@ import (
 var _ Entity = new(entity)
 
 type Entity interface {
-	DomainEvent(fun string, object interface{}, header ...map[string]string)
+	DomainEvent(eventName string, object interface{}, header ...map[string]string)
 	Identity() string
 	GetRuntime() Runtime
 	SetProducer(string)

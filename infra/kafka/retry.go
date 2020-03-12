@@ -166,7 +166,7 @@ func (kc *retryHandle) call(msg *sarama.ConsumerMessage, conf *consumerConf) {
 	if kc.kafkaconf.Consumer.ProxyHTTP2 {
 		request = requests.NewH2CRequest(kc.kafkaconf.Consumer.ProxyAddr + path)
 	} else {
-		request = requests.NewFastRequest(kc.kafkaconf.Consumer.ProxyAddr + path)
+		request = requests.NewHttpRequest(kc.kafkaconf.Consumer.ProxyAddr + path)
 	}
 	request = request.SetBody(msg.Value)
 	for index := 0; index < len(msg.Headers); index++ {

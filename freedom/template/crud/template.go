@@ -21,15 +21,6 @@ func (obj *{{.Name}})TakeChanges() map[string]interface{} {
 	return result
 }
 
-func (obj *{{.Name}})IsNew() bool {
-	return obj.isNew
-}
-
-func (obj *{{.Name}})New() *{{.Name}} {
-	obj.isNew = true
-	return obj
-}
-
 {{range .Fields}}
 // Set{{.Value}} .
 func (obj *{{.StructName}}) Set{{.Value}} ({{.Arg}} {{.Type}}) {
@@ -60,57 +51,123 @@ func FunTemplatePackage() string {
 	package repository
 	import (
 		"github.com/8treenet/freedom"
+		"github.com/jinzhu/gorm"
+		"time"
+		"reflect"
 		"{{.PackagePath}}"
 	)
+	func makeEntity(repo freedom.GORMRepository, obj interface{}) {
+		entitysValue := reflect.ValueOf(obj)
+		if entitysValue.Kind() == reflect.Ptr {
+			entitysValue = entitysValue.Elem()
+		}
+		if entitysValue.Kind() == reflect.Slice {
+			for i := 0; i < entitysValue.Len(); i++ {
+				iface := entitysValue.Index(i).Interface()
+				if entityObj, ok := iface.(freedom.Entity); ok {
+					repo.MadeEntity(entityObj)
+				}
+			}
+			return
+		}
+	
+		if entityObj, ok := obj.(freedom.Entity); ok {
+			repo.MadeEntity(entityObj)
+			return
+		}
+	}
+
+	func errorLog(repo freedom.GORMRepository, model, method string, e error, expression ...interface{}) {
+		if e == nil || e == gorm.ErrRecordNotFound {
+			return
+		}
+		repo.GetRuntime().Logger().Errorf("Orm error, model: %s, method: %s, expression :%v, reason for error:%v", model, method, expression, e)
+	}
 `
 }
 func FunTemplate() string {
 	return `
-
 	// find{{.Name}}ByPrimary .
-	func find{{.Name}}ByPrimary(rep freedom.GORMRepository, primary interface{}) (result object.{{.Name}}, e error) {
-		e = rep.DB().Find(&result, primary).Error
+	func find{{.Name}}ByPrimary(repo freedom.GORMRepository, result interface{}, primary interface{}) (e error) {
+		now := time.Now()
+		e = repo.DB().Find(result, primary).Error
+		if e == nil {
+			makeEntity(repo, result)
+		}
+		freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "find{{.Name}}ByPrimary", e, now)
+		errorLog(repo, "{{.Name}}", "find{{.Name}}ByPrimary", e, primary)
 		return
 	}
 	
 	// find{{.Name}}sByPrimarys .
-	func find{{.Name}}sByPrimarys(rep freedom.GORMRepository, primarys ...interface{}) (results []object.{{.Name}}, e error) {
-		e = rep.DB().Find(&results, primarys).Error
+	func find{{.Name}}sByPrimarys(repo freedom.GORMRepository, results interface{}, primarys ...interface{}) (e error) {
+		now := time.Now()
+		e = repo.DB().Find(results, primarys).Error
+		if e == nil {
+			makeEntity(repo, results)
+		}
+		freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "find{{.Name}}sByPrimarys", e, now)
+		errorLog(repo, "{{.Name}}", "find{{.Name}}sByPrimarys", e, primarys)
 		return
 	}
 	
 	// find{{.Name}} .
-	func find{{.Name}}(rep freedom.GORMRepository, query object.{{.Name}}, builders ...freedom.QueryBuilder) (result object.{{.Name}}, e error) {
-		db := rep.DB().Where(query)
+	func find{{.Name}}(repo freedom.GORMRepository, query object.{{.Name}}, result interface{}, builders ...freedom.QueryBuilder) (e error) {
+		now := time.Now()
+		defer func() {
+			if e == nil {
+				makeEntity(repo, result)
+			}
+			freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "find{{.Name}}", e, now)
+			errorLog(repo, "{{.Name}}", "find{{.Name}}", e, query)
+		}()
+		db := repo.DB().Where(query)
 		if len(builders) == 0 {
-			e = db.Last(&result).Error
+			e = db.Last(result).Error
 			return
 		}
 	
-		e = db.Limit(1).Order(builders[0].Order()).Find(&result).Error
+		e = db.Limit(1).Order(builders[0].Order()).Find(result).Error
 		return
 	}
 	
 	// find{{.Name}}ByWhere .
-	func find{{.Name}}ByWhere(rep freedom.GORMRepository, query string, args []interface{}, builders ...freedom.QueryBuilder) (result object.{{.Name}}, e error) {
-		db := rep.DB()
+	func find{{.Name}}ByWhere(repo freedom.GORMRepository, query string, args []interface{}, result interface{}, builders ...freedom.QueryBuilder) (e error) {
+		now := time.Now()
+		defer func() {
+			if e == nil {
+				makeEntity(repo, result)
+			}
+			freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "find{{.Name}}ByWhere", e, now)
+			errorLog(repo, "{{.Name}}", "find{{.Name}}ByWhere", e, query, args)
+		}()
+		db := repo.DB()
 		if query != "" {
 			db = db.Where(query, args...)
 		}
 		if len(builders) == 0 {
-			e = db.Last(&result).Error
+			e = db.Last(result).Error
 			return
 		}
 	
-		e = db.Limit(1).Order(builders[0].Order()).Find(&result).Error
+		e = db.Limit(1).Order(builders[0].Order()).Find(result).Error
 		return
 	}
 	
 	// find{{.Name}}ByMap .
-	func find{{.Name}}ByMap(rep freedom.GORMRepository, query map[string]interface{}, builders ...freedom.QueryBuilder) (result object.{{.Name}}, e error) {
-		db := rep.DB().Where(query)
+	func find{{.Name}}ByMap(repo freedom.GORMRepository, query map[string]interface{}, result interface{}, builders ...freedom.QueryBuilder) (e error) {
+		now := time.Now()
+		defer func() {
+			if e == nil {
+				makeEntity(repo, result)
+			}
+			freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "find{{.Name}}ByMap", e, now)
+			errorLog(repo, "{{.Name}}", "find{{.Name}}ByMap", e, query)
+		}()
+
+		db := repo.DB().Where(query)
 		if len(builders) == 0 {
-			e = db.Last(&result).Error
+			e = db.Last(result).Error
 			return
 		}
 	
@@ -119,61 +176,88 @@ func FunTemplate() string {
 	}
 	
 	// find{{.Name}}s .
-	func find{{.Name}}s(rep freedom.GORMRepository, query object.{{.Name}}, builders ...freedom.QueryBuilder) (results []object.{{.Name}}, e error) {
-		db := rep.DB().Where(query)
+	func find{{.Name}}s(repo freedom.GORMRepository, query object.{{.Name}}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
+		now := time.Now()
+		defer func() {
+			if e == nil {
+				makeEntity(repo, results)
+			}
+			freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "find{{.Name}}s", e, now)
+			errorLog(repo, "{{.Name}}", "find{{.Name}}s", e, query)
+		}()
+		db := repo.DB().Where(query)
 	
 		if len(builders) == 0 {
-			e = db.Find(&results).Error
+			e = db.Find(results).Error
 			return
 		}
-		e = builders[0].Execute(db, &results)
+		e = builders[0].Execute(db, results)
 		return
 	}
 	
 	// find{{.Name}}sByWhere .
-	func find{{.Name}}sByWhere(rep freedom.GORMRepository, query string, args []interface{}, builders ...freedom.QueryBuilder) (results []object.{{.Name}}, e error) {
-		db := rep.DB()
+	func find{{.Name}}sByWhere(repo freedom.GORMRepository, query string, args []interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
+		now := time.Now()
+		defer func() {
+			if e == nil {
+				makeEntity(repo, results)
+			}
+			freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "find{{.Name}}sByWhere", e, now)
+			errorLog(repo, "{{.Name}}", "find{{.Name}}sByWhere", e, query, args)
+		}()
+		db := repo.DB()
 		if query != "" {
 			db = db.Where(query, args...)
 		}
 	
 		if len(builders) == 0 {
-			e = db.Find(&results).Error
+			e = db.Find(results).Error
 			return
 		}
-		e = builders[0].Execute(db, &results)
+		e = builders[0].Execute(db, results)
 		return
 	}
 	
 	// find{{.Name}}sByMap .
-	func find{{.Name}}sByMap(rep freedom.GORMRepository, query map[string]interface{}, builders ...freedom.QueryBuilder) (results []object.{{.Name}}, e error) {
-		db := rep.DB().Where(query)
+	func find{{.Name}}sByMap(repo freedom.GORMRepository, query map[string]interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
+		now := time.Now()
+		defer func() {
+			if e == nil {
+				makeEntity(repo, results)
+			}
+			freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "find{{.Name}}sByMap", e, now)
+			errorLog(repo, "{{.Name}}", "find{{.Name}}sByMap", e, query)
+		}()
+
+		db := repo.DB().Where(query)
 	
 		if len(builders) == 0 {
-			e = db.Find(&results).Error
+			e = db.Find(results).Error
 			return
 		}
-		e = builders[0].Execute(db, &results)
+		e = builders[0].Execute(db, results)
 		return
 	}
 	
 	// create{{.Name}} .
-	func create{{.Name}}(rep freedom.GORMRepository, object *object.{{.Name}}) (rowsAffected int64, e error) {
-		db := rep.DB().Create(object)
+	func create{{.Name}}(repo freedom.GORMRepository, object *object.{{.Name}}) (rowsAffected int64, e error) {
+		now := time.Now()
+		db := repo.DB().Create(object)
 		rowsAffected = db.RowsAffected
 		e = db.Error
+		freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "create{{.Name}}", e, now)
+		errorLog(repo, "{{.Name}}", "create{{.Name}}", e, *object)
 		return
 	}
 
 	// save{{.Name}} .
-	func save{{.Name}}(rep freedom.GORMRepository, object *object.{{.Name}}) (affected int64, e error) {
-		if object.IsNew() {
-			object.TakeChanges()
-			return create{{.Name}}(rep, object)
-		}
-		db := rep.DB().Model(object).Updates(object.TakeChanges())
+	func save{{.Name}}(repo freedom.GORMRepository, object *object.{{.Name}}) (affected int64, e error) {
+		now := time.Now()
+		db := repo.DB().Model(object).Updates(object.TakeChanges())
 		e = db.Error
 		affected = db.RowsAffected
+		freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "save{{.Name}}", e, now)
+		errorLog(repo, "{{.Name}}", "save{{.Name}}", e, *object)
 		return
 	}
 `

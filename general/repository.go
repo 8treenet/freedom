@@ -66,18 +66,41 @@ func (repo *Repository) Redis() redis.Cmdable {
 // Request .
 type Request requests.Request
 
-// NewFastRequest .
-func (repo *Repository) NewFastRequest(url string) Request {
+// NewHttpRequest, transferCtx : Whether to pass the context, turned on by default. Typically used for tracking internal services.
+func (repo *Repository) NewHttpRequest(url string, transferCtx ...bool) Request {
+	req := requests.NewHttpRequest(url)
+	if len(transferCtx) > 0 && !transferCtx[0] {
+		return req
+	}
 	bus := GetBus(repo.Runtime.Ctx())
-	req := requests.NewFastRequest(url, bus.ToJson())
+	req.SetHeader("x-freedom-bus", bus.ToJson())
 
+	m := globalApp.Iris().ConfigurationReadOnly().GetOther()
+	if serviceName, ok := m["service_name"]; ok {
+		str, strok := serviceName.(string)
+		if strok {
+			req.SetHeader("user-agent", str)
+		}
+	}
 	return req
 }
 
-// NewH2CRequest .
-func (repo *Repository) NewH2CRequest(url string) Request {
+// NewH2CRequest, transferCtx : Whether to pass the context, turned on by default. Typically used for tracking internal services.
+func (repo *Repository) NewH2CRequest(url string, transferCtx ...bool) Request {
+	req := requests.NewH2CRequest(url)
+	if len(transferCtx) > 0 && !transferCtx[0] {
+		return req
+	}
 	bus := GetBus(repo.Runtime.Ctx())
-	req := requests.NewH2CRequest(url, bus.ToJson())
+	req.SetHeader("x-freedom-bus", bus.ToJson())
+
+	m := globalApp.Iris().ConfigurationReadOnly().GetOther()
+	if serviceName, ok := m["service_name"]; ok {
+		str, strok := serviceName.(string)
+		if strok {
+			req.SetHeader("user-agent", str)
+		}
+	}
 	return req
 }
 
@@ -105,8 +128,24 @@ func (repo *Repository) SingleFlight(key string, value, takeObject interface{}, 
 }
 
 // MadeEntity .
-func (repo *Repository) MadeEntity(entity interface{}) {
+func (repo *Repository) MadeEntity(entity Entity) {
 	newEntity(repo.Runtime, entity)
+	return
+}
+
+// MadeEntity .
+func (repo *Repository) MadeEntitys(entitys interface{}) {
+	entitysValue := reflect.ValueOf(entitys)
+	if entitysValue.Kind() != reflect.Slice {
+		panic("It's not a slice")
+	}
+	for i := 0; i < entitysValue.Len(); i++ {
+		iface := entitysValue.Index(i).Interface()
+		if _, ok := iface.(Entity); !ok {
+			panic("This is not an entity")
+		}
+		newEntity(repo.Runtime, iface)
+	}
 	return
 }
 
@@ -115,6 +154,11 @@ func repositoryAPIRun(irisConf iris.Configuration) {
 	if v, ok := irisConf.Other["repository_request_timeout"]; ok {
 		sec = v.(int64)
 	}
-	requests.NewFastClient(time.Duration(sec) * time.Second)
-	requests.Newh2cClient(time.Duration(sec) * time.Second)
+	requests.NewHttpClient(time.Duration(sec) * time.Second)
+	requests.NewH2cClient(time.Duration(sec) * time.Second)
+}
+
+// GetRuntime .
+func (repo *Repository) GetRuntime() Runtime {
+	return repo.Runtime
 }

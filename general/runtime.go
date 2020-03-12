@@ -62,8 +62,3 @@ func (rt *appRuntime) Logger() Logger {
 func (rt *appRuntime) Store() *memstore.Store {
 	return rt.ctx.Values()
 }
-
-// Prometheus .
-func (rt *appRuntime) Prometheus() *Prometheus {
-	return globalApp.Prometheus
-}

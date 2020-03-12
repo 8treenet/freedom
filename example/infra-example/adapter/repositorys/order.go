@@ -1,9 +1,10 @@
 package repositorys
 
 import (
-	"github.com/8treenet/freedom"
-	"github.com/8treenet/freedom/example/infra-example/application/objects"
 	"time"
+
+	"github.com/8treenet/freedom"
+	"github.com/8treenet/freedom/example/infra-example/application/object"
 )
 
 func init() {
@@ -19,20 +20,20 @@ type OrderRepository struct {
 	freedom.Repository
 }
 
-func (repo *OrderRepository) Get(id, userID int) (result objects.Order, e error) {
-	result, e = findOrder(repo, objects.Order{ID: id, UserID: userID})
+func (repo *OrderRepository) Get(id, userID int) (result object.Order, e error) {
+	e = findOrder(repo, object.Order{Id: id, UserId: userID}, &result)
 	return
 }
 
-func (repo *OrderRepository) GetAll(userID int) (result []objects.Order, e error) {
-	result, e = findOrders(repo, objects.Order{UserID: userID})
+func (repo *OrderRepository) GetAll(userID int) (result []object.Order, e error) {
+	e = findOrders(repo, object.Order{UserId: userID}, &result)
 	return
 }
 
 func (repo *OrderRepository) Create(goodsID, num, userID int) error {
-	_, e := createOrder(repo, &objects.Order{
-		UserID:  userID,
-		GoodsID: goodsID,
+	_, e := createOrder(repo, &object.Order{
+		UserId:  userID,
+		GoodsId: goodsID,
 		Num:     num,
 		Created: time.Now(),
 		Updated: time.Now(),

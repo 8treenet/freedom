@@ -119,7 +119,7 @@ func (kc *Consumer) call(msg *sarama.ConsumerMessage, conf *consumerConf) {
 	if kc.conf.Consumer.ProxyHTTP2 {
 		request = requests.NewH2CRequest(kc.conf.Consumer.ProxyAddr + path)
 	} else {
-		request = requests.NewFastRequest(kc.conf.Consumer.ProxyAddr + path)
+		request = requests.NewHttpRequest(kc.conf.Consumer.ProxyAddr + path)
 	}
 	request = request.SetBody(msg.Value)
 	for index := 0; index < len(msg.Headers); index++ {

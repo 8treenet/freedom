@@ -32,12 +32,12 @@ func (srv *OrderService) Get(id, userId int) (result dto.OrderRep, e error) {
 	if e != nil {
 		return
 	}
-	goodsObj, e := srv.GoodsRepo.Get(obj.GoodsID)
+	goodsObj, e := srv.GoodsRepo.Get(obj.GoodsId)
 	if e != nil {
 		return
 	}
-	result.Id = obj.ID
-	result.GoodsId = obj.GoodsID
+	result.Id = obj.Id
+	result.GoodsId = obj.GoodsId
 	result.Num = obj.Num
 	result.DateTime = obj.Created.Format("2006-01-02 15:04:05")
 	result.GoodsName = goodsObj.Name
@@ -51,15 +51,15 @@ func (srv *OrderService) GetAll(userId int) (result []dto.OrderRep, e error) {
 	}
 
 	for _, obj := range objs {
-		goodsObj, err := srv.GoodsRepo.Get(obj.GoodsID)
+		goodsObj, err := srv.GoodsRepo.Get(obj.GoodsId)
 		if err != nil {
 			e = err
 			return
 		}
 
 		result = append(result, dto.OrderRep{
-			Id:        obj.ID,
-			GoodsId:   obj.GoodsID,
+			Id:        obj.Id,
+			GoodsId:   obj.GoodsId,
 			GoodsName: goodsObj.Name,
 			Num:       obj.Num,
 			DateTime:  obj.Created.Format("2006-01-02 15:04:05"),
@@ -84,7 +84,7 @@ func (srv *OrderService) Add(goodsID, num, userId int) (resp string, e error) {
 			return err
 		}
 
-		return srv.OrderRepo.Create(goodsObj.ID, num, userId)
+		return srv.OrderRepo.Create(goodsObj.Id, num, userId)
 	})
 	return
 }

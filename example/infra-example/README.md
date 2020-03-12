@@ -49,7 +49,7 @@ func (repo *GoodsRepository) Get(id int) (result objects.Goods, e error) {
 		通过主键id 查询该商品
 		findGoodsByPrimary 由代码生成
 	*/
-	result, e = findGoodsByPrimary(repo, id)
+	e = findGoodsByPrimary(repo, &result, id)
 	return
 }
 
@@ -58,16 +58,16 @@ func (repo *GoodsRepository) GetAll() (result []objects.Goods, e error) {
 		查看全部商品
 		findGoodss由代码生成
 	*/
-	result, e = findGoodss(repo, objects.Goods{})
+	e = findGoodss(repo, objects.Goods{}, &result)
 	return
 }
 
 func (repo *GoodsRepository) Save(goods *objects.Goods) (e error) {
 	/*
 		保存更新商品
-		updateGoods 由代码生成
+		saveGoods 由代码生成
 	*/
-	_, e = updateGoods(repo, goods)
+	_, e = saveGoods(repo, goods)
 	return
 }
 ```

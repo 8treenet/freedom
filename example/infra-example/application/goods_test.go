@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/8treenet/freedom"
-	"github.com/8treenet/freedom/example/infra-example/application/objects"
+	"github.com/8treenet/freedom/example/infra-example/application/object"
 	"github.com/8treenet/freedom/example/infra-example/infra/config"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
@@ -48,8 +48,8 @@ func TestGoodsService_Get(t *testing.T) {
 type MockGoodsRepository struct {
 }
 
-func (repo *MockGoodsRepository) Get(id int) (result objects.Goods, e error) {
-	result.ID = 123
+func (repo *MockGoodsRepository) Get(id int) (result object.Goods, e error) {
+	result.Id = 123
 	result.Name = "mock商品名称"
 	result.Price = 100
 	result.Stock = 30
@@ -57,8 +57,8 @@ func (repo *MockGoodsRepository) Get(id int) (result objects.Goods, e error) {
 	return
 }
 
-func (repo *MockGoodsRepository) GetAll() (goods []objects.Goods, e error) { return }
-func (repo *MockGoodsRepository) Save(*objects.Goods) error                { return nil }
+func (repo *MockGoodsRepository) GetAll() (goods []object.Goods, e error) { return }
+func (repo *MockGoodsRepository) Save(*object.Goods) error                { return nil }
 
 func TestGoodsService_MockGet(t *testing.T) {
 	unitTest := freedom.NewUnitTest()

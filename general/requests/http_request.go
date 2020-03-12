@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
-	"crypto/tls"
 	"encoding/xml"
 	"errors"
 	"fmt"
@@ -15,47 +14,41 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"golang.org/x/net/http2"
 )
 
 var (
-	h2cclient *http.Client
+	httpclient *http.Client
 )
 
 func init() {
-	NewH2cClient(10 * time.Second)
+	NewHttpClient(10 * time.Second)
 }
 
-// Newh2cClient .
-func NewH2cClient(rwTimeout time.Duration) {
-	tran := &http2.Transport{
-		AllowHTTP: true,
-		DialTLS: func(network, addr string, cfg *tls.Config) (net.Conn, error) {
-			fun := timeoutDialer(5 * time.Second)
-			return fun(network, addr)
-		},
+// Newhttpclient .
+func NewHttpClient(rwTimeout time.Duration) {
+	tran := &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		DialContext: (&net.Dialer{
+			Timeout:   5 * time.Second,
+			KeepAlive: 15 * time.Second,
+			DualStack: true,
+		}).DialContext,
+		ForceAttemptHTTP2:     true,
+		MaxIdleConns:          512,
+		IdleConnTimeout:       90 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+		MaxIdleConnsPerHost:   100,
 	}
 
-	h2cclient = &http.Client{
+	httpclient = &http.Client{
 		Transport: tran,
 		Timeout:   rwTimeout,
 	}
 }
 
-// timeoutDialer returns functions of connection dialer with timeout settings for http.Transport Dial field.
-func timeoutDialer(cTimeout time.Duration) func(net, addr string) (c net.Conn, err error) {
-	return func(netw, addr string) (net.Conn, error) {
-		conn, err := net.DialTimeout(netw, addr, cTimeout)
-		if err != nil {
-			return nil, err
-		}
-		return conn, err
-	}
-}
-
-func NewH2CRequest(rawurl string) Request {
-	result := new(H2CRequest)
+func NewHttpRequest(rawurl string) Request {
+	result := new(HttpRequest)
 	req := &http.Request{
 		Header: make(http.Header),
 	}
@@ -65,54 +58,55 @@ func NewH2CRequest(rawurl string) Request {
 	return result
 }
 
-// H2CRequest .
-type H2CRequest struct {
+// HttpRequest .
+type HttpRequest struct {
 	resq   *http.Request
 	resp   *http.Response
 	reqe   error
 	params map[string]interface{}
 	url    string
+	bus    string
 	ctx    context.Context
 }
 
 // Post .
-func (hr *H2CRequest) Post() Request {
+func (hr *HttpRequest) Post() Request {
 	hr.resq.Method = "POST"
 	return hr
 }
 
 // Put .
-func (hr *H2CRequest) Put() Request {
+func (hr *HttpRequest) Put() Request {
 	hr.resq.Method = "PUT"
 	return hr
 }
 
 // Get .
-func (hr *H2CRequest) Get() Request {
+func (hr *HttpRequest) Get() Request {
 	hr.resq.Method = "GET"
 	return hr
 }
 
 // Delete .
-func (hr *H2CRequest) Delete() Request {
+func (hr *HttpRequest) Delete() Request {
 	hr.resq.Method = "DELETE"
 	return hr
 }
 
 // Head .
-func (hr *H2CRequest) Head() Request {
+func (hr *HttpRequest) Head() Request {
 	hr.resq.Method = "HEAD"
 	return hr
 }
 
 // SetContext .
-func (hr *H2CRequest) SetContext(ctx context.Context) Request {
+func (hr *HttpRequest) SetContext(ctx context.Context) Request {
 	hr.ctx = ctx
 	return hr
 }
 
 // SetJSONBody .
-func (hr *H2CRequest) SetJSONBody(obj interface{}) Request {
+func (hr *HttpRequest) SetJSONBody(obj interface{}) Request {
 	byts, e := Marshal(obj)
 	if e != nil {
 		hr.reqe = e
@@ -126,7 +120,7 @@ func (hr *H2CRequest) SetJSONBody(obj interface{}) Request {
 }
 
 // SetBody .
-func (hr *H2CRequest) SetBody(byts []byte) Request {
+func (hr *HttpRequest) SetBody(byts []byte) Request {
 	hr.resq.Body = ioutil.NopCloser(bytes.NewReader(byts))
 	hr.resq.ContentLength = int64(len(byts))
 	hr.resq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -134,7 +128,7 @@ func (hr *H2CRequest) SetBody(byts []byte) Request {
 }
 
 // ToJSON .
-func (hr *H2CRequest) ToJSON(obj interface{}) (r Response) {
+func (hr *HttpRequest) ToJSON(obj interface{}) (r Response) {
 	r.Error = hr.do()
 	if r.Error != nil {
 		return
@@ -150,7 +144,7 @@ func (hr *H2CRequest) ToJSON(obj interface{}) (r Response) {
 }
 
 // ToString .
-func (hr *H2CRequest) ToString() (value string, r Response) {
+func (hr *HttpRequest) ToString() (value string, r Response) {
 	r.Error = hr.do()
 	if r.Error != nil {
 		return
@@ -162,7 +156,7 @@ func (hr *H2CRequest) ToString() (value string, r Response) {
 }
 
 // ToBytes .
-func (hr *H2CRequest) ToBytes() (value []byte, r Response) {
+func (hr *HttpRequest) ToBytes() (value []byte, r Response) {
 	r.Error = hr.do()
 	if r.Error != nil {
 		return
@@ -174,7 +168,7 @@ func (hr *H2CRequest) ToBytes() (value []byte, r Response) {
 }
 
 // ToXML .
-func (hr *H2CRequest) ToXML(v interface{}) (r Response) {
+func (hr *HttpRequest) ToXML(v interface{}) (r Response) {
 	r.Error = hr.do()
 	if r.Error != nil {
 		return
@@ -186,19 +180,19 @@ func (hr *H2CRequest) ToXML(v interface{}) (r Response) {
 }
 
 // SetParam .
-func (hr *H2CRequest) SetParam(key string, value interface{}) Request {
+func (hr *HttpRequest) SetParam(key string, value interface{}) Request {
 	hr.params[key] = value
 	return hr
 }
 
 // SetHeader .
-func (hr *H2CRequest) SetHeader(key, value string) Request {
-	hr.resq.Header.Add(key, value)
+func (hr *HttpRequest) SetHeader(key, value string) Request {
+	hr.resq.Header.Set(key, value)
 	return hr
 }
 
 // URI .
-func (hr *H2CRequest) URI() string {
+func (hr *HttpRequest) URI() string {
 	result := hr.url
 	if len(hr.params) > 0 {
 		uris := strings.Split(result, "?")
@@ -219,7 +213,7 @@ func (hr *H2CRequest) URI() string {
 	return result
 }
 
-func (hr *H2CRequest) do() (e error) {
+func (hr *HttpRequest) do() (e error) {
 	if hr.reqe != nil {
 		return hr.reqe
 	}
@@ -229,6 +223,7 @@ func (hr *H2CRequest) do() (e error) {
 		return
 	}
 	hr.resq.URL = u
+
 	waitChanErr := make(chan error)
 	defer close(waitChanErr)
 
@@ -249,9 +244,10 @@ func (hr *H2CRequest) do() (e error) {
 			if err != nil {
 				code = "error"
 			}
+
 			PrometheusImpl.HttpClientWithLabelValues(host, code, pro, hr.resq.Method, now)
 		}()
-		hr.resp, err = h2cclient.Do(hr.resq)
+		hr.resp, err = httpclient.Do(hr.resq)
 		waitErr <- err
 	}(waitChanErr)
 
@@ -270,7 +266,7 @@ func (hr *H2CRequest) do() (e error) {
 	}
 
 	select {
-	case <-time.After(h2cclient.Timeout):
+	case <-time.After(httpclient.Timeout):
 		e = errors.New("Timeout")
 		return
 	case <-hr.ctx.Done():
@@ -290,7 +286,7 @@ func (hr *H2CRequest) do() (e error) {
 	}
 }
 
-func (hr *H2CRequest) body() (body []byte) {
+func (hr *HttpRequest) body() (body []byte) {
 	defer hr.resp.Body.Close()
 	if hr.resp.Header.Get("Content-Encoding") == "gzip" {
 		reader, err := gzip.NewReader(hr.resp.Body)
@@ -304,7 +300,7 @@ func (hr *H2CRequest) body() (body []byte) {
 	return
 }
 
-func (hr *H2CRequest) httpRespone(httpRespone *Response) {
+func (hr *HttpRequest) httpRespone(httpRespone *Response) {
 	httpRespone.StatusCode = hr.resp.StatusCode
 	httpRespone.HTTP11 = false
 	if hr.resp.ProtoMajor == 1 && hr.resp.ProtoMinor == 1 {

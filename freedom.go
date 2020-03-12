@@ -74,6 +74,11 @@ func Logger() *golog.Logger {
 	return app.Logger()
 }
 
+// Prometheus .
+func Prometheus() *general.Prometheus {
+	return app.Prometheus
+}
+
 var path string
 
 // Configure .

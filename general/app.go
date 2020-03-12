@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/8treenet/freedom/general/requests"
 	"github.com/go-redis/redis"
 	"github.com/jinzhu/gorm"
 	"golang.org/x/net/http2"
@@ -278,6 +279,7 @@ func (app *Application) addMiddlewares(irisConf iris.Configuration) {
 	app.IrisApp.Use(globalApp.comPool.freeHandle())
 	if pladdr, ok := irisConf.Other["prometheus_listen_addr"]; ok {
 		app.Prometheus = newPrometheus(irisConf.Other["service_name"].(string), pladdr.(string))
+		requests.PrometheusImpl = app.Prometheus
 		globalApp.IrisApp.Use(newPrometheusHandle(app.Prometheus))
 	}
 	globalApp.IrisApp.Use(app.Middleware...)
