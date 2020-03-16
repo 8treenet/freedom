@@ -40,7 +40,6 @@ $ freedom new-crud
 #### [Repository & Transaction component](https://github.com/8treenet/freedom/blob/master/example/infra-example)
 #### [Message events & Domain events](https://github.com/8treenet/freedom/blob/master/example/event-example)
 #### [ddd-example](https://github.com/8treenet/freedom/blob/master/example/ddd-example)
-###### 一个完整的电商项目,包含CQRS、聚合、实体、领域事件、仓库、基础设施。
 ###### A complete e-commerce project, including CQRS, aggregation, entities, domain events, warehouses, and infrastructure.
 
 
