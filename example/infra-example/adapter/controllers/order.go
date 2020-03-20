@@ -21,11 +21,11 @@ type OrderController struct {
 func (c *OrderController) GetBy(goodsID int) freedom.Result {
 	userId, err := c.Runtime.Ctx().URLParamInt("userId")
 	if err != nil {
-		return &infra.JSONResponse{Err: err}
+		return &infra.JSONResponse{Error: err}
 	}
 	obj, err := c.OrderSev.Get(goodsID, userId)
 	if err != nil {
-		return &infra.JSONResponse{Err: err}
+		return &infra.JSONResponse{Error: err}
 	}
 
 	return &infra.JSONResponse{Object: obj}
@@ -35,11 +35,11 @@ func (c *OrderController) GetBy(goodsID int) freedom.Result {
 func (c *OrderController) Get() freedom.Result {
 	userId, err := c.Runtime.Ctx().URLParamInt("userId")
 	if err != nil {
-		return &infra.JSONResponse{Err: err}
+		return &infra.JSONResponse{Error: err}
 	}
 	objs, err := c.OrderSev.GetAll(userId)
 	if err != nil {
-		return &infra.JSONResponse{Err: err}
+		return &infra.JSONResponse{Error: err}
 	}
 	return &infra.JSONResponse{Object: objs}
 }

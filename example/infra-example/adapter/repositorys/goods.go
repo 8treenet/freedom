@@ -19,12 +19,7 @@ type GoodsRepository struct {
 }
 
 func (repo *GoodsRepository) Get(id int) (result object.Goods, e error) {
-	// SingleFlight 防击穿
-	e = repo.SingleFlight(result.TableName(), id, &result, func() (interface{}, error) {
-		var obj object.Goods
-		e := findGoodsByPrimary(repo, &obj, id)
-		return obj, e
-	})
+	e = findGoodsByPrimary(repo, &result, id)
 	return
 }
 

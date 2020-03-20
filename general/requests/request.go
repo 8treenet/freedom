@@ -48,6 +48,7 @@ type Request interface {
 	SetParam(key string, value interface{}) Request
 	URI() string
 	SetContext(context.Context) Request
+	Singleflight(key ...interface{}) Request
 }
 
 // Response .

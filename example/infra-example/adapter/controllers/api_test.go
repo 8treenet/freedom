@@ -40,7 +40,7 @@ func TestPutStock(t *testing.T) {
 		Num     int `json:"num"`     //增加数量
 	}
 	request.GoodsID = 1
-	request.Num = 14 //max error
+	request.Num = 14
 	//request.Num = 5
 
 	str, resp := requests.NewHttpRequest("http://127.0.0.1:8000/goods/stock").Put().SetJSONBody(request).ToString()

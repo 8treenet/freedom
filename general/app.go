@@ -60,7 +60,6 @@ type Application struct {
 	Prometheus    *Prometheus
 	ControllerDep []interface{}
 	eventInfra    DomainEventInfra
-	singleFlight  Group
 }
 
 // InstallParty .

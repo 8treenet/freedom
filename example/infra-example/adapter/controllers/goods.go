@@ -23,7 +23,7 @@ type GoodsController struct {
 func (goods *GoodsController) GetBy(goodsID int) freedom.Result {
 	obj, err := goods.GoodsSev.Get(goodsID)
 	if err != nil {
-		return &infra.JSONResponse{Err: err}
+		return &infra.JSONResponse{Error: err}
 	}
 	return &infra.JSONResponse{Object: obj}
 }
@@ -32,7 +32,7 @@ func (goods *GoodsController) GetBy(goodsID int) freedom.Result {
 func (goods *GoodsController) Get() freedom.Result {
 	objs, err := goods.GoodsSev.GetAll()
 	if err != nil {
-		return &infra.JSONResponse{Err: err}
+		return &infra.JSONResponse{Error: err}
 	}
 
 	return &infra.JSONResponse{Object: objs}
@@ -46,11 +46,11 @@ func (goods *GoodsController) PutStock() freedom.Result {
 	}
 	//使用自定义的json基础设施
 	if e := goods.JSONRequest.ReadBodyJSON(&request); e != nil {
-		return &infra.JSONResponse{Err: e}
+		return &infra.JSONResponse{Error: e}
 	}
 
 	if e := goods.GoodsSev.AddStock(request.GoodsID, request.Num); e != nil {
-		return &infra.JSONResponse{Err: e}
+		return &infra.JSONResponse{Error: e}
 	}
 	return &infra.JSONResponse{}
 }

@@ -24,8 +24,6 @@ const (
 	ormlatencyName        = "orm_duration_seconds"
 	httpClientReqsName    = "http_client_requests_total"
 	httpClientLatencyName = "http_client_duration_seconds"
-	redisReqsName         = "redis_client_requests_total"
-	redisLatencyName      = "redis_client_duration_seconds"
 
 	kafkaProducerReqsName    = "kafka_producer_requests_total"
 	kafkaProducerLatencyName = "kafka_producer_duration_seconds"
@@ -48,9 +46,6 @@ type Prometheus struct {
 
 	kafkaProducerReqs    *prometheus.CounterVec
 	kafkaProducerLatency *prometheus.HistogramVec
-
-	redisClientReqs    *prometheus.CounterVec
-	redisClientLatency *prometheus.HistogramVec
 }
 
 type log interface {
@@ -137,26 +132,6 @@ func newPrometheus(name, listen string) *Prometheus {
 		[]string{"topic", "error"},
 	)
 	prometheus.MustRegister(p.kafkaProducerLatency)
-
-	p.redisClientReqs = prometheus.NewCounterVec(
-		prometheus.CounterOpts{
-			Name:        redisReqsName,
-			Help:        "",
-			ConstLabels: prometheus.Labels{"service": name},
-		},
-		[]string{"cmd", "error"},
-	)
-	prometheus.MustRegister(p.redisClientReqs)
-
-	p.redisClientLatency = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Name:        redisLatencyName,
-		Help:        "",
-		ConstLabels: prometheus.Labels{"service": name},
-	},
-		[]string{"cmd", "error"},
-	)
-	prometheus.MustRegister(p.redisClientLatency)
-
 	return &p
 }
 
@@ -178,12 +153,13 @@ func newPrometheusHandle(p *Prometheus) func(context.Context) {
 		ctx.Next()
 		r := ctx.Request()
 		statusCode := strconv.Itoa(ctx.GetStatusCode())
+		code := ctx.Values().GetStringDefault("code", "0")
 
 		path := ctx.GetCurrentRoute().Path()
-		p.reqs.WithLabelValues(statusCode, "0", r.Method, path).
+		p.reqs.WithLabelValues(statusCode, code, r.Method, path).
 			Inc()
 
-		p.latency.WithLabelValues(statusCode, "0", r.Method, path).
+		p.latency.WithLabelValues(statusCode, code, r.Method, path).
 			Observe(float64(time.Since(start).Nanoseconds()) / 1000000000)
 	}
 }
@@ -213,13 +189,4 @@ func (p *Prometheus) KafkaProducerWithLabelValues(topic string, e error, starTim
 	}
 	p.kafkaProducerReqs.WithLabelValues(topic, err).Inc()
 	p.kafkaProducerLatency.WithLabelValues(topic, err).Observe(float64(time.Since(starTime).Nanoseconds()) / 1000000000)
-}
-
-func (p *Prometheus) RedisClientWithLabelValues(cmd string, e error, starTime time.Time) {
-	err := ""
-	if e != nil {
-		err = e.Error()
-	}
-	p.redisClientReqs.WithLabelValues(cmd, err).Inc()
-	p.redisClientLatency.WithLabelValues(cmd, err).Observe(float64(time.Since(starTime).Nanoseconds()) / 1000000000)
 }

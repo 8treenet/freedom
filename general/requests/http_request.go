@@ -17,7 +17,8 @@ import (
 )
 
 var (
-	httpclient *http.Client
+	httpclient      *http.Client
+	httpclientGroup Group
 )
 
 func init() {
@@ -60,13 +61,14 @@ func NewHttpRequest(rawurl string) Request {
 
 // HttpRequest .
 type HttpRequest struct {
-	resq   *http.Request
-	resp   *http.Response
-	reqe   error
-	params map[string]interface{}
-	url    string
-	bus    string
-	ctx    context.Context
+	resq            *http.Request
+	resp            *http.Response
+	reqe            error
+	params          map[string]interface{}
+	url             string
+	bus             string
+	ctx             context.Context
+	singleflightKey string
 }
 
 // Post .
@@ -129,13 +131,11 @@ func (hr *HttpRequest) SetBody(byts []byte) Request {
 
 // ToJSON .
 func (hr *HttpRequest) ToJSON(obj interface{}) (r Response) {
-	r.Error = hr.do()
+	var body []byte
+	r, body = hr.singleflightDo()
 	if r.Error != nil {
 		return
 	}
-
-	hr.httpRespone(&r)
-	body := hr.body()
 	r.Error = Unmarshal(body, obj)
 	if r.Error != nil {
 		r.Error = fmt.Errorf("%s, body:%s", r.Error.Error(), string(body))
@@ -145,37 +145,31 @@ func (hr *HttpRequest) ToJSON(obj interface{}) (r Response) {
 
 // ToString .
 func (hr *HttpRequest) ToString() (value string, r Response) {
-	r.Error = hr.do()
+	var body []byte
+	r, body = hr.singleflightDo()
 	if r.Error != nil {
 		return
 	}
-
-	hr.httpRespone(&r)
-	value = string(hr.body())
+	value = string(body)
 	return
 }
 
 // ToBytes .
 func (hr *HttpRequest) ToBytes() (value []byte, r Response) {
-	r.Error = hr.do()
-	if r.Error != nil {
-		return
-	}
-
-	hr.httpRespone(&r)
-	value = hr.body()
+	r, value = hr.singleflightDo()
 	return
 }
 
 // ToXML .
 func (hr *HttpRequest) ToXML(v interface{}) (r Response) {
-	r.Error = hr.do()
+	var body []byte
+	r, body = hr.singleflightDo()
 	if r.Error != nil {
 		return
 	}
 
 	hr.httpRespone(&r)
-	r.Error = xml.Unmarshal(hr.body(), v)
+	r.Error = xml.Unmarshal(body, v)
 	return
 }
 
@@ -211,6 +205,37 @@ func (hr *HttpRequest) URI() string {
 		result = uris[0] + "?" + uri
 	}
 	return result
+}
+
+type singleflightData struct {
+	Res  Response
+	Body []byte
+}
+
+func (hr *HttpRequest) singleflightDo() (r Response, body []byte) {
+	if hr.singleflightKey == "" {
+		r.Error = hr.do()
+		if r.Error != nil {
+			return
+		}
+		body = hr.body()
+		hr.httpRespone(&r)
+		return
+	}
+
+	data, _, _ := httpclientGroup.Do(hr.singleflightKey, func() (interface{}, error) {
+		var res Response
+		res.Error = hr.do()
+		if res.Error != nil {
+			return &singleflightData{Res: res}, nil
+		}
+
+		hr.httpRespone(&res)
+		return &singleflightData{Res: res, Body: hr.body()}, nil
+	})
+
+	sfdata := data.(*singleflightData)
+	return sfdata.Res, sfdata.Body
 }
 
 func (hr *HttpRequest) do() (e error) {
@@ -318,4 +343,9 @@ func (hr *HttpRequest) httpRespone(httpRespone *Response) {
 		}
 		httpRespone.Header[key] = values[0]
 	}
+}
+
+func (hr *HttpRequest) Singleflight(key ...interface{}) Request {
+	hr.singleflightKey = fmt.Sprint(key...)
+	return hr
 }

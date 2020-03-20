@@ -20,7 +20,8 @@ import (
 )
 
 var (
-	h2cclient *http.Client
+	h2cclient      *http.Client
+	h2cclientGroup Group
 )
 
 func init() {
@@ -67,12 +68,13 @@ func NewH2CRequest(rawurl string) Request {
 
 // H2CRequest .
 type H2CRequest struct {
-	resq   *http.Request
-	resp   *http.Response
-	reqe   error
-	params map[string]interface{}
-	url    string
-	ctx    context.Context
+	resq            *http.Request
+	resp            *http.Response
+	reqe            error
+	params          map[string]interface{}
+	url             string
+	ctx             context.Context
+	singleflightKey string
 }
 
 // Post .
@@ -135,13 +137,11 @@ func (hr *H2CRequest) SetBody(byts []byte) Request {
 
 // ToJSON .
 func (hr *H2CRequest) ToJSON(obj interface{}) (r Response) {
-	r.Error = hr.do()
+	var body []byte
+	r, body = hr.singleflightDo()
 	if r.Error != nil {
 		return
 	}
-
-	hr.httpRespone(&r)
-	body := hr.body()
 	r.Error = Unmarshal(body, obj)
 	if r.Error != nil {
 		r.Error = fmt.Errorf("%s, body:%s", r.Error.Error(), string(body))
@@ -151,37 +151,31 @@ func (hr *H2CRequest) ToJSON(obj interface{}) (r Response) {
 
 // ToString .
 func (hr *H2CRequest) ToString() (value string, r Response) {
-	r.Error = hr.do()
+	var body []byte
+	r, body = hr.singleflightDo()
 	if r.Error != nil {
 		return
 	}
-
-	hr.httpRespone(&r)
-	value = string(hr.body())
+	value = string(body)
 	return
 }
 
 // ToBytes .
 func (hr *H2CRequest) ToBytes() (value []byte, r Response) {
-	r.Error = hr.do()
-	if r.Error != nil {
-		return
-	}
-
-	hr.httpRespone(&r)
-	value = hr.body()
+	r, value = hr.singleflightDo()
 	return
 }
 
 // ToXML .
 func (hr *H2CRequest) ToXML(v interface{}) (r Response) {
-	r.Error = hr.do()
+	var body []byte
+	r, body = hr.singleflightDo()
 	if r.Error != nil {
 		return
 	}
 
 	hr.httpRespone(&r)
-	r.Error = xml.Unmarshal(hr.body(), v)
+	r.Error = xml.Unmarshal(body, v)
 	return
 }
 
@@ -217,6 +211,32 @@ func (hr *H2CRequest) URI() string {
 		result = uris[0] + "?" + uri
 	}
 	return result
+}
+
+func (hr *H2CRequest) singleflightDo() (r Response, body []byte) {
+	if hr.singleflightKey == "" {
+		r.Error = hr.do()
+		if r.Error != nil {
+			return
+		}
+		body = hr.body()
+		hr.httpRespone(&r)
+		return
+	}
+
+	data, _, _ := h2cclientGroup.Do(hr.singleflightKey, func() (interface{}, error) {
+		var res Response
+		res.Error = hr.do()
+		if res.Error != nil {
+			return &singleflightData{Res: res}, nil
+		}
+
+		hr.httpRespone(&res)
+		return &singleflightData{Res: res, Body: hr.body()}, nil
+	})
+
+	sfdata := data.(*singleflightData)
+	return sfdata.Res, sfdata.Body
 }
 
 func (hr *H2CRequest) do() (e error) {
@@ -322,4 +342,9 @@ func (hr *H2CRequest) httpRespone(httpRespone *Response) {
 		}
 		httpRespone.Header[key] = values[0]
 	}
+}
+
+func (hr *H2CRequest) Singleflight(key ...interface{}) Request {
+	hr.singleflightKey = fmt.Sprint(key...)
+	return hr
 }

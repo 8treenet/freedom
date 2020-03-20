@@ -1,7 +1,6 @@
 package general
 
 import (
-	"fmt"
 	"reflect"
 	"time"
 
@@ -104,28 +103,28 @@ func (repo *Repository) NewH2CRequest(url string, transferCtx ...bool) Request {
 	return req
 }
 
-// SingleFlight .
-func (repo *Repository) SingleFlight(key string, value, takeObject interface{}, fn func() (interface{}, error)) error {
-	takeValue := reflect.ValueOf(takeObject)
-	if takeValue.Kind() != reflect.Ptr {
-		panic("'takeObject' must be a pointer")
-	}
-	takeValue = takeValue.Elem()
-	if !takeValue.CanSet() {
-		panic("'takeObject' cannot be set")
-	}
-	v, err, _ := globalApp.singleFlight.Do(key+"-"+fmt.Sprint(value), fn)
-	if err != nil {
-		return err
-	}
+// // SingleFlight .
+// func (repo *Repository) SingleFlight(key string, value, takeObject interface{}, fn func() (interface{}, error)) error {
+// 	takeValue := reflect.ValueOf(takeObject)
+// 	if takeValue.Kind() != reflect.Ptr {
+// 		panic("'takeObject' must be a pointer")
+// 	}
+// 	takeValue = takeValue.Elem()
+// 	if !takeValue.CanSet() {
+// 		panic("'takeObject' cannot be set")
+// 	}
+// 	v, err, _ := globalApp.singleFlight.Do(key+"-"+fmt.Sprint(value), fn)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	newValue := reflect.ValueOf(v)
-	if takeValue.Type() != newValue.Type() {
-		panic("'takeObject' type error")
-	}
-	takeValue.Set(reflect.ValueOf(v))
-	return nil
-}
+// 	newValue := reflect.ValueOf(v)
+// 	if takeValue.Type() != newValue.Type() {
+// 		panic("'takeObject' type error")
+// 	}
+// 	takeValue.Set(reflect.ValueOf(v))
+// 	return nil
+// }
 
 // MadeEntity .
 func (repo *Repository) MadeEntity(entity Entity) {

@@ -123,14 +123,6 @@ func mainTemplate() string {
 				PoolTimeout:        time.Duration(cfg.PoolTimeout) * time.Second,
 			}
 			redisClient := redis.NewClient(opt)
-			redisClient.WrapProcess(func(old func(cmd redis.Cmder) error) func(cmd redis.Cmder) error {
-				return func(cmd redis.Cmder) error {
-					now := time.Now()
-					err := old(cmd)
-					freedom.Prometheus().RedisClientWithLabelValues(cmd.Name(), err, now)
-					return err
-				}
-			})
 			if e := redisClient.Ping().Err(); e != nil {
 				freedom.Logger().Fatal(e.Error())
 			}

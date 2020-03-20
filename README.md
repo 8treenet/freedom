@@ -8,8 +8,7 @@
 - 集成gorm
 - 链路追踪
 - infra容器 基于组件的基础设施
-- http2 server
-- http2 client
+- http2 server & client
 - 依赖注入&依赖倒置
 - CRUD 代码生成
 - DDD&六边形架构

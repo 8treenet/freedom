@@ -29,10 +29,11 @@ func (repo *GoodsRepository) GetGoods(goodsID int) (result objects.GoodsModel) {
 
 	correctReq := repo.NewH2CRequest(addr)
 	go func() {
-		//panic 错误方式, repo.NewH2CRequest方法使用了请求的运行时,用来设置传递给下游的trace相关数据，并发中请求运行时结束会导致panic
 		var model objects.GoodsModel
-		repo.NewH2CRequest(addr).Get().ToJSON(&model)
-
+		/*
+			panic 错误方式 : repo.NewH2CRequest方法使用了请求的运行时,用来设置传递给下游的trace相关数据，并发中请求运行时结束会导致panic
+			repo.NewH2CRequest(addr).Get().ToJSON(&model)
+		*/
 		//正确方式1, 在请求内创建
 		correctReq.Get().ToJSON(&model)
 
