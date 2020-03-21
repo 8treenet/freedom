@@ -42,5 +42,5 @@ $ freedom new-crud
 #### [repository和事务组件](https://github.com/8treenet/freedom/blob/master/example/infra-example)
 #### [消息事件和领域事件](https://github.com/8treenet/freedom/blob/master/example/event-example)
 
-#### [ddd-example](https://github.com/8treenet/freedom/blob/master/example/ddd-example)
+#### [ddd-example](https://github.com/8treenet/freedom/blob/master/example/fshop)
 ###### 一个完整的电商项目,包含CQRS、聚合、实体、领域事件、仓库、基础设施。

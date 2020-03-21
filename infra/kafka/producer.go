@@ -53,7 +53,7 @@ func (p *ProducerImpl) Booting(sb freedom.SingleBoot) {
 	for index := 0; index < len(conf.Producers); index++ {
 		c := newProducerConfig(conf.Producers[index])
 		if confCallBack != nil {
-			confCallBack(c)
+			confCallBack(c, conf.Other)
 		}
 		syncp, err := sarama.NewSyncProducer(conf.Producers[index].Servers, c)
 		if err != nil {

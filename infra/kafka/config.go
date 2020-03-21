@@ -20,6 +20,7 @@ type kafkaConf struct {
 	Producer struct {
 		Open bool `toml:"open"`
 	} `toml:"producer"`
+	Other map[string]interface{} `toml:"other"`
 }
 
 type producerConf struct {
@@ -100,9 +101,9 @@ func clientCertPool(filePath string) *x509.CertPool {
 	return clientCertPool
 }
 
-var confCallBack func(config *sarama.Config)
+var confCallBack func(config *sarama.Config, other map[string]interface{})
 
 // SettingConfig .
-func SettingConfig(confFunc func(config *sarama.Config)) {
+func SettingConfig(confFunc func(config *sarama.Config, other map[string]interface{})) {
 	confCallBack = confFunc
 }

@@ -59,7 +59,7 @@ func (c *Consumer) Listen() {
 	for index := 0; index < len(c.conf.Consumers); index++ {
 		cconf := newConsumerConfig(c.conf.Consumers[index])
 		if confCallBack != nil {
-			confCallBack(&cconf.Config)
+			confCallBack(&cconf.Config, c.conf.Other)
 		}
 		instance, err := cluster.NewConsumer(c.conf.Consumers[index].Servers, c.conf.Consumers[index].GroupID, topicNames, cconf)
 		if err != nil {

@@ -42,10 +42,6 @@ type retryHandle struct {
 
 func (c *retryHandle) StartProducer(conf *consumerConf) {
 	cf := newProducerConfig(producerConf{Servers: conf.Servers, Name: ""})
-	if confCallBack != nil {
-		confCallBack(cf)
-	}
-
 	syncp, err := sarama.NewSyncProducer(conf.Servers, cf)
 	if err != nil {
 		panic(err)
@@ -63,9 +59,6 @@ func (c *retryHandle) StartConsumer(conf *consumerConf, topicNames []string) {
 	}
 
 	clusterConfig := newConsumerConfig(*conf)
-	if confCallBack != nil {
-		confCallBack(&clusterConfig.Config)
-	}
 	clusterConfig.Consumer.Offsets.Initial = sarama.OffsetOldest
 	clusterConfig.Consumer.Offsets.AutoCommit.Enable = false
 

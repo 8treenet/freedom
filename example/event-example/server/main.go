@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/8treenet/freedom"
@@ -14,9 +15,11 @@ import (
 // mac 启动kafka: zookeeper-server-start /usr/local/etc/kafka/zookeeper.properties & kafka-server-start /usr/local/etc/kafka/server.properties
 func main() {
 	//如果使用默认kafka配置，无需设置
-	kafka.SettingConfig(func(conf *sarama.Config) {
+	kafka.SettingConfig(func(conf *sarama.Config, other map[string]interface{}) {
 		conf.Producer.Retry.Max = 3
 		conf.Producer.Retry.Backoff = 5 * time.Second
+		conf.Consumer.Offsets.Initial = sarama.OffsetOldest
+		fmt.Println(other)
 	})
 	app := freedom.NewApplication()
 	installMiddleware(app)

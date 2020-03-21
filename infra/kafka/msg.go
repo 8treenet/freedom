@@ -47,7 +47,7 @@ func (msg *Msg) Publish() {
 		now := time.Now()
 		syncProducer := producer.getSaramaProducer(msg.producerName)
 		if syncProducer == nil {
-			errMsg := fmt.Sprintf("'%s' No 'producer' found, see 'infra/kafka.toml' file configuration under multiple instances", msg.topic)
+			errMsg := fmt.Sprintf("This '%s', no producer found, please check 'infra/kafka.toml'.", msg.topic)
 			freedom.Logger().Error(errMsg)
 			freedom.Prometheus().KafkaProducerWithLabelValues(msg.topic, errors.New(errMsg), now)
 			return
