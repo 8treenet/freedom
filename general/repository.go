@@ -30,14 +30,19 @@ func (repo *Repository) DB() (db *gorm.DB) {
 	return globalApp.Database.db
 }
 
-// NewDescOrder .
-func (repo *Repository) NewDescOrder(field string, fields ...string) *Reorder {
-	return repo.newReorder("desc", field, fields...)
+// NewORMDescBuilder .
+func (repo *Repository) NewORMDescBuilder(column string, columns ...string) *Reorder {
+	return repo.newReorder("desc", column, columns...)
 }
 
-// NewAscOrder .
-func (repo *Repository) NewAscOrder(field string, fields ...string) *Reorder {
-	return repo.newReorder("asc", field, fields...)
+// NewORMAscBuilder .
+func (repo *Repository) NewORMAscBuilder(column string, columns ...string) *Reorder {
+	return repo.newReorder("asc", column, columns...)
+}
+
+// NewORMBuilder .
+func (repo *Repository) NewORMBuilder() *Builder {
+	return &Builder{}
 }
 
 // NewDescOrder .
@@ -128,7 +133,7 @@ func (repo *Repository) NewH2CRequest(url string, transferCtx ...bool) Request {
 
 // MadeEntity .
 func (repo *Repository) MadeEntity(entity Entity) {
-	newEntity(repo.Runtime, entity)
+	bindEntity(repo.Runtime, entity)
 	return
 }
 
@@ -143,7 +148,7 @@ func (repo *Repository) MadeEntitys(entitys interface{}) {
 		if _, ok := iface.(Entity); !ok {
 			panic("This is not an entity")
 		}
-		newEntity(repo.Runtime, iface)
+		bindEntity(repo.Runtime, iface)
 	}
 	return
 }

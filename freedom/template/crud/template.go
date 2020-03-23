@@ -126,8 +126,8 @@ func FunTemplate() string {
 			e = db.Last(result).Error
 			return
 		}
-	
-		e = db.Limit(1).Order(builders[0].Order()).Find(result).Error
+
+		e = builders[0].Execute(db.Limit(1), result)
 		return
 	}
 	
@@ -150,7 +150,7 @@ func FunTemplate() string {
 			return
 		}
 	
-		e = db.Limit(1).Order(builders[0].Order()).Find(result).Error
+		e = builders[0].Execute(db.Limit(1), result)
 		return
 	}
 	
@@ -171,7 +171,7 @@ func FunTemplate() string {
 			return
 		}
 	
-		e = db.Limit(1).Order(builders[0].Order()).Find(&result).Error
+		e = builders[0].Execute(db.Limit(1), result)
 		return
 	}
 	

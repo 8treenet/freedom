@@ -21,22 +21,24 @@ type DomainEventInfra interface {
 	DomainEvent(producer, topic string, data []byte, runtime Runtime, header ...map[string]string)
 }
 
-func newEntity(run Runtime, entityObject interface{}) *entity {
+func bindEntity(run Runtime, entityObject interface{}) {
+	entityObjectValue := reflect.ValueOf(entityObject)
+	if entityObjectValue.Kind() == reflect.Ptr {
+		entityObjectValue = entityObjectValue.Elem()
+	}
+	entityField := entityObjectValue.FieldByName("Entity")
+	if !entityField.IsNil() {
+		return
+	}
+
 	e := new(entity)
 	e.runtime = run
 	eValue := reflect.ValueOf(e)
-	ok := false
-	allFields(entityObject, func(value reflect.Value) {
-		if value.Kind() == reflect.Interface && eValue.Type().Implements(value.Type()) {
-			value.Set(eValue)
-			ok = true
-		}
-		return
-	})
-	if !ok {
-		panic("Entities must be inherited from 'freedom.Entity'")
+	if entityField.Kind() != reflect.Interface || !eValue.Type().Implements(entityField.Type()) {
+		panic("This is not a valid entity")
 	}
-	return e
+	entityField.Set(eValue)
+	return
 }
 
 type entity struct {

@@ -489,6 +489,15 @@ func allFields(dest interface{}, call func(reflect.Value)) {
 	}
 }
 
+// allFieldsByValue
+func allFieldsByValue(val reflect.Value, call func(reflect.Value)) {
+	destVal := indirect(val)
+	for index := 0; index < destVal.NumField(); index++ {
+		val := destVal.Field(index)
+		call(val)
+	}
+}
+
 func parsePoolFunc(f interface{}) (outType reflect.Type, e error) {
 	ftype := reflect.TypeOf(f)
 	if ftype.Kind() != reflect.Func {

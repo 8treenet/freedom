@@ -43,8 +43,9 @@ func (repo *Goods) Finds(ids []int) (entitys []*entity.Goods, e error) {
 }
 
 func (repo *Goods) FindsByPage(page, pageSize int, tag string) (entitys []*entity.Goods, e error) {
-	build := repo.NewDescOrder("id").NewPager(page, pageSize)
+	build := repo.NewORMDescBuilder("id").NewPageBuilder(page, pageSize)
 	e = findGoodss(repo, object.Goods{Tag: tag}, &entitys, build)
+	// 分页器读取总数 fmt.Println(build.TotalPage())
 	return
 }
 

@@ -114,6 +114,6 @@ func (u *UnitTestImpl) NewDomainEventInfra(call ...func(producer, topic string, 
 }
 
 func (u *UnitTestImpl) MadeEntity(entity interface{}) {
-	newEntity(u.rt, entity)
+	bindEntity(u.rt, entity)
 	return
 }
