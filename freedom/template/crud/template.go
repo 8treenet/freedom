@@ -65,14 +65,14 @@ func FunTemplatePackage() string {
 			for i := 0; i < entitysValue.Len(); i++ {
 				iface := entitysValue.Index(i).Interface()
 				if entityObj, ok := iface.(freedom.Entity); ok {
-					repo.MadeEntity(entityObj)
+					repo.InjectBaseEntity(entityObj)
 				}
 			}
 			return
 		}
 	
 		if entityObj, ok := obj.(freedom.Entity); ok {
-			repo.MadeEntity(entityObj)
+			repo.InjectBaseEntity(entityObj)
 			return
 		}
 	}

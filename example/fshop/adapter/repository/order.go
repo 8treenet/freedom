@@ -26,7 +26,7 @@ type Order struct {
 func (repo *Order) New() (orderEntity *entity.Order, e error) {
 	orderNo := fmt.Sprint(time.Now().Unix())
 	orderEntity = &entity.Order{Order: object.Order{OrderNo: orderNo, Status: "NON_PAYMENT", Created: time.Now(), Updated: time.Now()}}
-	repo.MadeEntity(orderEntity)
+	repo.InjectBaseEntity(orderEntity)
 	return
 }
 

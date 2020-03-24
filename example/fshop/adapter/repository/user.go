@@ -50,6 +50,6 @@ func (repo *User) New(userDto dto.RegisterUserReq, money int) (entityUser *entit
 		return
 	}
 	entityUser = &entity.User{User: user}
-	repo.MadeEntity(entityUser)
+	repo.InjectBaseEntity(entityUser)
 	return
 }

@@ -56,7 +56,7 @@ func (repo *Cart) New(userId, goodsId, num int) (cartEntity *entity.Cart, e erro
 		return
 	}
 	cartEntity = &entity.Cart{Cart: cart}
-	repo.MadeEntity(cartEntity)
+	repo.InjectBaseEntity(cartEntity)
 	return
 }
 

@@ -131,14 +131,14 @@ func (repo *Repository) NewH2CRequest(url string, transferCtx ...bool) Request {
 // 	return nil
 // }
 
-// MadeEntity .
-func (repo *Repository) MadeEntity(entity Entity) {
-	bindEntity(repo.Runtime, entity)
+// InjectBaseEntity .
+func (repo *Repository) InjectBaseEntity(entity Entity) {
+	injectBaseEntity(repo.Runtime, entity)
 	return
 }
 
-// MadeEntity .
-func (repo *Repository) MadeEntitys(entitys interface{}) {
+// InjectBaseEntity .
+func (repo *Repository) InjectBaseEntitys(entitys interface{}) {
 	entitysValue := reflect.ValueOf(entitys)
 	if entitysValue.Kind() != reflect.Slice {
 		panic("It's not a slice")
@@ -148,7 +148,7 @@ func (repo *Repository) MadeEntitys(entitys interface{}) {
 		if _, ok := iface.(Entity); !ok {
 			panic("This is not an entity")
 		}
-		bindEntity(repo.Runtime, iface)
+		injectBaseEntity(repo.Runtime, iface)
 	}
 	return
 }

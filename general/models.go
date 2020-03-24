@@ -10,8 +10,8 @@ import (
 // GORMRepository .
 type GORMRepository interface {
 	DB() *gorm.DB
-	MadeEntity(entity Entity)
-	MadeEntitys(entitys interface{})
+	InjectBaseEntity(entity Entity)
+	InjectBaseEntitys(entitys interface{})
 	GetRuntime() Runtime
 }
 

@@ -190,7 +190,7 @@ type UnitTest interface {
 	//设置请求
 	SetRequest(request *http.Request)
 	//创建实体
-	MadeEntity(entity interface{})
+	InjectBaseEntity(entity interface{})
 	//安装领域事件
 	InstallDomainEventInfra(eventInfra DomainEventInfra)
 	//创建一个领域事件的回调函数

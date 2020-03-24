@@ -10,7 +10,7 @@ import (
 
 func makeEntity(rep freedom.GORMRepository, obj interface{}) {
 	if entityObj, ok := obj.(freedom.Entity); ok {
-		rep.MadeEntity(entityObj)
+		rep.InjectBaseEntity(entityObj)
 		return
 	}
 }
@@ -26,7 +26,7 @@ func makeEntitys(rep freedom.GORMRepository, objs interface{}) {
 	for i := 0; i < entitysValue.Len(); i++ {
 		iface := entitysValue.Index(i).Interface()
 		if entityObj, ok := iface.(freedom.Entity); ok {
-			rep.MadeEntity(entityObj)
+			rep.InjectBaseEntity(entityObj)
 		}
 	}
 }

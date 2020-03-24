@@ -21,7 +21,7 @@ type DomainEventInfra interface {
 	DomainEvent(producer, topic string, data []byte, runtime Runtime, header ...map[string]string)
 }
 
-func bindEntity(run Runtime, entityObject interface{}) {
+func injectBaseEntity(run Runtime, entityObject interface{}) {
 	entityObjectValue := reflect.ValueOf(entityObject)
 	if entityObjectValue.Kind() == reflect.Ptr {
 		entityObjectValue = entityObjectValue.Elem()

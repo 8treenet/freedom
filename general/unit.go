@@ -18,7 +18,7 @@ type UnitTest interface {
 	InstallRedis(f func() (client redis.Cmdable))
 	Run()
 	SetRequest(request *http.Request)
-	MadeEntity(entity interface{})
+	InjectBaseEntity(entity interface{})
 	InstallDomainEventInfra(eventInfra DomainEventInfra)
 	NewDomainEventInfra(call ...func(producer, topic string, data []byte, header map[string]string)) DomainEventInfra
 }
@@ -113,7 +113,7 @@ func (u *UnitTestImpl) NewDomainEventInfra(call ...func(producer, topic string, 
 	return result
 }
 
-func (u *UnitTestImpl) MadeEntity(entity interface{}) {
-	bindEntity(u.rt, entity)
+func (u *UnitTestImpl) InjectBaseEntity(entity interface{}) {
+	injectBaseEntity(u.rt, entity)
 	return
 }

@@ -2,11 +2,12 @@
 package repository
 
 import (
+	"reflect"
+	"time"
+
 	"github.com/8treenet/freedom"
 	"github.com/8treenet/freedom/example/fshop/application/object"
 	"github.com/jinzhu/gorm"
-	"reflect"
-	"time"
 )
 
 func makeEntity(repo freedom.GORMRepository, obj interface{}) {
@@ -18,14 +19,14 @@ func makeEntity(repo freedom.GORMRepository, obj interface{}) {
 		for i := 0; i < entitysValue.Len(); i++ {
 			iface := entitysValue.Index(i).Interface()
 			if entityObj, ok := iface.(freedom.Entity); ok {
-				repo.MadeEntity(entityObj)
+				repo.InjectBaseEntity(entityObj)
 			}
 		}
 		return
 	}
 
 	if entityObj, ok := obj.(freedom.Entity); ok {
-		repo.MadeEntity(entityObj)
+		repo.InjectBaseEntity(entityObj)
 		return
 	}
 }
