@@ -11,7 +11,7 @@ import (
 func TestGetItems(t *testing.T) {
 	str, err := requests.NewH2CRequest("http://127.0.0.1:8000/goods/items").Get().SetParam("page", 2).SetParam("pageSize", 2).ToString()
 	t.Log(str, err)
-	str2, err2 := requests.NewH2CRequest("http://127.0.0.1:8000/goods/items").Get().SetParam("tag", "HOT").ToString()
+	str2, err2 := requests.NewH2CRequest("http://127.0.0.1:8000/goods/items").Get().SetParam("tag", "HOT").SetParam("page", 1).SetParam("pageSize", 2).ToString()
 	t.Log(str2, err2)
 }
 

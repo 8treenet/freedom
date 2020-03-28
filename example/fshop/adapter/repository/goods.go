@@ -30,6 +30,9 @@ func (repo *Goods) Find(id int) (goodsEntity *entity.Goods, e error) {
 	if e != nil {
 		return
 	}
+
+	//注入基础Entity 包含运行时和领域事件的producer
+	repo.InjectBaseEntity(goodsEntity)
 	return
 }
 
@@ -39,13 +42,23 @@ func (repo *Goods) Finds(ids []int) (entitys []*entity.Goods, e error) {
 		primarys = append(primarys, ids[i])
 	}
 	e = findGoodssByPrimarys(repo, &entitys, primarys...)
+	if e != nil {
+		return
+	}
+
+	//注入基础Entity 包含运行时和领域事件的producer
+	repo.InjectBaseEntitys(entitys)
 	return
 }
 
 func (repo *Goods) FindsByPage(page, pageSize int, tag string) (entitys []*entity.Goods, e error) {
 	build := repo.NewORMDescBuilder("id").NewPageBuilder(page, pageSize)
 	e = findGoodss(repo, object.Goods{Tag: tag}, &entitys, build)
-	// 分页器读取总数 fmt.Println(build.TotalPage())
+	if e != nil {
+		return
+	}
+	//注入基础Entity 包含运行时和领域事件的producer
+	repo.InjectBaseEntitys(entitys)
 	return
 }
 

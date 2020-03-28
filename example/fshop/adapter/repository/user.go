@@ -28,12 +28,23 @@ type User struct {
 func (repo *User) Find(id int) (userEntity *entity.User, e error) {
 	userEntity = &entity.User{}
 	e = findUserByPrimary(repo, userEntity, id)
+	if e != nil {
+		return
+	}
+
+	//注入基础Entity 包含运行时和领域事件的producer
+	repo.InjectBaseEntity(userEntity)
 	return
 }
 
 func (repo *User) FindByName(userName string) (userEntity *entity.User, e error) {
 	userEntity = &entity.User{}
 	e = findUser(repo, object.User{Name: userName}, userEntity)
+	if e != nil {
+		return
+	}
+
+	repo.InjectBaseEntity(userEntity)
 	return
 }
 

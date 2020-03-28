@@ -2,34 +2,12 @@
 package repository
 
 import (
-	"reflect"
 	"time"
 
 	"github.com/8treenet/freedom"
 	"github.com/8treenet/freedom/example/fshop/application/object"
 	"github.com/jinzhu/gorm"
 )
-
-func makeEntity(repo freedom.GORMRepository, obj interface{}) {
-	entitysValue := reflect.ValueOf(obj)
-	if entitysValue.Kind() == reflect.Ptr {
-		entitysValue = entitysValue.Elem()
-	}
-	if entitysValue.Kind() == reflect.Slice {
-		for i := 0; i < entitysValue.Len(); i++ {
-			iface := entitysValue.Index(i).Interface()
-			if entityObj, ok := iface.(freedom.Entity); ok {
-				repo.InjectBaseEntity(entityObj)
-			}
-		}
-		return
-	}
-
-	if entityObj, ok := obj.(freedom.Entity); ok {
-		repo.InjectBaseEntity(entityObj)
-		return
-	}
-}
 
 func errorLog(repo freedom.GORMRepository, model, method string, e error, expression ...interface{}) {
 	if e == nil || e == gorm.ErrRecordNotFound {
@@ -42,9 +20,6 @@ func errorLog(repo freedom.GORMRepository, model, method string, e error, expres
 func findOrderDetailByPrimary(repo freedom.GORMRepository, result interface{}, primary interface{}) (e error) {
 	now := time.Now()
 	e = repo.DB().Find(result, primary).Error
-	if e == nil {
-		makeEntity(repo, result)
-	}
 	freedom.Prometheus().OrmWithLabelValues("OrderDetail", "findOrderDetailByPrimary", e, now)
 	errorLog(repo, "OrderDetail", "findOrderDetailByPrimary", e, primary)
 	return
@@ -54,9 +29,6 @@ func findOrderDetailByPrimary(repo freedom.GORMRepository, result interface{}, p
 func findOrderDetailsByPrimarys(repo freedom.GORMRepository, results interface{}, primarys ...interface{}) (e error) {
 	now := time.Now()
 	e = repo.DB().Find(results, primarys).Error
-	if e == nil {
-		makeEntity(repo, results)
-	}
 	freedom.Prometheus().OrmWithLabelValues("OrderDetail", "findOrderDetailsByPrimarys", e, now)
 	errorLog(repo, "OrderDetail", "findOrderDetailsByPrimarys", e, primarys)
 	return
@@ -66,9 +38,6 @@ func findOrderDetailsByPrimarys(repo freedom.GORMRepository, results interface{}
 func findOrderDetail(repo freedom.GORMRepository, query object.OrderDetail, result interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		if e == nil {
-			makeEntity(repo, result)
-		}
 		freedom.Prometheus().OrmWithLabelValues("OrderDetail", "findOrderDetail", e, now)
 		errorLog(repo, "OrderDetail", "findOrderDetail", e, query)
 	}()
@@ -78,7 +47,7 @@ func findOrderDetail(repo freedom.GORMRepository, query object.OrderDetail, resu
 		return
 	}
 
-	e = db.Limit(1).Order(builders[0].Order()).Find(result).Error
+	e = builders[0].Execute(db.Limit(1), result)
 	return
 }
 
@@ -86,9 +55,6 @@ func findOrderDetail(repo freedom.GORMRepository, query object.OrderDetail, resu
 func findOrderDetailByWhere(repo freedom.GORMRepository, query string, args []interface{}, result interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		if e == nil {
-			makeEntity(repo, result)
-		}
 		freedom.Prometheus().OrmWithLabelValues("OrderDetail", "findOrderDetailByWhere", e, now)
 		errorLog(repo, "OrderDetail", "findOrderDetailByWhere", e, query, args)
 	}()
@@ -101,7 +67,7 @@ func findOrderDetailByWhere(repo freedom.GORMRepository, query string, args []in
 		return
 	}
 
-	e = db.Limit(1).Order(builders[0].Order()).Find(result).Error
+	e = builders[0].Execute(db.Limit(1), result)
 	return
 }
 
@@ -109,9 +75,6 @@ func findOrderDetailByWhere(repo freedom.GORMRepository, query string, args []in
 func findOrderDetailByMap(repo freedom.GORMRepository, query map[string]interface{}, result interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		if e == nil {
-			makeEntity(repo, result)
-		}
 		freedom.Prometheus().OrmWithLabelValues("OrderDetail", "findOrderDetailByMap", e, now)
 		errorLog(repo, "OrderDetail", "findOrderDetailByMap", e, query)
 	}()
@@ -122,7 +85,7 @@ func findOrderDetailByMap(repo freedom.GORMRepository, query map[string]interfac
 		return
 	}
 
-	e = db.Limit(1).Order(builders[0].Order()).Find(&result).Error
+	e = builders[0].Execute(db.Limit(1), result)
 	return
 }
 
@@ -130,9 +93,6 @@ func findOrderDetailByMap(repo freedom.GORMRepository, query map[string]interfac
 func findOrderDetails(repo freedom.GORMRepository, query object.OrderDetail, results interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		if e == nil {
-			makeEntity(repo, results)
-		}
 		freedom.Prometheus().OrmWithLabelValues("OrderDetail", "findOrderDetails", e, now)
 		errorLog(repo, "OrderDetail", "findOrderDetails", e, query)
 	}()
@@ -150,9 +110,6 @@ func findOrderDetails(repo freedom.GORMRepository, query object.OrderDetail, res
 func findOrderDetailsByWhere(repo freedom.GORMRepository, query string, args []interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		if e == nil {
-			makeEntity(repo, results)
-		}
 		freedom.Prometheus().OrmWithLabelValues("OrderDetail", "findOrderDetailsByWhere", e, now)
 		errorLog(repo, "OrderDetail", "findOrderDetailsByWhere", e, query, args)
 	}()
@@ -173,9 +130,6 @@ func findOrderDetailsByWhere(repo freedom.GORMRepository, query string, args []i
 func findOrderDetailsByMap(repo freedom.GORMRepository, query map[string]interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		if e == nil {
-			makeEntity(repo, results)
-		}
 		freedom.Prometheus().OrmWithLabelValues("OrderDetail", "findOrderDetailsByMap", e, now)
 		errorLog(repo, "OrderDetail", "findOrderDetailsByMap", e, query)
 	}()
@@ -216,9 +170,6 @@ func saveOrderDetail(repo freedom.GORMRepository, object *object.OrderDetail) (a
 func findUserByPrimary(repo freedom.GORMRepository, result interface{}, primary interface{}) (e error) {
 	now := time.Now()
 	e = repo.DB().Find(result, primary).Error
-	if e == nil {
-		makeEntity(repo, result)
-	}
 	freedom.Prometheus().OrmWithLabelValues("User", "findUserByPrimary", e, now)
 	errorLog(repo, "User", "findUserByPrimary", e, primary)
 	return
@@ -228,9 +179,6 @@ func findUserByPrimary(repo freedom.GORMRepository, result interface{}, primary 
 func findUsersByPrimarys(repo freedom.GORMRepository, results interface{}, primarys ...interface{}) (e error) {
 	now := time.Now()
 	e = repo.DB().Find(results, primarys).Error
-	if e == nil {
-		makeEntity(repo, results)
-	}
 	freedom.Prometheus().OrmWithLabelValues("User", "findUsersByPrimarys", e, now)
 	errorLog(repo, "User", "findUsersByPrimarys", e, primarys)
 	return
@@ -240,9 +188,6 @@ func findUsersByPrimarys(repo freedom.GORMRepository, results interface{}, prima
 func findUser(repo freedom.GORMRepository, query object.User, result interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		if e == nil {
-			makeEntity(repo, result)
-		}
 		freedom.Prometheus().OrmWithLabelValues("User", "findUser", e, now)
 		errorLog(repo, "User", "findUser", e, query)
 	}()
@@ -252,7 +197,7 @@ func findUser(repo freedom.GORMRepository, query object.User, result interface{}
 		return
 	}
 
-	e = db.Limit(1).Order(builders[0].Order()).Find(result).Error
+	e = builders[0].Execute(db.Limit(1), result)
 	return
 }
 
@@ -260,9 +205,6 @@ func findUser(repo freedom.GORMRepository, query object.User, result interface{}
 func findUserByWhere(repo freedom.GORMRepository, query string, args []interface{}, result interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		if e == nil {
-			makeEntity(repo, result)
-		}
 		freedom.Prometheus().OrmWithLabelValues("User", "findUserByWhere", e, now)
 		errorLog(repo, "User", "findUserByWhere", e, query, args)
 	}()
@@ -275,7 +217,7 @@ func findUserByWhere(repo freedom.GORMRepository, query string, args []interface
 		return
 	}
 
-	e = db.Limit(1).Order(builders[0].Order()).Find(result).Error
+	e = builders[0].Execute(db.Limit(1), result)
 	return
 }
 
@@ -283,9 +225,6 @@ func findUserByWhere(repo freedom.GORMRepository, query string, args []interface
 func findUserByMap(repo freedom.GORMRepository, query map[string]interface{}, result interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		if e == nil {
-			makeEntity(repo, result)
-		}
 		freedom.Prometheus().OrmWithLabelValues("User", "findUserByMap", e, now)
 		errorLog(repo, "User", "findUserByMap", e, query)
 	}()
@@ -296,7 +235,7 @@ func findUserByMap(repo freedom.GORMRepository, query map[string]interface{}, re
 		return
 	}
 
-	e = db.Limit(1).Order(builders[0].Order()).Find(&result).Error
+	e = builders[0].Execute(db.Limit(1), result)
 	return
 }
 
@@ -304,9 +243,6 @@ func findUserByMap(repo freedom.GORMRepository, query map[string]interface{}, re
 func findUsers(repo freedom.GORMRepository, query object.User, results interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		if e == nil {
-			makeEntity(repo, results)
-		}
 		freedom.Prometheus().OrmWithLabelValues("User", "findUsers", e, now)
 		errorLog(repo, "User", "findUsers", e, query)
 	}()
@@ -324,9 +260,6 @@ func findUsers(repo freedom.GORMRepository, query object.User, results interface
 func findUsersByWhere(repo freedom.GORMRepository, query string, args []interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		if e == nil {
-			makeEntity(repo, results)
-		}
 		freedom.Prometheus().OrmWithLabelValues("User", "findUsersByWhere", e, now)
 		errorLog(repo, "User", "findUsersByWhere", e, query, args)
 	}()
@@ -347,9 +280,6 @@ func findUsersByWhere(repo freedom.GORMRepository, query string, args []interfac
 func findUsersByMap(repo freedom.GORMRepository, query map[string]interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		if e == nil {
-			makeEntity(repo, results)
-		}
 		freedom.Prometheus().OrmWithLabelValues("User", "findUsersByMap", e, now)
 		errorLog(repo, "User", "findUsersByMap", e, query)
 	}()
@@ -390,9 +320,6 @@ func saveUser(repo freedom.GORMRepository, object *object.User) (affected int64,
 func findAdminByPrimary(repo freedom.GORMRepository, result interface{}, primary interface{}) (e error) {
 	now := time.Now()
 	e = repo.DB().Find(result, primary).Error
-	if e == nil {
-		makeEntity(repo, result)
-	}
 	freedom.Prometheus().OrmWithLabelValues("Admin", "findAdminByPrimary", e, now)
 	errorLog(repo, "Admin", "findAdminByPrimary", e, primary)
 	return
@@ -402,9 +329,6 @@ func findAdminByPrimary(repo freedom.GORMRepository, result interface{}, primary
 func findAdminsByPrimarys(repo freedom.GORMRepository, results interface{}, primarys ...interface{}) (e error) {
 	now := time.Now()
 	e = repo.DB().Find(results, primarys).Error
-	if e == nil {
-		makeEntity(repo, results)
-	}
 	freedom.Prometheus().OrmWithLabelValues("Admin", "findAdminsByPrimarys", e, now)
 	errorLog(repo, "Admin", "findAdminsByPrimarys", e, primarys)
 	return
@@ -414,9 +338,6 @@ func findAdminsByPrimarys(repo freedom.GORMRepository, results interface{}, prim
 func findAdmin(repo freedom.GORMRepository, query object.Admin, result interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		if e == nil {
-			makeEntity(repo, result)
-		}
 		freedom.Prometheus().OrmWithLabelValues("Admin", "findAdmin", e, now)
 		errorLog(repo, "Admin", "findAdmin", e, query)
 	}()
@@ -426,7 +347,7 @@ func findAdmin(repo freedom.GORMRepository, query object.Admin, result interface
 		return
 	}
 
-	e = db.Limit(1).Order(builders[0].Order()).Find(result).Error
+	e = builders[0].Execute(db.Limit(1), result)
 	return
 }
 
@@ -434,9 +355,6 @@ func findAdmin(repo freedom.GORMRepository, query object.Admin, result interface
 func findAdminByWhere(repo freedom.GORMRepository, query string, args []interface{}, result interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		if e == nil {
-			makeEntity(repo, result)
-		}
 		freedom.Prometheus().OrmWithLabelValues("Admin", "findAdminByWhere", e, now)
 		errorLog(repo, "Admin", "findAdminByWhere", e, query, args)
 	}()
@@ -449,7 +367,7 @@ func findAdminByWhere(repo freedom.GORMRepository, query string, args []interfac
 		return
 	}
 
-	e = db.Limit(1).Order(builders[0].Order()).Find(result).Error
+	e = builders[0].Execute(db.Limit(1), result)
 	return
 }
 
@@ -457,9 +375,6 @@ func findAdminByWhere(repo freedom.GORMRepository, query string, args []interfac
 func findAdminByMap(repo freedom.GORMRepository, query map[string]interface{}, result interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		if e == nil {
-			makeEntity(repo, result)
-		}
 		freedom.Prometheus().OrmWithLabelValues("Admin", "findAdminByMap", e, now)
 		errorLog(repo, "Admin", "findAdminByMap", e, query)
 	}()
@@ -470,7 +385,7 @@ func findAdminByMap(repo freedom.GORMRepository, query map[string]interface{}, r
 		return
 	}
 
-	e = db.Limit(1).Order(builders[0].Order()).Find(&result).Error
+	e = builders[0].Execute(db.Limit(1), result)
 	return
 }
 
@@ -478,9 +393,6 @@ func findAdminByMap(repo freedom.GORMRepository, query map[string]interface{}, r
 func findAdmins(repo freedom.GORMRepository, query object.Admin, results interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		if e == nil {
-			makeEntity(repo, results)
-		}
 		freedom.Prometheus().OrmWithLabelValues("Admin", "findAdmins", e, now)
 		errorLog(repo, "Admin", "findAdmins", e, query)
 	}()
@@ -498,9 +410,6 @@ func findAdmins(repo freedom.GORMRepository, query object.Admin, results interfa
 func findAdminsByWhere(repo freedom.GORMRepository, query string, args []interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		if e == nil {
-			makeEntity(repo, results)
-		}
 		freedom.Prometheus().OrmWithLabelValues("Admin", "findAdminsByWhere", e, now)
 		errorLog(repo, "Admin", "findAdminsByWhere", e, query, args)
 	}()
@@ -521,9 +430,6 @@ func findAdminsByWhere(repo freedom.GORMRepository, query string, args []interfa
 func findAdminsByMap(repo freedom.GORMRepository, query map[string]interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		if e == nil {
-			makeEntity(repo, results)
-		}
 		freedom.Prometheus().OrmWithLabelValues("Admin", "findAdminsByMap", e, now)
 		errorLog(repo, "Admin", "findAdminsByMap", e, query)
 	}()
@@ -564,9 +470,6 @@ func saveAdmin(repo freedom.GORMRepository, object *object.Admin) (affected int6
 func findCartByPrimary(repo freedom.GORMRepository, result interface{}, primary interface{}) (e error) {
 	now := time.Now()
 	e = repo.DB().Find(result, primary).Error
-	if e == nil {
-		makeEntity(repo, result)
-	}
 	freedom.Prometheus().OrmWithLabelValues("Cart", "findCartByPrimary", e, now)
 	errorLog(repo, "Cart", "findCartByPrimary", e, primary)
 	return
@@ -576,9 +479,6 @@ func findCartByPrimary(repo freedom.GORMRepository, result interface{}, primary 
 func findCartsByPrimarys(repo freedom.GORMRepository, results interface{}, primarys ...interface{}) (e error) {
 	now := time.Now()
 	e = repo.DB().Find(results, primarys).Error
-	if e == nil {
-		makeEntity(repo, results)
-	}
 	freedom.Prometheus().OrmWithLabelValues("Cart", "findCartsByPrimarys", e, now)
 	errorLog(repo, "Cart", "findCartsByPrimarys", e, primarys)
 	return
@@ -588,9 +488,6 @@ func findCartsByPrimarys(repo freedom.GORMRepository, results interface{}, prima
 func findCart(repo freedom.GORMRepository, query object.Cart, result interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		if e == nil {
-			makeEntity(repo, result)
-		}
 		freedom.Prometheus().OrmWithLabelValues("Cart", "findCart", e, now)
 		errorLog(repo, "Cart", "findCart", e, query)
 	}()
@@ -600,7 +497,7 @@ func findCart(repo freedom.GORMRepository, query object.Cart, result interface{}
 		return
 	}
 
-	e = db.Limit(1).Order(builders[0].Order()).Find(result).Error
+	e = builders[0].Execute(db.Limit(1), result)
 	return
 }
 
@@ -608,9 +505,6 @@ func findCart(repo freedom.GORMRepository, query object.Cart, result interface{}
 func findCartByWhere(repo freedom.GORMRepository, query string, args []interface{}, result interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		if e == nil {
-			makeEntity(repo, result)
-		}
 		freedom.Prometheus().OrmWithLabelValues("Cart", "findCartByWhere", e, now)
 		errorLog(repo, "Cart", "findCartByWhere", e, query, args)
 	}()
@@ -623,7 +517,7 @@ func findCartByWhere(repo freedom.GORMRepository, query string, args []interface
 		return
 	}
 
-	e = db.Limit(1).Order(builders[0].Order()).Find(result).Error
+	e = builders[0].Execute(db.Limit(1), result)
 	return
 }
 
@@ -631,9 +525,6 @@ func findCartByWhere(repo freedom.GORMRepository, query string, args []interface
 func findCartByMap(repo freedom.GORMRepository, query map[string]interface{}, result interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		if e == nil {
-			makeEntity(repo, result)
-		}
 		freedom.Prometheus().OrmWithLabelValues("Cart", "findCartByMap", e, now)
 		errorLog(repo, "Cart", "findCartByMap", e, query)
 	}()
@@ -644,7 +535,7 @@ func findCartByMap(repo freedom.GORMRepository, query map[string]interface{}, re
 		return
 	}
 
-	e = db.Limit(1).Order(builders[0].Order()).Find(&result).Error
+	e = builders[0].Execute(db.Limit(1), result)
 	return
 }
 
@@ -652,9 +543,6 @@ func findCartByMap(repo freedom.GORMRepository, query map[string]interface{}, re
 func findCarts(repo freedom.GORMRepository, query object.Cart, results interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		if e == nil {
-			makeEntity(repo, results)
-		}
 		freedom.Prometheus().OrmWithLabelValues("Cart", "findCarts", e, now)
 		errorLog(repo, "Cart", "findCarts", e, query)
 	}()
@@ -672,9 +560,6 @@ func findCarts(repo freedom.GORMRepository, query object.Cart, results interface
 func findCartsByWhere(repo freedom.GORMRepository, query string, args []interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		if e == nil {
-			makeEntity(repo, results)
-		}
 		freedom.Prometheus().OrmWithLabelValues("Cart", "findCartsByWhere", e, now)
 		errorLog(repo, "Cart", "findCartsByWhere", e, query, args)
 	}()
@@ -695,9 +580,6 @@ func findCartsByWhere(repo freedom.GORMRepository, query string, args []interfac
 func findCartsByMap(repo freedom.GORMRepository, query map[string]interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		if e == nil {
-			makeEntity(repo, results)
-		}
 		freedom.Prometheus().OrmWithLabelValues("Cart", "findCartsByMap", e, now)
 		errorLog(repo, "Cart", "findCartsByMap", e, query)
 	}()
@@ -738,9 +620,6 @@ func saveCart(repo freedom.GORMRepository, object *object.Cart) (affected int64,
 func findDeliveryByPrimary(repo freedom.GORMRepository, result interface{}, primary interface{}) (e error) {
 	now := time.Now()
 	e = repo.DB().Find(result, primary).Error
-	if e == nil {
-		makeEntity(repo, result)
-	}
 	freedom.Prometheus().OrmWithLabelValues("Delivery", "findDeliveryByPrimary", e, now)
 	errorLog(repo, "Delivery", "findDeliveryByPrimary", e, primary)
 	return
@@ -750,9 +629,6 @@ func findDeliveryByPrimary(repo freedom.GORMRepository, result interface{}, prim
 func findDeliverysByPrimarys(repo freedom.GORMRepository, results interface{}, primarys ...interface{}) (e error) {
 	now := time.Now()
 	e = repo.DB().Find(results, primarys).Error
-	if e == nil {
-		makeEntity(repo, results)
-	}
 	freedom.Prometheus().OrmWithLabelValues("Delivery", "findDeliverysByPrimarys", e, now)
 	errorLog(repo, "Delivery", "findDeliverysByPrimarys", e, primarys)
 	return
@@ -762,9 +638,6 @@ func findDeliverysByPrimarys(repo freedom.GORMRepository, results interface{}, p
 func findDelivery(repo freedom.GORMRepository, query object.Delivery, result interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		if e == nil {
-			makeEntity(repo, result)
-		}
 		freedom.Prometheus().OrmWithLabelValues("Delivery", "findDelivery", e, now)
 		errorLog(repo, "Delivery", "findDelivery", e, query)
 	}()
@@ -774,7 +647,7 @@ func findDelivery(repo freedom.GORMRepository, query object.Delivery, result int
 		return
 	}
 
-	e = db.Limit(1).Order(builders[0].Order()).Find(result).Error
+	e = builders[0].Execute(db.Limit(1), result)
 	return
 }
 
@@ -782,9 +655,6 @@ func findDelivery(repo freedom.GORMRepository, query object.Delivery, result int
 func findDeliveryByWhere(repo freedom.GORMRepository, query string, args []interface{}, result interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		if e == nil {
-			makeEntity(repo, result)
-		}
 		freedom.Prometheus().OrmWithLabelValues("Delivery", "findDeliveryByWhere", e, now)
 		errorLog(repo, "Delivery", "findDeliveryByWhere", e, query, args)
 	}()
@@ -797,7 +667,7 @@ func findDeliveryByWhere(repo freedom.GORMRepository, query string, args []inter
 		return
 	}
 
-	e = db.Limit(1).Order(builders[0].Order()).Find(result).Error
+	e = builders[0].Execute(db.Limit(1), result)
 	return
 }
 
@@ -805,9 +675,6 @@ func findDeliveryByWhere(repo freedom.GORMRepository, query string, args []inter
 func findDeliveryByMap(repo freedom.GORMRepository, query map[string]interface{}, result interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		if e == nil {
-			makeEntity(repo, result)
-		}
 		freedom.Prometheus().OrmWithLabelValues("Delivery", "findDeliveryByMap", e, now)
 		errorLog(repo, "Delivery", "findDeliveryByMap", e, query)
 	}()
@@ -818,7 +685,7 @@ func findDeliveryByMap(repo freedom.GORMRepository, query map[string]interface{}
 		return
 	}
 
-	e = db.Limit(1).Order(builders[0].Order()).Find(&result).Error
+	e = builders[0].Execute(db.Limit(1), result)
 	return
 }
 
@@ -826,9 +693,6 @@ func findDeliveryByMap(repo freedom.GORMRepository, query map[string]interface{}
 func findDeliverys(repo freedom.GORMRepository, query object.Delivery, results interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		if e == nil {
-			makeEntity(repo, results)
-		}
 		freedom.Prometheus().OrmWithLabelValues("Delivery", "findDeliverys", e, now)
 		errorLog(repo, "Delivery", "findDeliverys", e, query)
 	}()
@@ -846,9 +710,6 @@ func findDeliverys(repo freedom.GORMRepository, query object.Delivery, results i
 func findDeliverysByWhere(repo freedom.GORMRepository, query string, args []interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		if e == nil {
-			makeEntity(repo, results)
-		}
 		freedom.Prometheus().OrmWithLabelValues("Delivery", "findDeliverysByWhere", e, now)
 		errorLog(repo, "Delivery", "findDeliverysByWhere", e, query, args)
 	}()
@@ -869,9 +730,6 @@ func findDeliverysByWhere(repo freedom.GORMRepository, query string, args []inte
 func findDeliverysByMap(repo freedom.GORMRepository, query map[string]interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		if e == nil {
-			makeEntity(repo, results)
-		}
 		freedom.Prometheus().OrmWithLabelValues("Delivery", "findDeliverysByMap", e, now)
 		errorLog(repo, "Delivery", "findDeliverysByMap", e, query)
 	}()
@@ -912,9 +770,6 @@ func saveDelivery(repo freedom.GORMRepository, object *object.Delivery) (affecte
 func findGoodsByPrimary(repo freedom.GORMRepository, result interface{}, primary interface{}) (e error) {
 	now := time.Now()
 	e = repo.DB().Find(result, primary).Error
-	if e == nil {
-		makeEntity(repo, result)
-	}
 	freedom.Prometheus().OrmWithLabelValues("Goods", "findGoodsByPrimary", e, now)
 	errorLog(repo, "Goods", "findGoodsByPrimary", e, primary)
 	return
@@ -924,9 +779,6 @@ func findGoodsByPrimary(repo freedom.GORMRepository, result interface{}, primary
 func findGoodssByPrimarys(repo freedom.GORMRepository, results interface{}, primarys ...interface{}) (e error) {
 	now := time.Now()
 	e = repo.DB().Find(results, primarys).Error
-	if e == nil {
-		makeEntity(repo, results)
-	}
 	freedom.Prometheus().OrmWithLabelValues("Goods", "findGoodssByPrimarys", e, now)
 	errorLog(repo, "Goods", "findGoodssByPrimarys", e, primarys)
 	return
@@ -936,9 +788,6 @@ func findGoodssByPrimarys(repo freedom.GORMRepository, results interface{}, prim
 func findGoods(repo freedom.GORMRepository, query object.Goods, result interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		if e == nil {
-			makeEntity(repo, result)
-		}
 		freedom.Prometheus().OrmWithLabelValues("Goods", "findGoods", e, now)
 		errorLog(repo, "Goods", "findGoods", e, query)
 	}()
@@ -948,7 +797,7 @@ func findGoods(repo freedom.GORMRepository, query object.Goods, result interface
 		return
 	}
 
-	e = db.Limit(1).Order(builders[0].Order()).Find(result).Error
+	e = builders[0].Execute(db.Limit(1), result)
 	return
 }
 
@@ -956,9 +805,6 @@ func findGoods(repo freedom.GORMRepository, query object.Goods, result interface
 func findGoodsByWhere(repo freedom.GORMRepository, query string, args []interface{}, result interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		if e == nil {
-			makeEntity(repo, result)
-		}
 		freedom.Prometheus().OrmWithLabelValues("Goods", "findGoodsByWhere", e, now)
 		errorLog(repo, "Goods", "findGoodsByWhere", e, query, args)
 	}()
@@ -971,7 +817,7 @@ func findGoodsByWhere(repo freedom.GORMRepository, query string, args []interfac
 		return
 	}
 
-	e = db.Limit(1).Order(builders[0].Order()).Find(result).Error
+	e = builders[0].Execute(db.Limit(1), result)
 	return
 }
 
@@ -979,9 +825,6 @@ func findGoodsByWhere(repo freedom.GORMRepository, query string, args []interfac
 func findGoodsByMap(repo freedom.GORMRepository, query map[string]interface{}, result interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		if e == nil {
-			makeEntity(repo, result)
-		}
 		freedom.Prometheus().OrmWithLabelValues("Goods", "findGoodsByMap", e, now)
 		errorLog(repo, "Goods", "findGoodsByMap", e, query)
 	}()
@@ -992,7 +835,7 @@ func findGoodsByMap(repo freedom.GORMRepository, query map[string]interface{}, r
 		return
 	}
 
-	e = db.Limit(1).Order(builders[0].Order()).Find(&result).Error
+	e = builders[0].Execute(db.Limit(1), result)
 	return
 }
 
@@ -1000,9 +843,6 @@ func findGoodsByMap(repo freedom.GORMRepository, query map[string]interface{}, r
 func findGoodss(repo freedom.GORMRepository, query object.Goods, results interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		if e == nil {
-			makeEntity(repo, results)
-		}
 		freedom.Prometheus().OrmWithLabelValues("Goods", "findGoodss", e, now)
 		errorLog(repo, "Goods", "findGoodss", e, query)
 	}()
@@ -1020,9 +860,6 @@ func findGoodss(repo freedom.GORMRepository, query object.Goods, results interfa
 func findGoodssByWhere(repo freedom.GORMRepository, query string, args []interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		if e == nil {
-			makeEntity(repo, results)
-		}
 		freedom.Prometheus().OrmWithLabelValues("Goods", "findGoodssByWhere", e, now)
 		errorLog(repo, "Goods", "findGoodssByWhere", e, query, args)
 	}()
@@ -1043,9 +880,6 @@ func findGoodssByWhere(repo freedom.GORMRepository, query string, args []interfa
 func findGoodssByMap(repo freedom.GORMRepository, query map[string]interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		if e == nil {
-			makeEntity(repo, results)
-		}
 		freedom.Prometheus().OrmWithLabelValues("Goods", "findGoodssByMap", e, now)
 		errorLog(repo, "Goods", "findGoodssByMap", e, query)
 	}()
@@ -1086,9 +920,6 @@ func saveGoods(repo freedom.GORMRepository, object *object.Goods) (affected int6
 func findOrderByPrimary(repo freedom.GORMRepository, result interface{}, primary interface{}) (e error) {
 	now := time.Now()
 	e = repo.DB().Find(result, primary).Error
-	if e == nil {
-		makeEntity(repo, result)
-	}
 	freedom.Prometheus().OrmWithLabelValues("Order", "findOrderByPrimary", e, now)
 	errorLog(repo, "Order", "findOrderByPrimary", e, primary)
 	return
@@ -1098,9 +929,6 @@ func findOrderByPrimary(repo freedom.GORMRepository, result interface{}, primary
 func findOrdersByPrimarys(repo freedom.GORMRepository, results interface{}, primarys ...interface{}) (e error) {
 	now := time.Now()
 	e = repo.DB().Find(results, primarys).Error
-	if e == nil {
-		makeEntity(repo, results)
-	}
 	freedom.Prometheus().OrmWithLabelValues("Order", "findOrdersByPrimarys", e, now)
 	errorLog(repo, "Order", "findOrdersByPrimarys", e, primarys)
 	return
@@ -1110,9 +938,6 @@ func findOrdersByPrimarys(repo freedom.GORMRepository, results interface{}, prim
 func findOrder(repo freedom.GORMRepository, query object.Order, result interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		if e == nil {
-			makeEntity(repo, result)
-		}
 		freedom.Prometheus().OrmWithLabelValues("Order", "findOrder", e, now)
 		errorLog(repo, "Order", "findOrder", e, query)
 	}()
@@ -1122,7 +947,7 @@ func findOrder(repo freedom.GORMRepository, query object.Order, result interface
 		return
 	}
 
-	e = db.Limit(1).Order(builders[0].Order()).Find(result).Error
+	e = builders[0].Execute(db.Limit(1), result)
 	return
 }
 
@@ -1130,9 +955,6 @@ func findOrder(repo freedom.GORMRepository, query object.Order, result interface
 func findOrderByWhere(repo freedom.GORMRepository, query string, args []interface{}, result interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		if e == nil {
-			makeEntity(repo, result)
-		}
 		freedom.Prometheus().OrmWithLabelValues("Order", "findOrderByWhere", e, now)
 		errorLog(repo, "Order", "findOrderByWhere", e, query, args)
 	}()
@@ -1145,7 +967,7 @@ func findOrderByWhere(repo freedom.GORMRepository, query string, args []interfac
 		return
 	}
 
-	e = db.Limit(1).Order(builders[0].Order()).Find(result).Error
+	e = builders[0].Execute(db.Limit(1), result)
 	return
 }
 
@@ -1153,9 +975,6 @@ func findOrderByWhere(repo freedom.GORMRepository, query string, args []interfac
 func findOrderByMap(repo freedom.GORMRepository, query map[string]interface{}, result interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		if e == nil {
-			makeEntity(repo, result)
-		}
 		freedom.Prometheus().OrmWithLabelValues("Order", "findOrderByMap", e, now)
 		errorLog(repo, "Order", "findOrderByMap", e, query)
 	}()
@@ -1166,7 +985,7 @@ func findOrderByMap(repo freedom.GORMRepository, query map[string]interface{}, r
 		return
 	}
 
-	e = db.Limit(1).Order(builders[0].Order()).Find(&result).Error
+	e = builders[0].Execute(db.Limit(1), result)
 	return
 }
 
@@ -1174,9 +993,6 @@ func findOrderByMap(repo freedom.GORMRepository, query map[string]interface{}, r
 func findOrders(repo freedom.GORMRepository, query object.Order, results interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		if e == nil {
-			makeEntity(repo, results)
-		}
 		freedom.Prometheus().OrmWithLabelValues("Order", "findOrders", e, now)
 		errorLog(repo, "Order", "findOrders", e, query)
 	}()
@@ -1194,9 +1010,6 @@ func findOrders(repo freedom.GORMRepository, query object.Order, results interfa
 func findOrdersByWhere(repo freedom.GORMRepository, query string, args []interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		if e == nil {
-			makeEntity(repo, results)
-		}
 		freedom.Prometheus().OrmWithLabelValues("Order", "findOrdersByWhere", e, now)
 		errorLog(repo, "Order", "findOrdersByWhere", e, query, args)
 	}()
@@ -1217,9 +1030,6 @@ func findOrdersByWhere(repo freedom.GORMRepository, query string, args []interfa
 func findOrdersByMap(repo freedom.GORMRepository, query map[string]interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		if e == nil {
-			makeEntity(repo, results)
-		}
 		freedom.Prometheus().OrmWithLabelValues("Order", "findOrdersByMap", e, now)
 		errorLog(repo, "Order", "findOrdersByMap", e, query)
 	}()

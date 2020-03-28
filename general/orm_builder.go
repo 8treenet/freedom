@@ -91,7 +91,7 @@ func (p *Builder) Execute(db *gorm.DB, object interface{}) (e error) {
 	}
 
 	var count int
-	e = db.Model(object).Count(&count).Error
+	e = resultDB.Offset(0).Limit(1).Count(&count).Error
 	if e == nil && count != 0 {
 		//计算分页
 		if count%p.pageSize == 0 {

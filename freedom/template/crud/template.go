@@ -53,29 +53,8 @@ func FunTemplatePackage() string {
 		"github.com/8treenet/freedom"
 		"github.com/jinzhu/gorm"
 		"time"
-		"reflect"
 		"{{.PackagePath}}"
 	)
-	func makeEntity(repo freedom.GORMRepository, obj interface{}) {
-		entitysValue := reflect.ValueOf(obj)
-		if entitysValue.Kind() == reflect.Ptr {
-			entitysValue = entitysValue.Elem()
-		}
-		if entitysValue.Kind() == reflect.Slice {
-			for i := 0; i < entitysValue.Len(); i++ {
-				iface := entitysValue.Index(i).Interface()
-				if entityObj, ok := iface.(freedom.Entity); ok {
-					repo.InjectBaseEntity(entityObj)
-				}
-			}
-			return
-		}
-	
-		if entityObj, ok := obj.(freedom.Entity); ok {
-			repo.InjectBaseEntity(entityObj)
-			return
-		}
-	}
 
 	func errorLog(repo freedom.GORMRepository, model, method string, e error, expression ...interface{}) {
 		if e == nil || e == gorm.ErrRecordNotFound {
@@ -91,9 +70,6 @@ func FunTemplate() string {
 	func find{{.Name}}ByPrimary(repo freedom.GORMRepository, result interface{}, primary interface{}) (e error) {
 		now := time.Now()
 		e = repo.DB().Find(result, primary).Error
-		if e == nil {
-			makeEntity(repo, result)
-		}
 		freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "find{{.Name}}ByPrimary", e, now)
 		errorLog(repo, "{{.Name}}", "find{{.Name}}ByPrimary", e, primary)
 		return
@@ -103,9 +79,6 @@ func FunTemplate() string {
 	func find{{.Name}}sByPrimarys(repo freedom.GORMRepository, results interface{}, primarys ...interface{}) (e error) {
 		now := time.Now()
 		e = repo.DB().Find(results, primarys).Error
-		if e == nil {
-			makeEntity(repo, results)
-		}
 		freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "find{{.Name}}sByPrimarys", e, now)
 		errorLog(repo, "{{.Name}}", "find{{.Name}}sByPrimarys", e, primarys)
 		return
@@ -115,9 +88,6 @@ func FunTemplate() string {
 	func find{{.Name}}(repo freedom.GORMRepository, query object.{{.Name}}, result interface{}, builders ...freedom.QueryBuilder) (e error) {
 		now := time.Now()
 		defer func() {
-			if e == nil {
-				makeEntity(repo, result)
-			}
 			freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "find{{.Name}}", e, now)
 			errorLog(repo, "{{.Name}}", "find{{.Name}}", e, query)
 		}()
@@ -135,9 +105,6 @@ func FunTemplate() string {
 	func find{{.Name}}ByWhere(repo freedom.GORMRepository, query string, args []interface{}, result interface{}, builders ...freedom.QueryBuilder) (e error) {
 		now := time.Now()
 		defer func() {
-			if e == nil {
-				makeEntity(repo, result)
-			}
 			freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "find{{.Name}}ByWhere", e, now)
 			errorLog(repo, "{{.Name}}", "find{{.Name}}ByWhere", e, query, args)
 		}()
@@ -158,9 +125,6 @@ func FunTemplate() string {
 	func find{{.Name}}ByMap(repo freedom.GORMRepository, query map[string]interface{}, result interface{}, builders ...freedom.QueryBuilder) (e error) {
 		now := time.Now()
 		defer func() {
-			if e == nil {
-				makeEntity(repo, result)
-			}
 			freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "find{{.Name}}ByMap", e, now)
 			errorLog(repo, "{{.Name}}", "find{{.Name}}ByMap", e, query)
 		}()
@@ -179,9 +143,6 @@ func FunTemplate() string {
 	func find{{.Name}}s(repo freedom.GORMRepository, query object.{{.Name}}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
 		now := time.Now()
 		defer func() {
-			if e == nil {
-				makeEntity(repo, results)
-			}
 			freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "find{{.Name}}s", e, now)
 			errorLog(repo, "{{.Name}}", "find{{.Name}}s", e, query)
 		}()
@@ -199,9 +160,6 @@ func FunTemplate() string {
 	func find{{.Name}}sByWhere(repo freedom.GORMRepository, query string, args []interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
 		now := time.Now()
 		defer func() {
-			if e == nil {
-				makeEntity(repo, results)
-			}
 			freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "find{{.Name}}sByWhere", e, now)
 			errorLog(repo, "{{.Name}}", "find{{.Name}}sByWhere", e, query, args)
 		}()
@@ -222,9 +180,6 @@ func FunTemplate() string {
 	func find{{.Name}}sByMap(repo freedom.GORMRepository, query map[string]interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
 		now := time.Now()
 		defer func() {
-			if e == nil {
-				makeEntity(repo, results)
-			}
 			freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "find{{.Name}}sByMap", e, now)
 			errorLog(repo, "{{.Name}}", "find{{.Name}}sByMap", e, query)
 		}()

@@ -2,9 +2,8 @@
 package object
 
 import (
-	"time"
-
 	"github.com/jinzhu/gorm"
+	"time"
 )
 
 type Order struct {
