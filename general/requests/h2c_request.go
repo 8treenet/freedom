@@ -63,6 +63,7 @@ func NewH2CRequest(rawurl string) Request {
 	result.resq = req
 	result.params = make(map[string]interface{})
 	result.url = rawurl
+	result.stop = false
 	return result
 }
 
@@ -75,6 +76,8 @@ type H2CRequest struct {
 	url             string
 	ctx             context.Context
 	singleflightKey string
+	responseError   error
+	stop            bool
 }
 
 // Post .
@@ -215,7 +218,12 @@ func (hr *H2CRequest) URI() string {
 
 func (hr *H2CRequest) singleflightDo() (r Response, body []byte) {
 	if hr.singleflightKey == "" {
-		r.Error = hr.do()
+		r.Error = hr.prepare()
+		if r.Error != nil {
+			return
+		}
+		handle(hr)
+		r.Error = hr.responseError
 		if r.Error != nil {
 			return
 		}
@@ -226,7 +234,12 @@ func (hr *H2CRequest) singleflightDo() (r Response, body []byte) {
 
 	data, _, _ := h2cclientGroup.Do(hr.singleflightKey, func() (interface{}, error) {
 		var res Response
-		res.Error = hr.do()
+		res.Error = hr.prepare()
+		if r.Error != nil {
+			return &singleflightData{Res: res}, nil
+		}
+		handle(hr)
+		res.Error = hr.responseError
 		if res.Error != nil {
 			return &singleflightData{Res: res}, nil
 		}
@@ -240,15 +253,6 @@ func (hr *H2CRequest) singleflightDo() (r Response, body []byte) {
 }
 
 func (hr *H2CRequest) do() (e error) {
-	if hr.reqe != nil {
-		return hr.reqe
-	}
-
-	u, e := url.Parse(hr.URI())
-	if e != nil {
-		return
-	}
-	hr.resq.URL = u
 	waitChanErr := make(chan error)
 	defer close(waitChanErr)
 
@@ -347,4 +351,38 @@ func (hr *H2CRequest) httpRespone(httpRespone *Response) {
 func (hr *H2CRequest) Singleflight(key ...interface{}) Request {
 	hr.singleflightKey = fmt.Sprint(key...)
 	return hr
+}
+
+func (hr *H2CRequest) prepare() (e error) {
+	if hr.reqe != nil {
+		return hr.reqe
+	}
+
+	u, e := url.Parse(hr.URI())
+	if e != nil {
+		return
+	}
+	hr.resq.URL = u
+	return
+}
+
+func (hr *H2CRequest) Next() {
+	hr.responseError = hr.do()
+}
+
+func (hr *H2CRequest) Stop() {
+	hr.stop = true
+	hr.responseError = errors.New("Middleware stop")
+}
+
+func (hr *H2CRequest) getStop() bool {
+	return hr.stop
+}
+
+func (hr *H2CRequest) GetRequest() *http.Request {
+	return hr.resq
+}
+
+func (hr *H2CRequest) GetRespone() (*http.Response, error) {
+	return hr.resp, hr.responseError
 }

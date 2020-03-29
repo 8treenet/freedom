@@ -54,9 +54,6 @@ type Runtime interface {
     Logger() Logger
     //获取一级缓存实例，请求结束，该缓存生命周期结束。
     Store() *memstore.Store
-    //获取普罗米修斯插件
-    Prometheus() *Prometheus
-}
 
 // Initiator 实例初始化接口，在Booting使用。
 type Initiator interface {
@@ -83,7 +80,32 @@ type Initiator interface {
     //获取基础设施组件, 只有控制器获取组件需要在booting内调用， service和repository可直接依赖注入
     GetInfra(ctx iris.Context, com interface{})
 }
+
+// main 应用安装接口
+type Application interface {
+    //安装gorm 
+    InstallGorm(f func() (db *gorm.DB))
+    //安装redis
+    InstallRedis(f func() (client redis.Cmdable))
+    //安装中间件
+    InstallMiddleware(handler iris.Handler)
+    //安装全局Party http://domian/relativePath/controllerParty
+    InstallParty(relativePath string)
+    //创建http h2c
+    CreateH2CRunner(addr string, configurators ...host.Configurator) iris.Runner
+    //创建http 
+    CreateRunner(addr string, configurators ...host.Configurator) iris.Runner
+    //返回iris应用
+    Iris() *iris.Application
+    //日志
+    Logger() *golog.Logger
+    //启动
+    Run(serve iris.Runner, c iris.Configuration)
+    //安装领域事件
+	InstallDomainEventInfra(eventInfra DomainEventInfra)
+}
 ```
+
 
 #### controllers/default.go
 ##### [iris路由文档](https://github.com/kataras/iris/wiki/MVC)

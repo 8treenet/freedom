@@ -56,6 +56,7 @@ func NewHttpRequest(rawurl string) Request {
 	result.resq = req
 	result.params = make(map[string]interface{})
 	result.url = rawurl
+	result.stop = false
 	return result
 }
 
@@ -69,6 +70,8 @@ type HttpRequest struct {
 	bus             string
 	ctx             context.Context
 	singleflightKey string
+	responseError   error
+	stop            bool
 }
 
 // Post .
@@ -214,7 +217,12 @@ type singleflightData struct {
 
 func (hr *HttpRequest) singleflightDo() (r Response, body []byte) {
 	if hr.singleflightKey == "" {
-		r.Error = hr.do()
+		r.Error = hr.prepare()
+		if r.Error != nil {
+			return
+		}
+		handle(hr)
+		r.Error = hr.responseError
 		if r.Error != nil {
 			return
 		}
@@ -225,7 +233,12 @@ func (hr *HttpRequest) singleflightDo() (r Response, body []byte) {
 
 	data, _, _ := httpclientGroup.Do(hr.singleflightKey, func() (interface{}, error) {
 		var res Response
-		res.Error = hr.do()
+		res.Error = hr.prepare()
+		if r.Error != nil {
+			return &singleflightData{Res: res}, nil
+		}
+		handle(hr)
+		res.Error = hr.responseError
 		if res.Error != nil {
 			return &singleflightData{Res: res}, nil
 		}
@@ -239,16 +252,6 @@ func (hr *HttpRequest) singleflightDo() (r Response, body []byte) {
 }
 
 func (hr *HttpRequest) do() (e error) {
-	if hr.reqe != nil {
-		return hr.reqe
-	}
-
-	u, e := url.Parse(hr.URI())
-	if e != nil {
-		return
-	}
-	hr.resq.URL = u
-
 	waitChanErr := make(chan error)
 	defer close(waitChanErr)
 
@@ -348,4 +351,38 @@ func (hr *HttpRequest) httpRespone(httpRespone *Response) {
 func (hr *HttpRequest) Singleflight(key ...interface{}) Request {
 	hr.singleflightKey = fmt.Sprint(key...)
 	return hr
+}
+
+func (hr *HttpRequest) prepare() (e error) {
+	if hr.reqe != nil {
+		return hr.reqe
+	}
+
+	u, e := url.Parse(hr.URI())
+	if e != nil {
+		return
+	}
+	hr.resq.URL = u
+	return
+}
+
+func (hr *HttpRequest) Next() {
+	hr.responseError = hr.do()
+}
+
+func (hr *HttpRequest) Stop() {
+	hr.stop = true
+	hr.responseError = errors.New("Middleware stop")
+}
+
+func (hr *HttpRequest) getStop() bool {
+	return hr.stop
+}
+
+func (hr *HttpRequest) GetRequest() *http.Request {
+	return hr.resq
+}
+
+func (hr *HttpRequest) GetRespone() (*http.Response, error) {
+	return hr.resp, hr.responseError
 }
