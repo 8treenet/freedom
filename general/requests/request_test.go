@@ -1,6 +1,7 @@
 package requests
 
 import (
+	"errors"
 	"fmt"
 	"sync"
 	"testing"
@@ -21,7 +22,7 @@ func NewTestMiddlewares() Handler {
 func NewTestStopMiddlewares() Handler {
 	return func(middle Middleware) {
 		fmt.Println("开始")
-		middle.Stop()
+		middle.Stop(errors.New("fuck"))
 		fmt.Println("结束")
 	}
 }

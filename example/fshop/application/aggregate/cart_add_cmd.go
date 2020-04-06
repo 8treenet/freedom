@@ -7,7 +7,7 @@ import (
 	"github.com/8treenet/freedom/example/fshop/application/entity"
 )
 
-// NewCartAddCmd 创建增加购物车聚合根，传入相关仓库的接口
+// NewCartAddCmd 创建添加购物车聚合根，传入相关仓库的接口
 func NewCartAddCmd(userRepo repository.UserRepo, cartRepo repository.CartRepo, goodsRepo repository.GoodsRepo) *CartAddCmd {
 	return &CartAddCmd{
 		userRepo:  userRepo,
@@ -16,7 +16,7 @@ func NewCartAddCmd(userRepo repository.UserRepo, cartRepo repository.CartRepo, g
 	}
 }
 
-// 增加购物车聚合根
+// 添加购物车聚合根
 type CartAddCmd struct {
 	entity.User
 	goods     entity.Goods

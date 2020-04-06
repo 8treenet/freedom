@@ -102,7 +102,7 @@ type Application interface {
     //启动
     Run(serve iris.Runner, c iris.Configuration)
     //安装领域事件
-	InstallDomainEventInfra(eventInfra DomainEventInfra)
+    InstallDomainEventInfra(eventInfra DomainEventInfra)
 }
 ```
 
@@ -233,6 +233,7 @@ func (repo *DefaultRepository) GetUA() string {
 |server/conf/app.toml|服务配置|
 |server/conf/db.toml|db配置|
 |server/conf/redis.toml|缓存配置|
+|server/conf/infra/.toml|组件相关配置|
 
 #### 生命周期
 ###### 每一个请求接入都会创建若干依赖对象，从controller、service、repository、infra。简单的讲每一个请求都是独立的创建和使用这一系列对象，不会导致并发的问题。当然也无需担心效率问题，框架已经做了池。可以参见 initiator 里的各种Bind方法。

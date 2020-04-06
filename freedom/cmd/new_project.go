@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"go/build"
 	"os"
 	"os/exec"
@@ -19,6 +20,9 @@ var (
 		Short: "New a microservice project based on freedom",
 		Long:  `New project from freedom project template. `,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			if len(args) < 1 || args[0] == "" {
+				return errors.New("[project_name] empty")
+			}
 			sysPath, err := filepath.Abs(args[0])
 			if err != nil {
 				return

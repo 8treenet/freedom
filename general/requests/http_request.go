@@ -370,8 +370,12 @@ func (hr *HttpRequest) Next() {
 	hr.responseError = hr.do()
 }
 
-func (hr *HttpRequest) Stop() {
+func (hr *HttpRequest) Stop(e ...error) {
 	hr.stop = true
+	if len(e) > 0 {
+		hr.responseError = e[0]
+		return
+	}
 	hr.responseError = errors.New("Middleware stop")
 }
 

@@ -24,3 +24,14 @@ type CartItemRes struct {
 		TotalPrice int    //商品价格
 	}
 }
+
+type OrderItemRes struct {
+	OrderNo    string
+	TotalPrice int
+	Status     string
+	GoodsItems []struct {
+		GoodsId   int    // 商品id
+		Num       int    // 数量
+		GoodsName string // 商品名称
+	}
+}

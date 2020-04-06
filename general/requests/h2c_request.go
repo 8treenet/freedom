@@ -370,8 +370,12 @@ func (hr *H2CRequest) Next() {
 	hr.responseError = hr.do()
 }
 
-func (hr *H2CRequest) Stop() {
+func (hr *H2CRequest) Stop(e ...error) {
 	hr.stop = true
+	if len(e) > 0 {
+		hr.responseError = e[0]
+		return
+	}
 	hr.responseError = errors.New("Middleware stop")
 }
 

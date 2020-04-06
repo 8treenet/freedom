@@ -59,7 +59,7 @@ func (query *CartItemQuery) VisitAllItem(f func(id, goodsId int, goodsName strin
 	}
 }
 
-// AllItemTotalPrice 全部上牌价格
+// AllItemTotalPrice 全部商品总价
 func (query *CartItemQuery) AllItemTotalPrice() (totalPrice int) {
 	for i := 0; i < len(query.allCart); i++ {
 		goodsEntity := query.goodsMap[query.allCart[i].GoodsId]

@@ -17,6 +17,8 @@ func init() {
 	})
 }
 
+var _ OrderRepo = new(Order)
+
 // Order .
 type Order struct {
 	freedom.Repository
@@ -60,5 +62,45 @@ func (repo *Order) Save(orderEntity *entity.Order) (e error) {
 			return
 		}
 	}
+	return
+}
+
+// Find .
+func (repo *Order) Find(orderNo string, userId int) (orderEntity *entity.Order, e error) {
+	orderEntity = &entity.Order{}
+	e = findOrder(repo, object.Order{OrderNo: orderNo, UserId: userId}, orderEntity)
+	if e != nil {
+		return
+	}
+
+	e = findOrderDetails(repo, object.OrderDetail{OrderNo: orderEntity.OrderNo}, &orderEntity.Details)
+	if e != nil {
+		return
+	}
+
+	//注入基础Entity 包含运行时和领域事件的producer
+	repo.InjectBaseEntity(orderEntity)
+	return
+}
+
+// Finds .
+func (repo *Order) Finds(userId int, page, pageSize int) (entitys []*entity.Order, totalPage int, e error) {
+	pager := repo.NewORMDescBuilder("id").NewPageBuilder(page, pageSize)
+
+	e = findOrders(repo, object.Order{UserId: userId}, &entitys, pager)
+	if e != nil {
+		return
+	}
+
+	for i := 0; i < len(entitys); i++ {
+		e = findOrderDetails(repo, object.OrderDetail{OrderNo: entitys[i].OrderNo}, &entitys[i].Details)
+		if e != nil {
+			return
+		}
+	}
+
+	totalPage = pager.TotalPage()
+	//注入基础Entity 包含运行时和领域事件的producer
+	repo.InjectBaseEntitys(entitys)
 	return
 }

@@ -4,7 +4,7 @@ import "net/http"
 
 type Middleware interface {
 	Next()
-	Stop()
+	Stop(...error)
 	GetRequest() *http.Request
 	GetRespone() (*http.Response, error)
 	getStop() bool

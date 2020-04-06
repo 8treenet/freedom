@@ -55,3 +55,15 @@ func (c *Cart) DeleteAll() freedom.Result {
 	err = c.CartSev.DeleteAll(userId)
 	return &infra.JSONResponse{Error: err}
 }
+
+// PostShop 购物购物车全部买商品, POST: /cart/shop route.
+func (c *Cart) PostShop() freedom.Result {
+	var req dto.CartShopReq
+	e := c.JSONRequest.ReadBodyJSON(&req)
+	if e != nil {
+		return &infra.JSONResponse{Error: e}
+	}
+
+	e = c.CartSev.Shop(req.UserId)
+	return &infra.JSONResponse{Error: e}
+}

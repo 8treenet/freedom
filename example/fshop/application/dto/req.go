@@ -6,6 +6,10 @@ type CartAddReq struct {
 	GoodsNum int `validate:"required"` //商品数
 }
 
+type CartShopReq struct {
+	UserId int `validate:"required"` //用户id
+}
+
 type RegisterUserReq struct {
 	Name     string `validate:"required"` //用户名称
 	Password string `validate:"required"` //用户密码
@@ -31,4 +35,9 @@ type GoodsShopReq struct {
 	UserId int `validate:"required"` //用户id
 	Id     int `validate:"required"` //商品id
 	Num    int `validate:"required"` //商品数量
+}
+
+type OrderPayReq struct {
+	UserId  int    `validate:"required"` //用户id
+	OrderNo string `validate:"required"` //订单id
 }

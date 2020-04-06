@@ -31,4 +31,6 @@ type GoodsRepo interface {
 type OrderRepo interface {
 	New() (orderEntity *entity.Order, e error)
 	Save(orderEntity *entity.Order) (e error)
+	Find(orderNO string, userId int) (orderEntity *entity.Order, e error)
+	Finds(userId int, page, pageSize int) (entitys []*entity.Order, totalPage int, e error)
 }
