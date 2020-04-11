@@ -20,6 +20,7 @@ func main() {
 }
 
 func installMiddleware(app freedom.Application) {
+	app.InstallMiddleware(middleware.NewRecover())
 	/*
 		设置框架自带中间件,可重写
 		NewTrace默认设置了总线, 下游服务和事件消费者服务都会拿到TRACE-ID

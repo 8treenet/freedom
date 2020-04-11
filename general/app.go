@@ -301,7 +301,6 @@ func (app *Application) addMiddlewares(irisConf iris.Configuration) {
 		globalApp.IrisApp.Use(newPrometheusHandle(app.Prometheus))
 	}
 	globalApp.IrisApp.Use(app.Middleware...)
-	globalApp.IrisApp.Use(newRecover())
 }
 
 // InstallOther .

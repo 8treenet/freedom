@@ -1,12 +1,39 @@
-package general
+package middleware
 
 import (
 	"bytes"
 	"fmt"
 	"runtime"
 
+	"github.com/kataras/golog"
 	"github.com/kataras/iris/context"
+
+	"github.com/8treenet/freedom"
 )
+
+// NewRecover
+func NewRecover() context.Handler {
+	return func(ctx context.Context) {
+		defer func() {
+			if err := recover(); err != nil {
+				if ctx.IsStopped() {
+					return
+				}
+
+				rt := freedom.PickRuntime(ctx)
+				// when stack finishes
+				logMessage := fmt.Sprintf("Recovered from path('%s')\n", ctx.Path())
+				logMessage += fmt.Sprintf("Panic: %s\n", err)
+				logMessage += fmt.Sprintf("At stack: %s\n", string(panicTrace()))
+				rt.Logger().Log(golog.ErrorLevel, logMessage)
+
+				ctx.StatusCode(500)
+				ctx.StopExecution()
+			}
+		}()
+		ctx.Next()
+	}
+}
 
 func panicTrace() []byte {
 	def := []byte("An unknown error")
@@ -41,28 +68,4 @@ func panicTrace() []byte {
 	}
 	stack = bytes.TrimRight(stack, "\n")
 	return stack
-}
-
-// newRecover
-func newRecover() context.Handler {
-	return func(ctx context.Context) {
-		defer func() {
-			if err := recover(); err != nil {
-				if ctx.IsStopped() {
-					return
-				}
-
-				rt := ctx.Values().Get(RuntimeKey).(*appRuntime)
-				// when stack finishes
-				logMessage := fmt.Sprintf("Recovered from path('%s')\n", ctx.Path())
-				logMessage += fmt.Sprintf("Panic: %s\n", err)
-				logMessage += fmt.Sprintf("At stack: %s\n", string(panicTrace()))
-				rt.Logger().Warn(logMessage)
-
-				ctx.StatusCode(500)
-				ctx.StopExecution()
-			}
-		}()
-		ctx.Next()
-	}
 }
