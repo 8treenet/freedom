@@ -76,7 +76,9 @@ func (repo *Repository) NewHttpRequest(url string, transferCtx ...bool) Request 
 	if len(transferCtx) > 0 && !transferCtx[0] {
 		return req
 	}
-	bus := GetBus(repo.Runtime.Ctx())
+	HandleBusMiddleware(repo.Runtime)
+
+	bus := repo.Runtime.Bus()
 	req.SetHeader("x-freedom-bus", bus.ToJson())
 
 	m := globalApp.Iris().ConfigurationReadOnly().GetOther()
@@ -95,7 +97,9 @@ func (repo *Repository) NewH2CRequest(url string, transferCtx ...bool) Request {
 	if len(transferCtx) > 0 && !transferCtx[0] {
 		return req
 	}
-	bus := GetBus(repo.Runtime.Ctx())
+	HandleBusMiddleware(repo.Runtime)
+
+	bus := repo.Runtime.Bus()
 	req.SetHeader("x-freedom-bus", bus.ToJson())
 
 	m := globalApp.Iris().ConfigurationReadOnly().GetOther()
@@ -150,6 +154,12 @@ func (repo *Repository) InjectBaseEntitys(entitys interface{}) {
 		}
 		injectBaseEntity(repo.Runtime, iface)
 	}
+	return
+}
+
+// GetOther .
+func (repo *Repository) GetOther(obj interface{}) {
+	globalApp.other.get(obj)
 	return
 }
 

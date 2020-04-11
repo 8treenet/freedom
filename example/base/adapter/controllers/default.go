@@ -6,7 +6,7 @@ import (
 )
 
 func init() {
-	freedom.Booting(func(initiator freedom.Initiator) {
+	freedom.Prepare(func(initiator freedom.Initiator) {
 		//initiator.BindController("/", &DefaultController{})
 		//加入中间件， 只对本控制器生效，全局中间件请在main加入。
 		initiator.BindController("/", &DefaultController{}, func(ctx freedom.Context) {

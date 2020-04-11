@@ -11,7 +11,7 @@ const (
 )
 
 func init() {
-	freedom.Booting(func(initiator freedom.Initiator) {
+	freedom.Prepare(func(initiator freedom.Initiator) {
 		store := &StoreController{}
 		initiator.BindController("/store", store)
 

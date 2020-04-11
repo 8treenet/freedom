@@ -159,3 +159,12 @@ func (pool *InfraPool) diInfra(rt *appRuntime, obj interface{}) {
 		globalApp.comPool.get(rt, value)
 	})
 }
+
+// GetSingleInfra .
+func (pool *InfraPool) GetSingleInfra(ptr reflect.Value) bool {
+	if scom := pool.single(ptr.Type()); scom != nil {
+		ptr.Set(reflect.ValueOf(scom))
+		return true
+	}
+	return false
+}

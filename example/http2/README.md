@@ -28,6 +28,29 @@ func installLogrus(app freedom.Application) {
 	freedom.Logger().Install(logrus.StandardLogger())
 }
 
+// 安装中间件
+func installMiddleware(app freedom.Application) {
+	/*
+		设置框架自带中间件,可重写
+		NewTrace默认设置了总线, 下游服务和事件消费者服务都会拿到TRACE-ID
+		NewLogger和NewRuntimeLogger 默认读取了总线里的TRACE-ID, 所有上下游服务打印日志全部都携带TRACE-ID
+	*/
+	app.InstallMiddleware(middleware.NewTrace("TRACE-ID"))
+	app.InstallMiddleware(middleware.NewLogger("TRACE-ID", true))
+	app.InstallMiddleware(middleware.NewRuntimeLogger("TRACE-ID"))
+
+	app.InstallBusMiddleware(newBus(config.Get().App.Other["service_name"].(string)))
+}
+
+// newBus 自定义总线中间件示例.
+func newBus(serviceName string) func(freedom.Runtime) {
+	//调用下游服务和事件消费者将传递service-name， 下游服务和mq事件消费者，使用 Runtime.Bus() 可获取到service-name。
+	return func(run freedom.Runtime) {
+		bus := run.Bus()
+		bus.Add("service-name", serviceName)
+	}
+}
+
 ```
 
 #### 依赖倒置
@@ -99,7 +122,7 @@ func (repo *GoodsRepository) GetGoods(goodsID int) (result objects.GoodsModel) {
 
 	correctReq := repo.NewH2CRequest(addr)
 	go func() {
-		//panic 错误方式, repo.NewH2CRequest方法使用了请求的运行时,用来设置传递给下游的trace相关数据，并发中请求运行时结束会导致panic
+		//panic 错误方式, repo.NewH2CRequest方法使用了Runtime.Bus(),用来设置传递给下游的总线相关数据，并发中请求运行时结束会导致panic
 		var model objects.GoodsModel
 		repo.NewH2CRequest(addr).Get().ToJSON(&model)
 

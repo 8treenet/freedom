@@ -53,6 +53,12 @@ type (
 	DomainEventInfra = general.DomainEventInfra
 
 	UnitTest = general.UnitTest
+
+	Starter = general.Starter
+
+	Bus = general.Bus
+
+	BusHandler = general.BusHandler
 )
 
 // NewApplication .
@@ -64,9 +70,9 @@ func NewUnitTest() UnitTest {
 	return new(general.UnitTestImpl)
 }
 
-// Booting .
-func Booting(f func(Initiator)) {
-	general.Booting(f)
+// Prepare .
+func Prepare(f func(Initiator)) {
+	general.Prepare(f)
 }
 
 // Logger .
@@ -132,6 +138,7 @@ func Configure(obj interface{}, fileName string, def bool) {
 type Application interface {
 	InstallGorm(f func() (db *gorm.DB))
 	InstallRedis(f func() (client redis.Cmdable))
+	InstallOther(f func() interface{})
 	InstallMiddleware(handler iris.Handler)
 	InstallParty(relativePath string)
 	CreateH2CRunner(addr string, configurators ...host.Configurator) iris.Runner
@@ -140,6 +147,8 @@ type Application interface {
 	Logger() *golog.Logger
 	Run(serve iris.Runner, c iris.Configuration)
 	InstallDomainEventInfra(eventInfra DomainEventInfra)
+	Start(f func(starter Starter))
+	InstallBusMiddleware(handle ...BusHandler)
 }
 
 func PickRuntime(ctx Context) Runtime {

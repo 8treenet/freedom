@@ -13,6 +13,7 @@ import (
 type B struct {
 	KKKKK string
 	Bdsb  DSB
+	I     int
 }
 
 func (b *B) BeginRequest(ctx string) {
@@ -133,4 +134,30 @@ func TestParsePoolFunc(t *testing.T) {
 
 func TestParsePoolFunc2(t *testing.T) {
 	t.Log(strings.Split("asdasdasdsad", "?"))
+}
+
+func TestOther(t *testing.T) {
+	ot := newOther()
+	ot.add(func() interface{} {
+		return &TestUser{Age: 100}
+	})
+	ot.add(func() interface{} {
+		var list []*B
+		for i := 0; i < 3; i++ {
+			list = append(list, &B{I: i})
+		}
+		return list
+	})
+
+	ot.booting()
+
+	var tu *TestUser
+	ot.get(&tu)
+	t.Log(tu)
+
+	var blist []*B
+	ot.get(&blist)
+	for i := 0; i < len(blist); i++ {
+		t.Log(blist[i])
+	}
 }

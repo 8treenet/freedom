@@ -22,7 +22,9 @@ type Msg struct {
 
 // SetRuntime .
 func (msg *Msg) SetRuntime(rt freedom.Runtime) *Msg {
-	bus := general.GetBus(rt.Ctx())
+	general.HandleBusMiddleware(rt)
+
+	bus := rt.Bus()
 	msg.bus = bus.ToJson()
 	return msg
 }

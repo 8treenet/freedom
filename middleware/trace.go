@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/8treenet/freedom/general"
+	"github.com/8treenet/freedom"
 
 	uuid "github.com/iris-contrib/go.uuid"
 	"github.com/kataras/iris/context"
@@ -14,7 +14,7 @@ import (
 // NewTrace .
 func NewTrace(traceIDName string) func(context.Context) {
 	return func(ctx context.Context) {
-		bus := general.GetBus(ctx)
+		bus := freedom.PickRuntime(ctx).Bus()
 		traceID, ok := bus.Get(traceIDName)
 		for {
 			if ok || traceID != nil {
@@ -28,7 +28,7 @@ func NewTrace(traceIDName string) func(context.Context) {
 			break
 		}
 
-		ctx.Values().Set(traceIDName, traceID)
+		// ctx.Values().Set(traceIDName, traceID)
 		bus.Add(traceIDName, traceID)
 		ctx.Next()
 	}

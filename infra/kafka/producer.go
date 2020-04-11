@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	freedom.Booting(func(initiator freedom.Initiator) {
+	freedom.Prepare(func(initiator freedom.Initiator) {
 		initiator.BindInfra(true, producer)
 
 		initiator.InjectController(func(ctx freedom.Context) (com *ProducerImpl) {
@@ -34,6 +34,12 @@ type Producer interface {
 type ProducerImpl struct {
 	saramaProducerMap map[string]sarama.SyncProducer
 	defaultProducer   sarama.SyncProducer
+	startUpCallBack   []func()
+}
+
+// StartUp .
+func (c *ProducerImpl) StartUp(f func()) {
+	c.startUpCallBack = append(c.startUpCallBack, f)
 }
 
 // Booting .
@@ -70,6 +76,10 @@ func (p *ProducerImpl) Booting(sb freedom.SingleBoot) {
 	sb.Closeing(func() {
 		p.close()
 	})
+
+	for i := 0; i < len(p.startUpCallBack); i++ {
+		p.startUpCallBack[i]()
+	}
 }
 
 func (p *ProducerImpl) close() {

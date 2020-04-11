@@ -24,6 +24,7 @@ import (
 
 var _ Initiator = new(Application)
 var _ SingleBoot = new(Application)
+var _ Starter = new(Application)
 
 // NewApplication .
 func NewApplication() *Application {
@@ -34,6 +35,7 @@ func NewApplication() *Application {
 		globalApp.rpool = newRepoPool()
 		globalApp.comPool = newInfraPool()
 		globalApp.msgsBus = newMessageBus()
+		globalApp.other = newOther()
 		globalApp.IrisApp.Logger().SetTimeFormat("2006-01-02 15:04:05.000")
 	})
 	return globalApp
@@ -56,6 +58,7 @@ type Application struct {
 		client  redis.Cmdable
 		Install func() (client redis.Cmdable)
 	}
+	other         *other
 	Middleware    []context.Handler
 	Prometheus    *Prometheus
 	ControllerDep []interface{}
@@ -174,8 +177,9 @@ func (app *Application) InjectController(f interface{}) {
 func (app *Application) Run(serve iris.Runner, irisConf iris.Configuration) {
 	app.addMiddlewares(irisConf)
 	app.installDB()
-	for index := 0; index < len(boots); index++ {
-		boots[index](app)
+	app.other.booting()
+	for index := 0; index < len(prepares); index++ {
+		prepares[index](app)
 	}
 
 	logLevel := "debug"
@@ -185,6 +189,9 @@ func (app *Application) Run(serve iris.Runner, irisConf iris.Configuration) {
 	globalApp.IrisApp.Logger().SetLevel(logLevel)
 
 	repositoryAPIRun(irisConf)
+	for i := 0; i < len(starters); i++ {
+		starters[i](app)
+	}
 	app.msgsBus.building()
 	app.comPool.singleBooting(app)
 	shutdownSecond := int64(2)
@@ -272,6 +279,18 @@ func (app *Application) Iris() *iris.Application {
 	return app.IrisApp
 }
 
+// Start .
+func (app *Application) Start(f func(starter Starter)) {
+	starters = append(starters, f)
+}
+
+// GetSingleInfra .
+func (app *Application) GetSingleInfra(com interface{}) {
+	if !app.comPool.GetSingleInfra(reflect.ValueOf(com).Elem()) {
+		panic("Component not found")
+	}
+}
+
 func (app *Application) addMiddlewares(irisConf iris.Configuration) {
 	app.IrisApp.Use(newRuntimeHandle())
 	app.IrisApp.Use(globalApp.pool.freeHandle())
@@ -283,4 +302,14 @@ func (app *Application) addMiddlewares(irisConf iris.Configuration) {
 	}
 	globalApp.IrisApp.Use(app.Middleware...)
 	globalApp.IrisApp.Use(newRecover())
+}
+
+// InstallOther .
+func (app *Application) InstallOther(f func() interface{}) {
+	app.other.add(f)
+}
+
+// InstallBusMiddleware .
+func (app *Application) InstallBusMiddleware(handle ...BusHandler) {
+	busMiddlewares = append(busMiddlewares, handle...)
 }

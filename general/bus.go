@@ -2,8 +2,6 @@ package general
 
 import (
 	"encoding/json"
-
-	"github.com/kataras/iris"
 )
 
 func newBus(headerStr string) *Bus {
@@ -36,8 +34,12 @@ func (b *Bus) ToJson() string {
 	return string(bys)
 }
 
-// GetBus .
-func GetBus(ctx iris.Context) *Bus {
-	rt := ctx.Values().Get(RuntimeKey).(*appRuntime)
-	return rt.bus
+type BusHandler func(Runtime)
+
+var busMiddlewares []BusHandler
+
+func HandleBusMiddleware(rt Runtime) {
+	for i := 0; i < len(busMiddlewares); i++ {
+		busMiddlewares[i](rt)
+	}
 }

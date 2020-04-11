@@ -62,3 +62,8 @@ func (rt *appRuntime) Logger() Logger {
 func (rt *appRuntime) Store() *memstore.Store {
 	return rt.ctx.Values()
 }
+
+// Bus .
+func (rt *appRuntime) Bus() *Bus {
+	return rt.bus
+}

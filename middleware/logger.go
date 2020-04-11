@@ -2,9 +2,11 @@ package middleware
 
 import (
 	"fmt"
+	"runtime"
 	"strings"
 	"sync"
 
+	"github.com/8treenet/freedom"
 	"github.com/kataras/iris"
 	"github.com/kataras/iris/context"
 
@@ -89,7 +91,8 @@ func (l *freedomLogger) Logf(level golog.Level, format string, args ...interface
 // If the freedomLogger's level is fatal, error, warn, info or debug
 // then it will print the log message too.
 func (l *freedomLogger) Fatal(v ...interface{}) {
-	l.ctx.Application().Logger().Fatal("user-agent:"+l.ctx.Request().UserAgent(), " ", l.format(v...))
+	fileLine := fileLine()
+	l.ctx.Application().Logger().Fatal(l.format(v...), " ", fileLine)
 }
 
 // Fatalf will `os.Exit(1)` no matter the level of the freedomLogger.
@@ -97,29 +100,30 @@ func (l *freedomLogger) Fatal(v ...interface{}) {
 // then it will print the log message too.
 func (l *freedomLogger) Fatalf(format string, args ...interface{}) {
 	msg := fmt.Sprintf(format, args...)
-	l.Fatal("user-agent:"+l.ctx.Request().UserAgent(), " ", msg)
+	l.Fatal(msg)
 }
 
 // Error will print only when freedomLogger's Level is error, warn, info or debug.
 func (l *freedomLogger) Error(v ...interface{}) {
-	l.ctx.Application().Logger().Error("user-agent:"+l.ctx.Request().UserAgent(), " ", l.format(v...))
+	fileLine := fileLine()
+	l.ctx.Application().Logger().Error(l.format(v...), " ", fileLine)
 }
 
 // Errorf will print only when freedomLogger's Level is error, warn, info or debug.
 func (l *freedomLogger) Errorf(format string, args ...interface{}) {
 	msg := fmt.Sprintf(format, args...)
-	l.Error("user-agent:"+l.ctx.Request().UserAgent(), " ", msg)
+	l.Error(msg)
 }
 
 // Warn will print when freedomLogger's Level is warn, info or debug.
 func (l *freedomLogger) Warn(v ...interface{}) {
-	l.ctx.Application().Logger().Warn("user-agent:"+l.ctx.Request().UserAgent(), " ", l.format(v...))
+	l.ctx.Application().Logger().Warn(l.format(v...))
 }
 
 // Warnf will print when freedomLogger's Level is warn, info or debug.
 func (l *freedomLogger) Warnf(format string, args ...interface{}) {
 	msg := fmt.Sprintf(format, args...)
-	l.Warn("user-agent:"+l.ctx.Request().UserAgent(), " ", msg)
+	l.Warn(msg)
 }
 
 // Info will print when freedomLogger's Level is info or debug.
@@ -135,24 +139,35 @@ func (l *freedomLogger) Infof(format string, args ...interface{}) {
 
 // Debug will print when freedomLogger's Level is debug.
 func (l *freedomLogger) Debug(v ...interface{}) {
-	l.ctx.Application().Logger().Debug("user-agent:"+l.ctx.Request().UserAgent(), " ", l.format(v...))
+	l.ctx.Application().Logger().Debug(l.format(v...))
 }
 
 // Debugf will print when freedomLogger's Level is debug.
 func (l *freedomLogger) Debugf(format string, args ...interface{}) {
 	msg := fmt.Sprintf(format, args...)
-	l.Debug("user-agent:"+l.ctx.Request().UserAgent(), " ", msg)
+	l.Debug(msg)
 }
 
 // format
 func (l *freedomLogger) format(v ...interface{}) string {
 	var list []string
-	if traceID := l.ctx.Values().GetString(l.traceIDName); traceID != "" && l.traceIDName != "" {
-		list = append(list, "trace-id:"+traceID)
+	traceID, ok := freedom.PickRuntime(l.ctx).Bus().Get(l.traceIDName)
+
+	if ok {
+		traceIDStr := fmt.Sprint(traceID)
+		if traceIDStr != "" && l.traceIDName != "" {
+			list = append(list, "trace-id:"+traceIDStr)
+		}
 	}
+
 	for _, i := range v {
 		list = append(list, fmt.Sprint(i))
 	}
 
 	return strings.Join(list, " ")
+}
+
+func fileLine() string {
+	_, file, line, _ := runtime.Caller(2)
+	return fmt.Sprintf("%s %d", file, line)
 }

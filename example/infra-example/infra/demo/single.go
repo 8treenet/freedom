@@ -7,7 +7,7 @@ import (
 )
 
 func init() {
-	freedom.Booting(func(initiator freedom.Initiator) {
+	freedom.Prepare(func(initiator freedom.Initiator) {
 		initiator.BindInfra(true, &Single{})
 		initiator.InjectController(func(ctx freedom.Context) (com *Single) {
 			initiator.GetInfra(ctx, &com)

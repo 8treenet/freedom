@@ -17,13 +17,23 @@ type Initiator interface {
 	InjectController(f interface{})
 	BindRepository(f interface{})
 	GetService(ctx iris.Context, service interface{})
-	AsyncCachePreheat(f func(repo *Repository))
-	CachePreheat(f func(repo *Repository))
 	//BindInfra 如果是单例 com是对象， 如果是多例，com是函数
 	BindInfra(single bool, com interface{})
 	GetInfra(ctx iris.Context, com interface{})
 	//监听事件
 	ListenEvent(eventName string, objectMethod string, appointInfra ...interface{})
+	Start(f func(starter Starter))
+	Iris() *iris.Application
+}
+
+// Starter .
+type Starter interface {
+	Iris() *iris.Application
+	//异步缓存预热
+	AsyncCachePreheat(f func(repo *Repository))
+	//同步缓存预热
+	CachePreheat(f func(repo *Repository))
+	GetSingleInfra(com interface{})
 }
 
 // SingleBoot .
@@ -43,15 +53,17 @@ type Runtime interface {
 	Ctx() iris.Context
 	Logger() Logger
 	Store() *memstore.Store
+	Bus() *Bus
 }
 
 var (
 	globalApp     *Application
 	globalAppOnce sync.Once
-	boots         []func(Initiator)
+	prepares      []func(Initiator)
+	starters      []func(starter Starter)
 )
 
-// Booting app.BindController or app.BindControllerByParty.
-func Booting(f func(Initiator)) {
-	boots = append(boots, f)
+// Prepare app.BindController or app.BindControllerByParty.
+func Prepare(f func(Initiator)) {
+	prepares = append(prepares, f)
 }

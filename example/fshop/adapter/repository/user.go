@@ -11,7 +11,7 @@ import (
 )
 
 func init() {
-	freedom.Booting(func(initiator freedom.Initiator) {
+	freedom.Prepare(func(initiator freedom.Initiator) {
 		initiator.BindRepository(func() *User {
 			return &User{}
 		})

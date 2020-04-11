@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	freedom.Booting(func(initiator freedom.Initiator) {
+	freedom.Prepare(func(initiator freedom.Initiator) {
 		initiator.BindRepository(func() *GoodsRepository {
 			return &GoodsRepository{}
 		})
@@ -31,7 +31,7 @@ func (repo *GoodsRepository) GetGoods(goodsID int) (result objects.GoodsModel) {
 	go func() {
 		var model objects.GoodsModel
 		/*
-			panic 错误方式 : repo.NewH2CRequest方法使用了请求的运行时,用来设置传递给下游的trace相关数据，并发中请求运行时结束会导致panic
+			panic 错误方式, repo.NewH2CRequest方法使用了Runtime.Bus(),用来设置传递给下游的总线相关数据，并发中请求运行时结束会导致panic
 			repo.NewH2CRequest(addr).Get().ToJSON(&model)
 		*/
 		//正确方式1, 在请求内创建

@@ -7,7 +7,7 @@ import (
 )
 
 func init() {
-	freedom.Booting(func(initiator freedom.Initiator) {
+	freedom.Prepare(func(initiator freedom.Initiator) {
 		initiator.BindService(func() *GoodsService {
 			return &GoodsService{}
 		})

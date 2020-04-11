@@ -2,12 +2,13 @@ package application
 
 import (
 	"fmt"
+
 	"github.com/8treenet/freedom"
 	"github.com/8treenet/freedom/example/http2/adapter/repositorys"
 )
 
 func init() {
-	freedom.Booting(func(initiator freedom.Initiator) {
+	freedom.Prepare(func(initiator freedom.Initiator) {
 		initiator.BindService(func() *ShopService {
 			return &ShopService{}
 		})

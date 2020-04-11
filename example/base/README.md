@@ -43,6 +43,36 @@ func installMiddleware(app freedom.Application) {
 
 #### 接口介绍
 ```go
+// main 应用安装接口
+type Application interface {
+    //安装gorm 
+    InstallGorm(f func() (db *gorm.DB))
+    //安装redis
+    InstallRedis(f func() (client redis.Cmdable))
+    //安装路由中间件
+    InstallMiddleware(handler iris.Handler)
+    //安装总线中间件,参考Http2 example
+    InstallBusMiddleware(handle ...BusHandler)
+    //安装全局Party http://domian/relativePath/controllerParty
+    InstallParty(relativePath string)
+    //创建http h2c
+    CreateH2CRunner(addr string, configurators ...host.Configurator) iris.Runner
+    //创建http 
+    CreateRunner(addr string, configurators ...host.Configurator) iris.Runner
+    //返回iris应用
+    Iris() *iris.Application
+    //日志
+    Logger() *golog.Logger
+    //启动
+    Run(serve iris.Runner, c iris.Configuration)
+    //安装领域事件
+    InstallDomainEventInfra(eventInfra DomainEventInfra)
+    //安装其他, 如mongodb、es 等
+    InstallOther(f func() interface{})
+    //启动回调: Prepare之后，Run之前.
+    Start(f func(starter Starter))
+}
+
  /*
     每一个请求都会串行的创建一系列对象(controller,service,repository)，不用太担心内存问题，因为底层有对象池。
     Runtime 运行时对象导出接口，一个请求创建一个运行时对象，在不同层里使用也是同一实例。
@@ -55,7 +85,7 @@ type Runtime interface {
     //获取一级缓存实例，请求结束，该缓存生命周期结束。
     Store() *memstore.Store
 
-// Initiator 实例初始化接口，在Booting使用。
+// Initiator 实例初始化接口，在Prepare使用。
 type Initiator interface {
     //创建 iris.Party，可以指定中间件。
     CreateParty(relativePath string, handlers ...context.Handler) iris.Party
@@ -71,39 +101,26 @@ type Initiator interface {
     BindRepository(f interface{})
     //获取服务
     GetService(ctx iris.Context, service interface{})
+    //绑定基础设施组件 如果组件是单例 com是对象， 如果组件是多例com是创建函数。
+    BindInfra(single bool, com interface{})
+    //获取基础设施组件, 只有控制器获取组件需要在Prepare内调用， service和repository可直接依赖注入
+    GetInfra(ctx iris.Context, com interface{})
+    //启动回调: Prepare之后，Run之前.
+    Start(f func(starter Starter))
+    Iris() *iris.Application
+}
+
+// Starter .
+type Starter interface {
+    Iris() *iris.Application
     //异步缓存预热
     AsyncCachePreheat(f func(repo *Repository))
     //同步缓存预热
     CachePreheat(f func(repo *Repository))
-    //绑定基础设施组件 如果组件是单例 com是对象， 如果组件是多例com是创建函数。
-    BindInfra(single bool, com interface{})
-    //获取基础设施组件, 只有控制器获取组件需要在booting内调用， service和repository可直接依赖注入
-    GetInfra(ctx iris.Context, com interface{})
+    //获取单例组件
+    GetSingleInfra(com interface{})
 }
 
-// main 应用安装接口
-type Application interface {
-    //安装gorm 
-    InstallGorm(f func() (db *gorm.DB))
-    //安装redis
-    InstallRedis(f func() (client redis.Cmdable))
-    //安装中间件
-    InstallMiddleware(handler iris.Handler)
-    //安装全局Party http://domian/relativePath/controllerParty
-    InstallParty(relativePath string)
-    //创建http h2c
-    CreateH2CRunner(addr string, configurators ...host.Configurator) iris.Runner
-    //创建http 
-    CreateRunner(addr string, configurators ...host.Configurator) iris.Runner
-    //返回iris应用
-    Iris() *iris.Application
-    //日志
-    Logger() *golog.Logger
-    //启动
-    Run(serve iris.Runner, c iris.Configuration)
-    //安装领域事件
-    InstallDomainEventInfra(eventInfra DomainEventInfra)
-}
 ```
 
 
@@ -111,7 +128,7 @@ type Application interface {
 ##### [iris路由文档](https://github.com/kataras/iris/wiki/MVC)
 ```go
 func init() {
-    freedom.Booting(func(initiator freedom.Initiator) {
+    freedom.Prepare(func(initiator freedom.Initiator) {
         /*
         普通方式绑定 Default控制器到路径 /
         initiator.BindController("/", &DefaultController{})
@@ -158,7 +175,7 @@ func (c *DefaultController) Get() (result struct {
 #### application/default.go
 ```go
 func init() {
-    freedom.Booting(func(initiator freedom.Initiator) {
+    freedom.Prepare(func(initiator freedom.Initiator) {
         //绑定服务
         initiator.BindService(func() *DefaultService {
             return &DefaultService{}
@@ -196,7 +213,7 @@ func (s *DefaultService) RemoteInfo() (result struct {
 #### repositorys/default.go
 ```go
 func init() {
-    freedom.Booting(func(initiator freedom.Initiator) {
+    freedom.Prepare(func(initiator freedom.Initiator) {
         //绑定 Repository
         initiator.BindRepository(func() *DefaultRepository {
             return &DefaultRepository{}

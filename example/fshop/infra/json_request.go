@@ -12,7 +12,7 @@ var validate *validator.Validate
 
 func init() {
 	validate = validator.New()
-	freedom.Booting(func(initiator freedom.Initiator) {
+	freedom.Prepare(func(initiator freedom.Initiator) {
 		initiator.BindInfra(false, func() *JSONRequest {
 			return &JSONRequest{}
 		})

@@ -58,8 +58,8 @@ func (u *UnitTestImpl) InstallRedis(f func() (client redis.Cmdable)) {
 }
 
 func (u *UnitTestImpl) Run() {
-	for index := 0; index < len(boots); index++ {
-		boots[index](globalApp)
+	for index := 0; index < len(prepares); index++ {
+		prepares[index](globalApp)
 	}
 	u.rt = u.newRuntime()
 	logLevel := "debug"

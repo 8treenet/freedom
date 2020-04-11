@@ -22,7 +22,7 @@ func repositoryTemplate() string {
 	)
 	
 	func init() {
-		freedom.Booting(func(initiator freedom.Initiator) {
+		freedom.Prepare(func(initiator freedom.Initiator) {
 			initiator.BindRepository(func() *Default {
 				return &Default{}
 			})

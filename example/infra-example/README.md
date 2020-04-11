@@ -31,7 +31,7 @@ import (
 )
 
 func init() {
-	freedom.Booting(func(initiator freedom.Initiator) {
+	freedom.Prepare(func(initiator freedom.Initiator) {
 		//初始化绑定该仓库实例
 		initiator.BindRepository(func() *GoodsRepository {
 			return &GoodsRepository{}
@@ -83,7 +83,7 @@ import (
 	"github.com/8treenet/freedom/infra/transaction"
 )
 func init() {
-	freedom.Booting(func(initiator freedom.Initiator) {
+	freedom.Prepare(func(initiator freedom.Initiator) {
 		//初始化绑定该服务实例
 		initiator.BindService(func() *OrderService {
 			return &OrderService{}
@@ -210,7 +210,7 @@ type UnitTest interface {
 ##### 单例的组件
 ```go
 func init() {
-	freedom.Booting(func(initiator freedom.Initiator) {
+	freedom.Prepare(func(initiator freedom.Initiator) {
 		/*
 			绑定组件
 			single 是否单例
@@ -274,7 +274,7 @@ func (goods *GoodsController) PutStock() freedom.Result {
 //组件的实现
 func init() {
 	validate = validator.New()
-	freedom.Booting(func(initiator freedom.Initiator) {
+	freedom.Prepare(func(initiator freedom.Initiator) {
 		initiator.BindInfra(false, func() *JSONRequest {
 			//绑定该组件到基础设施池。
 			return &JSONRequest{}

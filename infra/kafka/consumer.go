@@ -12,7 +12,7 @@ import (
 )
 
 func init() {
-	freedom.Booting(func(initiator freedom.Initiator) {
+	freedom.Prepare(func(initiator freedom.Initiator) {
 		initiator.BindInfra(true, consumerPtr)
 	})
 }
@@ -26,6 +26,12 @@ type Consumer struct {
 	limiter         *Limiter
 	conf            kafkaConf
 	retry           *retryHandle
+	startUpCallBack []func()
+}
+
+// StartUp .
+func (c *Consumer) StartUp(f func()) {
+	c.startUpCallBack = append(c.startUpCallBack, f)
 }
 
 // Booting .
@@ -48,6 +54,9 @@ func (c *Consumer) Booting(sb freedom.SingleBoot) {
 	})
 
 	c.Listen()
+	for i := 0; i < len(c.startUpCallBack); i++ {
+		c.startUpCallBack[i]()
+	}
 }
 
 func (c *Consumer) Listen() {
