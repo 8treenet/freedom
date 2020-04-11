@@ -20,6 +20,9 @@
 ## 安装
 ```sh
 $ go get github.com/8treenet/freedom/freedom
+
+#升级
+$ go get github.com/8treenet/freedom/freedom@v1.6.2
 ```
 
 ## 创建项目
