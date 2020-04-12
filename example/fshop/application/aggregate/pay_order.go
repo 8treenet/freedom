@@ -35,7 +35,7 @@ func (cmd *OrderPayCmd) LoadEntity(orderNo string, userId int) error {
 	}
 	cmd.Order = *orderEntity
 
-	cmd.userEntity, err = cmd.userRepo.Find(cmd.UserId)
+	cmd.userEntity, err = cmd.userRepo.Get(cmd.UserId)
 	if err != nil {
 		return err
 	}

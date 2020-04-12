@@ -34,7 +34,7 @@ type ShopGoodsCmd struct {
 
 // LoadEntity 加载依赖实体
 func (cmd *ShopGoodsCmd) LoadEntity(goodsId, userId int) error {
-	user, e := cmd.userRepo.Find(userId)
+	user, e := cmd.userRepo.Get(userId)
 	if e != nil {
 		cmd.GetRuntime().Logger().Error(e, "userId", userId)
 		//用户不存在
@@ -42,7 +42,7 @@ func (cmd *ShopGoodsCmd) LoadEntity(goodsId, userId int) error {
 	}
 	cmd.userEntity = *user
 
-	cmd.goodsEntity, e = cmd.goodsRepo.Find(goodsId)
+	cmd.goodsEntity, e = cmd.goodsRepo.Get(goodsId)
 	if e != nil {
 		return e
 	}

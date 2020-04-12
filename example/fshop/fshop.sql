@@ -65,8 +65,8 @@ CREATE TABLE `cart` (
 CREATE TABLE `delivery` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `admin_id` int(11) NOT NULL COMMENT '管理员id',
-  `order_id` int(11) NOT NULL COMMENT '订单id',
-  `tracking_number` varchar(32) DEFAULT NULL COMMENT '快递单号',
+  `order_no` varchar(65) NOT NULL DEFAULT '订单id',
+  `tracking_number` varchar(65) DEFAULT NULL COMMENT '快递单号',
   `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)

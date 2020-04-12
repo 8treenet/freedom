@@ -25,7 +25,7 @@ type User struct {
 	freedom.Repository
 }
 
-func (repo *User) Find(id int) (userEntity *entity.User, e error) {
+func (repo *User) Get(id int) (userEntity *entity.User, e error) {
 	userEntity = &entity.User{}
 	e = findUserByPrimary(repo, userEntity, id)
 	if e != nil {

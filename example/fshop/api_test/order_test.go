@@ -15,7 +15,7 @@ func TestOrderItems(t *testing.T) {
 
 // 支付订单
 func TestOrderPay(t *testing.T) {
-	req := dto.OrderPayReq{UserId: 1, OrderNo: "1586601953"}
+	req := dto.OrderPayReq{UserId: 1, OrderNo: "1586687439"}
 	str, rep := requests.NewH2CRequest("http://127.0.0.1:8000/order/pay").Put().SetJSONBody(req).ToString()
 	t.Log(str, rep)
 }

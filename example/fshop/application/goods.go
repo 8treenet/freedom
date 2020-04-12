@@ -59,7 +59,7 @@ func (g *Goods) Items(page, pagesize int, tag string) (items []dto.GoodsItemRes,
 
 // AddStock 增加商品库存
 func (g *Goods) AddStock(goodsId, num int) (e error) {
-	entity, e := g.GoodsRepo.Find(goodsId)
+	entity, e := g.GoodsRepo.Get(goodsId)
 	if e != nil {
 		return
 	}
@@ -70,7 +70,7 @@ func (g *Goods) AddStock(goodsId, num int) (e error) {
 
 // MarkedTag 商品打tag
 func (g *Goods) MarkedTag(goodsId int, tag string) (e error) {
-	goodsEntity, e := g.GoodsRepo.Find(goodsId)
+	goodsEntity, e := g.GoodsRepo.Get(goodsId)
 	if e != nil {
 		return
 	}

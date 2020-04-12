@@ -8,6 +8,7 @@ import (
 const (
 	OrderStatusPAID       = "PAID"
 	OrderStatusNonPayment = "NON_PAYMENT"
+	OrderStatusShipment   = "SHIPMENT"
 )
 
 // 订单实体
@@ -27,7 +28,20 @@ func (o *Order) AddOrderDetal(detal *object.OrderDetail) {
 	o.Details = append(o.Details, detal)
 }
 
-// Pay 付款
+// Pay 实体触发付款
 func (o *Order) Pay() {
 	o.SetStatus(OrderStatusPAID)
+}
+
+// Shipment 实体触发发货
+func (o *Order) Shipment() {
+	o.SetStatus(OrderStatusShipment)
+}
+
+// IsPay 是否支付
+func (o *Order) IsPay() bool {
+	if o.Status != OrderStatusPAID {
+		return false
+	}
+	return true
 }

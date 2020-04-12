@@ -23,10 +23,12 @@ func init() {
 
 // Order 订单领域服务.
 type Order struct {
-	Runtime     freedom.Runtime         //运行时，一个请求绑定一个运行时
-	UserRepo    repository.UserRepo     //用户仓库
-	OrderRepo   repository.OrderRepo    //订单仓库
-	Transaction transaction.Transaction //事务组件
+	Runtime      freedom.Runtime         //运行时，一个请求绑定一个运行时
+	UserRepo     repository.UserRepo     //用户仓库
+	OrderRepo    repository.OrderRepo    //订单仓库
+	AdminRepo    repository.AdminRepo    //管理仓库
+	DeliveryRepo repository.DeliveryRepo //发货仓库
+	Transaction  transaction.Transaction //事务组件
 }
 
 // Pay 订单支付 .
@@ -68,4 +70,18 @@ func (o *Order) Items(userId int, page, pageSize int) (result []dto.OrderItemRes
 		result = append(result, item)
 	}
 	return
+}
+
+// Delivery 管理员发货服务
+func (o *Order) Delivery(req dto.DeliveryReq) (e error) {
+	//创建发货聚合根
+	cmd := aggregate.NewDeliveryCmd(o.AdminRepo, o.OrderRepo, o.DeliveryRepo, o.Transaction)
+	if e = cmd.LoadEntity(req.OrderNo, req.AdminId); e != nil {
+		//加载实体失败
+		o.Runtime.Logger().Error(e)
+		return
+	}
+
+	//传入快递单号执行命令
+	return cmd.Run(req.TrackingNumber)
 }

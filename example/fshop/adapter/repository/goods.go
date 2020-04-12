@@ -24,7 +24,7 @@ type Goods struct {
 	freedom.Repository
 }
 
-func (repo *Goods) Find(id int) (goodsEntity *entity.Goods, e error) {
+func (repo *Goods) Get(id int) (goodsEntity *entity.Goods, e error) {
 	goodsEntity = &entity.Goods{}
 	e = findGoodsByPrimary(repo, goodsEntity, id)
 	if e != nil {

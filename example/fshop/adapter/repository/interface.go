@@ -6,7 +6,7 @@ import (
 )
 
 type UserRepo interface {
-	Find(id int) (obj *entity.User, e error)
+	Get(id int) (obj *entity.User, e error)
 	FindByName(userName string) (userEntity *entity.User, e error)
 	Save(entity *entity.User) error
 	New(userDto dto.RegisterUserReq, money int) (entityUser *entity.User, e error)
@@ -21,7 +21,7 @@ type CartRepo interface {
 }
 
 type GoodsRepo interface {
-	Find(id int) (goodsEntity *entity.Goods, e error)
+	Get(id int) (goodsEntity *entity.Goods, e error)
 	Finds(ids []int) (entitys []*entity.Goods, e error)
 	FindsByPage(page, pageSize int, tag string) (entitys []*entity.Goods, e error)
 	Save(entity *entity.Goods) error
@@ -32,5 +32,15 @@ type OrderRepo interface {
 	New() (orderEntity *entity.Order, e error)
 	Save(orderEntity *entity.Order) (e error)
 	Find(orderNO string, userId int) (orderEntity *entity.Order, e error)
+	Get(orderNO string) (orderEntity *entity.Order, e error)
 	Finds(userId int, page, pageSize int) (entitys []*entity.Order, totalPage int, e error)
+}
+
+type DeliveryRepo interface {
+	New() (*entity.Delivery, error)
+	Save(*entity.Delivery) error
+}
+
+type AdminRepo interface {
+	Get(int) (*entity.Admin, error)
 }

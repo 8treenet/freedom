@@ -28,7 +28,7 @@ type User struct {
 // ChangePassword 修改密码
 func (s *User) ChangePassword(userId int, newPassword, oldPassword string) (e error) {
 	//使用用户仓库读取用户实体
-	userEntity, e := s.UserRepo.Find(userId)
+	userEntity, e := s.UserRepo.Get(userId)
 	if e != nil {
 		return
 	}
@@ -57,7 +57,7 @@ func (s *User) Register(user dto.RegisterUserReq) (result dto.UserInfoRes, e err
 
 // Get .
 func (s *User) Get(userId int) (result dto.UserInfoRes, e error) {
-	userEntity, e := s.UserRepo.Find(userId)
+	userEntity, e := s.UserRepo.Get(userId)
 	if e != nil {
 		return
 	}

@@ -37,7 +37,7 @@ type ShopCartGoodsCmd struct {
 
 // LoadEntity 加载依赖实体
 func (cmd *ShopCartGoodsCmd) LoadEntity(userId int) error {
-	user, e := cmd.userRepo.Find(userId)
+	user, e := cmd.userRepo.Get(userId)
 	if e != nil {
 		cmd.GetRuntime().Logger().Error(e, "userId", userId)
 		//用户不存在
@@ -52,7 +52,7 @@ func (cmd *ShopCartGoodsCmd) LoadEntity(userId int) error {
 
 	cmd.goodsEntityMap = make(map[int]*entity.Goods)
 	for i := 0; i < len(cmd.allCartEntity); i++ {
-		goodsEntity, e := cmd.goodsRepo.Find(cmd.allCartEntity[i].GoodsId)
+		goodsEntity, e := cmd.goodsRepo.Get(cmd.allCartEntity[i].GoodsId)
 		if e != nil {
 			return e
 		}

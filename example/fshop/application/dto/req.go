@@ -41,3 +41,9 @@ type OrderPayReq struct {
 	UserId  int    `validate:"required"` //用户id
 	OrderNo string `validate:"required"` //订单id
 }
+
+type DeliveryReq struct {
+	OrderNo        string `validate:"required"` //订单id
+	TrackingNumber string `validate:"required"` //快递号
+	AdminId        int    `validate:"required"` //管理员id
+}

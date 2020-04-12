@@ -26,7 +26,7 @@ type CartItemQuery struct {
 
 // LoadEntity 加载依赖实体
 func (query *CartItemQuery) LoadEntity(userId int) error {
-	user, e := query.userRepo.Find(userId)
+	user, e := query.userRepo.Get(userId)
 	if e != nil {
 		query.GetRuntime().Logger().Error(e, "userId", userId)
 		//用户不存在
@@ -42,7 +42,7 @@ func (query *CartItemQuery) LoadEntity(userId int) error {
 func (query *CartItemQuery) QueryAllItem() (e error) {
 	query.allCart, e = query.cartRepo.FindAll(query.User.Id)
 	for i := 0; i < len(query.allCart); i++ {
-		goodsEntity, e := query.goodsRepo.Find(query.allCart[i].GoodsId)
+		goodsEntity, e := query.goodsRepo.Get(query.allCart[i].GoodsId)
 		if e != nil {
 			return e
 		}

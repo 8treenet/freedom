@@ -104,3 +104,21 @@ func (repo *Order) Finds(userId int, page, pageSize int) (entitys []*entity.Orde
 	repo.InjectBaseEntitys(entitys)
 	return
 }
+
+// Get .
+func (repo *Order) Get(orderNo string) (orderEntity *entity.Order, e error) {
+	orderEntity = &entity.Order{}
+	e = findOrder(repo, object.Order{OrderNo: orderNo}, orderEntity)
+	if e != nil {
+		return
+	}
+
+	e = findOrderDetails(repo, object.OrderDetail{OrderNo: orderEntity.OrderNo}, &orderEntity.Details)
+	if e != nil {
+		return
+	}
+
+	//注入基础Entity 包含运行时和领域事件的producer
+	repo.InjectBaseEntity(orderEntity)
+	return
+}

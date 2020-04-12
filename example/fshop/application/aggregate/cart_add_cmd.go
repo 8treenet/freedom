@@ -27,7 +27,7 @@ type CartAddCmd struct {
 
 // LoadEntity 加载依赖实体
 func (cmd *CartAddCmd) LoadEntity(goodsId, userId int) error {
-	user, e := cmd.userRepo.Find(userId)
+	user, e := cmd.userRepo.Get(userId)
 	if e != nil {
 		cmd.GetRuntime().Logger().Error(e, "userId", userId)
 		//用户不存在
@@ -35,7 +35,7 @@ func (cmd *CartAddCmd) LoadEntity(goodsId, userId int) error {
 	}
 	cmd.User = *user
 
-	goods, e := cmd.goodsRepo.Find(goodsId)
+	goods, e := cmd.goodsRepo.Get(goodsId)
 	if e != nil {
 		//商品不存在
 		cmd.GetRuntime().Logger().Error(e, "userId", userId, "goodsId", goodsId)
