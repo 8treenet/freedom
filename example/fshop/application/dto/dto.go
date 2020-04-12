@@ -35,3 +35,8 @@ type OrderItemRes struct {
 		GoodsName string // 商品名称
 	}
 }
+
+type OrderPayMsg struct {
+	OrderNo    string
+	TotalPrice int
+}

@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/8treenet/freedom/example/fshop/adapter/repository"
+	"github.com/8treenet/freedom/example/fshop/application/dto"
 	"github.com/8treenet/freedom/example/fshop/application/entity"
 	"github.com/8treenet/freedom/infra/transaction"
 )
@@ -63,8 +64,12 @@ func (cmd *OrderPayCmd) Pay() error {
 	})
 
 	if e == nil {
-		//发布领域事件 订单支付
-		cmd.DomainEvent("order-pay", cmd.Order)
+		msg := dto.OrderPayMsg{
+			OrderNo:    cmd.OrderNo,
+			TotalPrice: cmd.TotalPrice,
+		}
+		//发布领域事件 订单支付, 需要配置 server/conf/infra/kafka.toml 生产者相关配置
+		cmd.DomainEvent("order-pay", msg)
 	}
 	return e
 }

@@ -149,6 +149,7 @@ type Application interface {
 	InstallDomainEventInfra(eventInfra DomainEventInfra)
 	Start(f func(starter Starter))
 	InstallBusMiddleware(handle ...BusHandler)
+	InstallSerializer(marshal func(v interface{}) ([]byte, error), unmarshal func(data []byte, v interface{}) error)
 }
 
 func PickRuntime(ctx Context) Runtime {

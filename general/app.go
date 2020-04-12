@@ -1,6 +1,7 @@
 package general
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"reflect"
@@ -36,6 +37,8 @@ func NewApplication() *Application {
 		globalApp.comPool = newInfraPool()
 		globalApp.msgsBus = newMessageBus()
 		globalApp.other = newOther()
+		globalApp.marshal = json.Marshal
+		globalApp.unmarshal = json.Unmarshal
 		globalApp.IrisApp.Logger().SetTimeFormat("2006-01-02 15:04:05.000")
 	})
 	return globalApp
@@ -63,6 +66,8 @@ type Application struct {
 	Prometheus    *Prometheus
 	ControllerDep []interface{}
 	eventInfra    DomainEventInfra
+	unmarshal     func(data []byte, v interface{}) error
+	marshal       func(v interface{}) ([]byte, error)
 }
 
 // InstallParty .
@@ -311,4 +316,10 @@ func (app *Application) InstallOther(f func() interface{}) {
 // InstallBusMiddleware .
 func (app *Application) InstallBusMiddleware(handle ...BusHandler) {
 	busMiddlewares = append(busMiddlewares, handle...)
+}
+
+// InstallSerializer .
+func (app *Application) InstallSerializer(marshal func(v interface{}) ([]byte, error), unmarshal func(data []byte, v interface{}) error) {
+	app.marshal = marshal
+	app.unmarshal = unmarshal
 }

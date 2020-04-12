@@ -71,6 +71,8 @@ type Application interface {
     InstallOther(f func() interface{})
     //启动回调: Prepare之后，Run之前.
     Start(f func(starter Starter))
+    //安装序列化:应用内的 bus总线数据、领域事件对象、实体等序列化和反序列化。未安装默认使用官方json
+    InstallSerializer(marshal func(v interface{}) ([]byte, error), unmarshal func(data []byte, v interface{}) error)
 }
 
  /*

@@ -3,10 +3,11 @@ package main
 import (
 	"time"
 
+	"github.com/8treenet/extjson"
 	"github.com/8treenet/freedom"
 	_ "github.com/8treenet/freedom/example/fshop/adapter/controller"
 	"github.com/8treenet/freedom/example/fshop/infra/config"
-	"github.com/8treenet/freedom/infra/kafka"
+	"github.com/8treenet/freedom/infra/kafka" //需要开启 server/conf/infra/kafka.toml open = true
 	"github.com/8treenet/freedom/middleware"
 	"github.com/go-redis/redis"
 	"github.com/jinzhu/gorm"
@@ -30,6 +31,14 @@ func installMiddleware(app freedom.Application) {
 	app.InstallMiddleware(middleware.NewTrace("TRACE-ID"))
 	app.InstallMiddleware(middleware.NewLogger("TRACE-ID", true))
 	app.InstallMiddleware(middleware.NewRuntimeLogger("TRACE-ID"))
+
+	//安装序列化和反序列化
+	extjson.SetDefaultOption(extjson.ExtJSONEntityOption{
+		NamedStyle:       extjson.NamedStyleLowerCamelCase,
+		SliceNotNull:     true, //空数组不返回null, 返回[]
+		StructPtrNotNull: true, //nil结构体指针不返回null, 返回{}})
+	})
+	app.InstallSerializer(extjson.Marshal, extjson.Unmarshal)
 }
 
 func installDatabase(app freedom.Application) {

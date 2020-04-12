@@ -1,7 +1,6 @@
 package general
 
 import (
-	"encoding/json"
 	"reflect"
 	"strings"
 
@@ -15,6 +14,7 @@ type Entity interface {
 	Identity() string
 	GetRuntime() Runtime
 	SetProducer(string)
+	Marshal() []byte
 }
 
 type DomainEventInfra interface {
@@ -33,6 +33,7 @@ func injectBaseEntity(run Runtime, entityObject interface{}) {
 
 	e := new(entity)
 	e.runtime = run
+	e.entityObject = entityObject
 	eValue := reflect.ValueOf(e)
 	if entityField.Kind() != reflect.Interface || !eValue.Type().Implements(entityField.Type()) {
 		panic("This is not a valid entity")
@@ -42,17 +43,18 @@ func injectBaseEntity(run Runtime, entityObject interface{}) {
 }
 
 type entity struct {
-	runtime    Runtime
-	entityName string
-	identity   string
-	producer   string
+	runtime      Runtime
+	entityName   string
+	identity     string
+	producer     string
+	entityObject interface{}
 }
 
 func (e *entity) DomainEvent(fun string, object interface{}, header ...map[string]string) {
 	if globalApp.eventInfra == nil {
 		panic("Unrealized Domain Event Infrastructure.")
 	}
-	json, err := json.Marshal(object)
+	json, err := globalApp.marshal(object)
 	if err != nil {
 		panic(err)
 	}
@@ -73,4 +75,12 @@ func (e *entity) GetRuntime() Runtime {
 
 func (e *entity) SetProducer(producer string) {
 	e.producer = producer
+}
+
+func (e *entity) Marshal() []byte {
+	data, err := globalApp.marshal(e.entityObject)
+	if err != nil {
+		e.runtime.Logger().Error("Entity serialization failed, error:", err)
+	}
+	return data
 }

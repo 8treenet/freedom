@@ -1,15 +1,12 @@
 package general
 
-import (
-	"encoding/json"
-)
-
 func newBus(headerStr string) *Bus {
 	// headerStr
 	result := &Bus{
 		m: make(map[string]interface{}),
 	}
-	json.Unmarshal([]byte(headerStr), &result.m)
+
+	globalApp.unmarshal([]byte(headerStr), &result.m)
 	return result
 }
 
@@ -30,7 +27,7 @@ func (b *Bus) Get(key string) (obj interface{}, ok bool) {
 
 // ToJson .
 func (b *Bus) ToJson() string {
-	bys, _ := json.Marshal(b.m)
+	bys, _ := globalApp.marshal(b.m)
 	return string(bys)
 }
 
