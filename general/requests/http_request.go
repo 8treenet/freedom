@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -54,7 +53,7 @@ func NewHttpRequest(rawurl string) Request {
 		Header: make(http.Header),
 	}
 	result.resq = req
-	result.params = make(map[string]interface{})
+	result.params = make(url.Values)
 	result.url = rawurl
 	result.stop = false
 	return result
@@ -65,7 +64,7 @@ type HttpRequest struct {
 	resq            *http.Request
 	resp            *http.Response
 	reqe            error
-	params          map[string]interface{}
+	params          url.Values
 	url             string
 	bus             string
 	ctx             context.Context
@@ -75,67 +74,67 @@ type HttpRequest struct {
 }
 
 // Post .
-func (hr *HttpRequest) Post() Request {
-	hr.resq.Method = "POST"
-	return hr
+func (req *HttpRequest) Post() Request {
+	req.resq.Method = "POST"
+	return req
 }
 
 // Put .
-func (hr *HttpRequest) Put() Request {
-	hr.resq.Method = "PUT"
-	return hr
+func (req *HttpRequest) Put() Request {
+	req.resq.Method = "PUT"
+	return req
 }
 
 // Get .
-func (hr *HttpRequest) Get() Request {
-	hr.resq.Method = "GET"
-	return hr
+func (req *HttpRequest) Get() Request {
+	req.resq.Method = "GET"
+	return req
 }
 
 // Delete .
-func (hr *HttpRequest) Delete() Request {
-	hr.resq.Method = "DELETE"
-	return hr
+func (req *HttpRequest) Delete() Request {
+	req.resq.Method = "DELETE"
+	return req
 }
 
 // Head .
-func (hr *HttpRequest) Head() Request {
-	hr.resq.Method = "HEAD"
-	return hr
+func (req *HttpRequest) Head() Request {
+	req.resq.Method = "HEAD"
+	return req
 }
 
 // SetContext .
-func (hr *HttpRequest) SetContext(ctx context.Context) Request {
-	hr.ctx = ctx
-	return hr
+func (req *HttpRequest) SetContext(ctx context.Context) Request {
+	req.ctx = ctx
+	return req
 }
 
 // SetJSONBody .
-func (hr *HttpRequest) SetJSONBody(obj interface{}) Request {
+func (req *HttpRequest) SetJSONBody(obj interface{}) Request {
 	byts, e := Marshal(obj)
 	if e != nil {
-		hr.reqe = e
-		return hr
+		req.reqe = e
+		return req
 	}
 
-	hr.resq.Body = ioutil.NopCloser(bytes.NewReader(byts))
-	hr.resq.ContentLength = int64(len(byts))
-	hr.resq.Header.Set("Content-Type", "application/json")
-	return hr
+	req.resq.Body = ioutil.NopCloser(bytes.NewReader(byts))
+	req.resq.ContentLength = int64(len(byts))
+	req.resq.Header.Set("Content-Type", "application/json")
+	return req
 }
 
 // SetBody .
-func (hr *HttpRequest) SetBody(byts []byte) Request {
-	hr.resq.Body = ioutil.NopCloser(bytes.NewReader(byts))
-	hr.resq.ContentLength = int64(len(byts))
-	hr.resq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	return hr
+func (req *HttpRequest) SetBody(byts []byte) Request {
+	req.resq.Body = ioutil.NopCloser(bytes.NewReader(byts))
+	req.resq.ContentLength = int64(len(byts))
+	req.resq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	return req
 }
 
 // ToJSON .
-func (hr *HttpRequest) ToJSON(obj interface{}) (r Response) {
+func (req *HttpRequest) ToJSON(obj interface{}) (r Response) {
 	var body []byte
-	r, body = hr.singleflightDo()
+	r, body = req.singleflightDo()
 	if r.Error != nil {
 		return
 	}
@@ -147,9 +146,9 @@ func (hr *HttpRequest) ToJSON(obj interface{}) (r Response) {
 }
 
 // ToString .
-func (hr *HttpRequest) ToString() (value string, r Response) {
+func (req *HttpRequest) ToString() (value string, r Response) {
 	var body []byte
-	r, body = hr.singleflightDo()
+	r, body = req.singleflightDo()
 	if r.Error != nil {
 		return
 	}
@@ -158,56 +157,43 @@ func (hr *HttpRequest) ToString() (value string, r Response) {
 }
 
 // ToBytes .
-func (hr *HttpRequest) ToBytes() (value []byte, r Response) {
-	r, value = hr.singleflightDo()
+func (req *HttpRequest) ToBytes() (value []byte, r Response) {
+	r, value = req.singleflightDo()
 	return
 }
 
 // ToXML .
-func (hr *HttpRequest) ToXML(v interface{}) (r Response) {
+func (req *HttpRequest) ToXML(v interface{}) (r Response) {
 	var body []byte
-	r, body = hr.singleflightDo()
+	r, body = req.singleflightDo()
 	if r.Error != nil {
 		return
 	}
 
-	hr.httpRespone(&r)
+	req.httpRespone(&r)
 	r.Error = xml.Unmarshal(body, v)
 	return
 }
 
 // SetParam .
-func (hr *HttpRequest) SetParam(key string, value interface{}) Request {
-	hr.params[key] = value
-	return hr
+func (req *HttpRequest) SetParam(key string, value interface{}) Request {
+	req.params.Add(key, fmt.Sprint(value))
+	return req
 }
 
 // SetHeader .
-func (hr *HttpRequest) SetHeader(key, value string) Request {
-	hr.resq.Header.Set(key, value)
-	return hr
+func (req *HttpRequest) SetHeader(key, value string) Request {
+	req.resq.Header.Set(key, value)
+	return req
 }
 
 // URI .
-func (hr *HttpRequest) URI() string {
-	result := hr.url
-	if len(hr.params) > 0 {
-		uris := strings.Split(result, "?")
-		uri := ""
-		if len(uris) > 1 {
-			uri = uris[1]
-		}
-		index := 0
-		for key, value := range hr.params {
-			if index > 0 {
-				uri += "&"
-			}
-			uri += key + "=" + fmt.Sprint(value)
-			index++
-		}
-		result = uris[0] + "?" + uri
+func (req *HttpRequest) URI() string {
+	params := req.params.Encode()
+	if params != "" {
+		return req.url + "?" + params
 	}
-	return result
+	return req.url
 }
 
 type singleflightData struct {
@@ -215,43 +201,43 @@ type singleflightData struct {
 	Body []byte
 }
 
-func (hr *HttpRequest) singleflightDo() (r Response, body []byte) {
-	if hr.singleflightKey == "" {
-		r.Error = hr.prepare()
+func (req *HttpRequest) singleflightDo() (r Response, body []byte) {
+	if req.singleflightKey == "" {
+		r.Error = req.prepare()
 		if r.Error != nil {
 			return
 		}
-		handle(hr)
-		r.Error = hr.responseError
+		handle(req)
+		r.Error = req.responseError
 		if r.Error != nil {
 			return
 		}
-		body = hr.body()
-		hr.httpRespone(&r)
+		body = req.body()
+		req.httpRespone(&r)
 		return
 	}
 
-	data, _, _ := httpclientGroup.Do(hr.singleflightKey, func() (interface{}, error) {
+	data, _, _ := httpclientGroup.Do(req.singleflightKey, func() (interface{}, error) {
 		var res Response
-		res.Error = hr.prepare()
+		res.Error = req.prepare()
 		if r.Error != nil {
 			return &singleflightData{Res: res}, nil
 		}
-		handle(hr)
-		res.Error = hr.responseError
+		handle(req)
+		res.Error = req.responseError
 		if res.Error != nil {
 			return &singleflightData{Res: res}, nil
 		}
 
-		hr.httpRespone(&res)
-		return &singleflightData{Res: res, Body: hr.body()}, nil
+		req.httpRespone(&res)
+		return &singleflightData{Res: res, Body: req.body()}, nil
 	})
 
 	sfdata := data.(*singleflightData)
 	return sfdata.Res, sfdata.Body
 }
 
-func (hr *HttpRequest) do() (e error) {
+func (req *HttpRequest) do() (e error) {
 	waitChanErr := make(chan error)
 	defer close(waitChanErr)
 
@@ -261,31 +247,31 @@ func (hr *HttpRequest) do() (e error) {
 		defer func() {
 			code := ""
 			pro := ""
-			if hr.resp != nil {
-				code = strconv.Itoa(hr.resp.StatusCode)
-				pro = hr.resp.Proto
+			if req.resp != nil {
+				code = strconv.Itoa(req.resp.StatusCode)
+				pro = req.resp.Proto
 			}
 			host := ""
-			if u, err := url.Parse(hr.url); err == nil {
+			if u, err := url.Parse(req.url); err == nil {
 				host = u.Host
 			}
 			if err != nil {
 				code = "error"
 			}
 
-			PrometheusImpl.HttpClientWithLabelValues(host, code, pro, hr.resq.Method, now)
+			PrometheusImpl.HttpClientWithLabelValues(host, code, pro, req.resq.Method, now)
 		}()
-		hr.resp, err = httpclient.Do(hr.resq)
+		req.resp, err = httpclient.Do(req.resq)
 		waitErr <- err
 	}(waitChanErr)
 
-	if hr.ctx == nil {
+	if req.ctx == nil {
 		if err := <-waitChanErr; err != nil {
 			e = err
 			return
 		}
 
-		code := hr.resp.StatusCode
+		code := req.resp.StatusCode
 		if code >= 400 && code <= 600 {
 			e = fmt.Errorf("The FastRequested URL returned error: %d", code)
 			return
@@ -297,15 +283,15 @@ func (hr *HttpRequest) do() (e error) {
 	case <-time.After(httpclient.Timeout):
 		e = errors.New("Timeout")
 		return
-	case <-hr.ctx.Done():
-		e = hr.ctx.Err()
+	case <-req.ctx.Done():
+		e = req.ctx.Err()
 		return
 	case err := <-waitChanErr:
 		if err != nil {
 			e = err
 			return
 		}
-		code := hr.resp.StatusCode
+		code := req.resp.StatusCode
 		if code >= 400 && code <= 600 {
 			e = fmt.Errorf("The FastRequested URL returned error: %d", code)
 			return
@@ -314,33 +300,33 @@ func (hr *HttpRequest) do() (e error) {
 	}
 }
 
-func (hr *HttpRequest) body() (body []byte) {
-	defer hr.resp.Body.Close()
-	if hr.resp.Header.Get("Content-Encoding") == "gzip" {
-		reader, err := gzip.NewReader(hr.resp.Body)
+func (req *HttpRequest) body() (body []byte) {
+	defer req.resp.Body.Close()
+	if req.resp.Header.Get("Content-Encoding") == "gzip" {
+		reader, err := gzip.NewReader(req.resp.Body)
 		if err != nil {
 			return
 		}
 		body, _ = ioutil.ReadAll(reader)
 		return body
 	}
-	body, _ = ioutil.ReadAll(hr.resp.Body)
+	body, _ = ioutil.ReadAll(req.resp.Body)
 	return
 }
 
-func (hr *HttpRequest) httpRespone(httpRespone *Response) {
-	httpRespone.StatusCode = hr.resp.StatusCode
+func (req *HttpRequest) httpRespone(httpRespone *Response) {
+	httpRespone.StatusCode = req.resp.StatusCode
 	httpRespone.HTTP11 = false
-	if hr.resp.ProtoMajor == 1 && hr.resp.ProtoMinor == 1 {
+	if req.resp.ProtoMajor == 1 && req.resp.ProtoMinor == 1 {
 		httpRespone.HTTP11 = true
 	}
 
-	httpRespone.ContentLength = hr.resp.ContentLength
-	httpRespone.ContentType = hr.resp.Header.Get("Content-Type")
+	httpRespone.ContentLength = req.resp.ContentLength
+	httpRespone.ContentType = req.resp.Header.Get("Content-Type")
 	if httpRespone.Header == nil {
 		httpRespone.Header = make(map[string]string)
 	}
-	for key, values := range hr.resp.Header {
+	for key, values := range req.resp.Header {
 		if len(values) < 1 {
 			continue
 		}
@@ -348,45 +334,45 @@ func (hr *HttpRequest) httpRespone(httpRespone *Response) {
 	}
 }
 
-func (hr *HttpRequest) Singleflight(key ...interface{}) Request {
-	hr.singleflightKey = fmt.Sprint(key...)
-	return hr
+func (req *HttpRequest) Singleflight(key ...interface{}) Request {
+	req.singleflightKey = fmt.Sprint(key...)
+	return req
 }
 
-func (hr *HttpRequest) prepare() (e error) {
-	if hr.reqe != nil {
-		return hr.reqe
+func (req *HttpRequest) prepare() (e error) {
+	if req.reqe != nil {
+		return req.reqe
 	}
 
-	u, e := url.Parse(hr.URI())
+	u, e := url.Parse(req.URI())
 	if e != nil {
 		return
 	}
-	hr.resq.URL = u
+	req.resq.URL = u
 	return
 }
 
-func (hr *HttpRequest) Next() {
-	hr.responseError = hr.do()
+func (req *HttpRequest) Next() {
+	req.responseError = req.do()
 }
 
-func (hr *HttpRequest) Stop(e ...error) {
-	hr.stop = true
+func (req *HttpRequest) Stop(e ...error) {
+	req.stop = true
 	if len(e) > 0 {
-		hr.responseError = e[0]
+		req.responseError = e[0]
 		return
 	}
-	hr.responseError = errors.New("Middleware stop")
+	req.responseError = errors.New("Middleware stop")
 }
 
-func (hr *HttpRequest) getStop() bool {
-	return hr.stop
+func (req *HttpRequest) getStop() bool {
+	return req.stop
 }
 
-func (hr *HttpRequest) GetRequest() *http.Request {
-	return hr.resq
+func (req *HttpRequest) GetRequest() *http.Request {
+	return req.resq
 }
 
-func (hr *HttpRequest) GetRespone() (*http.Response, error) {
-	return hr.resp, hr.responseError
+func (req *HttpRequest) GetRespone() (*http.Response, error) {
+	return req.resp, req.responseError
 }

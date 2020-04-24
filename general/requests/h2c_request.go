@@ -13,7 +13,6 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"strings"
 	"time"
 
 	"golang.org/x/net/http2"
@@ -61,7 +60,7 @@ func NewH2CRequest(rawurl string) Request {
 		Header: make(http.Header),
 	}
 	result.resq = req
-	result.params = make(map[string]interface{})
+	result.params = make(url.Values)
 	result.url = rawurl
 	result.stop = false
 	return result
@@ -72,7 +71,7 @@ type H2CRequest struct {
 	resq            *http.Request
 	resp            *http.Response
 	reqe            error
-	params          map[string]interface{}
+	params          url.Values
 	url             string
 	ctx             context.Context
 	singleflightKey string
@@ -81,67 +80,67 @@ type H2CRequest struct {
 }
 
 // Post .
-func (hr *H2CRequest) Post() Request {
-	hr.resq.Method = "POST"
-	return hr
+func (h2cReq *H2CRequest) Post() Request {
+	h2cReq.resq.Method = "POST"
+	return h2cReq
 }
 
 // Put .
-func (hr *H2CRequest) Put() Request {
-	hr.resq.Method = "PUT"
-	return hr
+func (h2cReq *H2CRequest) Put() Request {
+	h2cReq.resq.Method = "PUT"
+	return h2cReq
 }
 
 // Get .
-func (hr *H2CRequest) Get() Request {
-	hr.resq.Method = "GET"
-	return hr
+func (h2cReq *H2CRequest) Get() Request {
+	h2cReq.resq.Method = "GET"
+	return h2cReq
 }
 
 // Delete .
-func (hr *H2CRequest) Delete() Request {
-	hr.resq.Method = "DELETE"
-	return hr
+func (h2cReq *H2CRequest) Delete() Request {
+	h2cReq.resq.Method = "DELETE"
+	return h2cReq
 }
 
 // Head .
-func (hr *H2CRequest) Head() Request {
-	hr.resq.Method = "HEAD"
-	return hr
+func (h2cReq *H2CRequest) Head() Request {
+	h2cReq.resq.Method = "HEAD"
+	return h2cReq
 }
 
 // SetContext .
-func (hr *H2CRequest) SetContext(ctx context.Context) Request {
-	hr.ctx = ctx
-	return hr
+func (h2cReq *H2CRequest) SetContext(ctx context.Context) Request {
+	h2cReq.ctx = ctx
+	return h2cReq
 }
 
 // SetJSONBody .
-func (hr *H2CRequest) SetJSONBody(obj interface{}) Request {
+func (h2cReq *H2CRequest) SetJSONBody(obj interface{}) Request {
 	byts, e := Marshal(obj)
 	if e != nil {
-		hr.reqe = e
-		return hr
+		h2cReq.reqe = e
+		return h2cReq
 	}
 
-	hr.resq.Body = ioutil.NopCloser(bytes.NewReader(byts))
-	hr.resq.ContentLength = int64(len(byts))
-	hr.resq.Header.Set("Content-Type", "application/json")
-	return hr
+	h2cReq.resq.Body = ioutil.NopCloser(bytes.NewReader(byts))
+	h2cReq.resq.ContentLength = int64(len(byts))
+	h2cReq.resq.Header.Set("Content-Type", "application/json")
+	return h2cReq
 }
 
 // SetBody .
-func (hr *H2CRequest) SetBody(byts []byte) Request {
-	hr.resq.Body = ioutil.NopCloser(bytes.NewReader(byts))
-	hr.resq.ContentLength = int64(len(byts))
-	hr.resq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	return hr
+func (h2cReq *H2CRequest) SetBody(byts []byte) Request {
+	h2cReq.resq.Body = ioutil.NopCloser(bytes.NewReader(byts))
+	h2cReq.resq.ContentLength = int64(len(byts))
+	h2cReq.resq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	return h2cReq
 }
 
 // ToJSON .
-func (hr *H2CRequest) ToJSON(obj interface{}) (r Response) {
+func (h2cReq *H2CRequest) ToJSON(obj interface{}) (r Response) {
 	var body []byte
-	r, body = hr.singleflightDo()
+	r, body = h2cReq.singleflightDo()
 	if r.Error != nil {
 		return
 	}
@@ -153,9 +152,9 @@ func (hr *H2CRequest) ToJSON(obj interface{}) (r Response) {
 }
 
 // ToString .
-func (hr *H2CRequest) ToString() (value string, r Response) {
+func (h2cReq *H2CRequest) ToString() (value string, r Response) {
 	var body []byte
-	r, body = hr.singleflightDo()
+	r, body = h2cReq.singleflightDo()
 	if r.Error != nil {
 		return
 	}
@@ -164,95 +163,82 @@ func (hr *H2CRequest) ToString() (value string, r Response) {
 }
 
 // ToBytes .
-func (hr *H2CRequest) ToBytes() (value []byte, r Response) {
-	r, value = hr.singleflightDo()
+func (h2cReq *H2CRequest) ToBytes() (value []byte, r Response) {
+	r, value = h2cReq.singleflightDo()
 	return
 }
 
 // ToXML .
-func (hr *H2CRequest) ToXML(v interface{}) (r Response) {
+func (h2cReq *H2CRequest) ToXML(v interface{}) (r Response) {
 	var body []byte
-	r, body = hr.singleflightDo()
+	r, body = h2cReq.singleflightDo()
 	if r.Error != nil {
 		return
 	}
 
-	hr.httpRespone(&r)
+	h2cReq.httpRespone(&r)
 	r.Error = xml.Unmarshal(body, v)
 	return
 }
 
 // SetParam .
-func (hr *H2CRequest) SetParam(key string, value interface{}) Request {
-	hr.params[key] = value
-	return hr
+func (h2cReq *H2CRequest) SetParam(key string, value interface{}) Request {
+	h2cReq.params.Add(key, fmt.Sprint(value))
+	return h2cReq
 }
 
 // SetHeader .
-func (hr *H2CRequest) SetHeader(key, value string) Request {
-	hr.resq.Header.Add(key, value)
-	return hr
+func (h2cReq *H2CRequest) SetHeader(key, value string) Request {
+	h2cReq.resq.Header.Add(key, value)
+	return h2cReq
 }
 
 // URI .
-func (hr *H2CRequest) URI() string {
-	result := hr.url
-	if len(hr.params) > 0 {
-		uris := strings.Split(result, "?")
-		uri := ""
-		if len(uris) > 1 {
-			uri = uris[1]
-		}
-		index := 0
-		for key, value := range hr.params {
-			if index > 0 {
-				uri += "&"
-			}
-			uri += key + "=" + fmt.Sprint(value)
-			index++
-		}
-		result = uris[0] + "?" + uri
+func (h2cReq *H2CRequest) URI() string {
+	params := h2cReq.params.Encode()
+	if params != "" {
+		return h2cReq.url + "?" + params
 	}
-	return result
+	return h2cReq.url
 }
 
-func (hr *H2CRequest) singleflightDo() (r Response, body []byte) {
-	if hr.singleflightKey == "" {
-		r.Error = hr.prepare()
+func (h2cReq *H2CRequest) singleflightDo() (r Response, body []byte) {
+	if h2cReq.singleflightKey == "" {
+		r.Error = h2cReq.prepare()
 		if r.Error != nil {
 			return
 		}
-		handle(hr)
-		r.Error = hr.responseError
+		handle(h2cReq)
+		r.Error = h2cReq.responseError
 		if r.Error != nil {
 			return
 		}
-		body = hr.body()
-		hr.httpRespone(&r)
+		body = h2cReq.body()
+		h2cReq.httpRespone(&r)
 		return
 	}
 
-	data, _, _ := h2cclientGroup.Do(hr.singleflightKey, func() (interface{}, error) {
+	data, _, _ := h2cclientGroup.Do(h2cReq.singleflightKey, func() (interface{}, error) {
 		var res Response
-		res.Error = hr.prepare()
+		res.Error = h2cReq.prepare()
 		if r.Error != nil {
 			return &singleflightData{Res: res}, nil
 		}
-		handle(hr)
-		res.Error = hr.responseError
+		handle(h2cReq)
+		res.Error = h2cReq.responseError
 		if res.Error != nil {
 			return &singleflightData{Res: res}, nil
 		}
 
-		hr.httpRespone(&res)
-		return &singleflightData{Res: res, Body: hr.body()}, nil
+		h2cReq.httpRespone(&res)
+		return &singleflightData{Res: res, Body: h2cReq.body()}, nil
 	})
 
 	sfdata := data.(*singleflightData)
 	return sfdata.Res, sfdata.Body
 }
 
-func (hr *H2CRequest) do() (e error) {
+func (h2cReq *H2CRequest) do() (e error) {
 	waitChanErr := make(chan error)
 	defer close(waitChanErr)
 
@@ -262,30 +248,30 @@ func (hr *H2CRequest) do() (e error) {
 		defer func() {
 			code := ""
 			pro := ""
-			if hr.resp != nil {
-				code = strconv.Itoa(hr.resp.StatusCode)
-				pro = hr.resp.Proto
+			if h2cReq.resp != nil {
+				code = strconv.Itoa(h2cReq.resp.StatusCode)
+				pro = h2cReq.resp.Proto
 			}
 			host := ""
-			if u, err := url.Parse(hr.url); err == nil {
+			if u, err := url.Parse(h2cReq.url); err == nil {
 				host = u.Host
 			}
 			if err != nil {
 				code = "error"
 			}
-			PrometheusImpl.HttpClientWithLabelValues(host, code, pro, hr.resq.Method, now)
+			PrometheusImpl.HttpClientWithLabelValues(host, code, pro, h2cReq.resq.Method, now)
 		}()
-		hr.resp, err = h2cclient.Do(hr.resq)
+		h2cReq.resp, err = h2cclient.Do(h2cReq.resq)
 		waitErr <- err
 	}(waitChanErr)
 
-	if hr.ctx == nil {
+	if h2cReq.ctx == nil {
 		if err := <-waitChanErr; err != nil {
 			e = err
 			return
 		}
 
-		code := hr.resp.StatusCode
+		code := h2cReq.resp.StatusCode
 		if code >= 400 && code <= 600 {
 			e = fmt.Errorf("The FastRequested URL returned error: %d", code)
 			return
@@ -297,15 +283,15 @@ func (hr *H2CRequest) do() (e error) {
 	case <-time.After(h2cclient.Timeout):
 		e = errors.New("Timeout")
 		return
-	case <-hr.ctx.Done():
-		e = hr.ctx.Err()
+	case <-h2cReq.ctx.Done():
+		e = h2cReq.ctx.Err()
 		return
 	case err := <-waitChanErr:
 		if err != nil {
 			e = err
 			return
 		}
-		code := hr.resp.StatusCode
+		code := h2cReq.resp.StatusCode
 		if code >= 400 && code <= 600 {
 			e = fmt.Errorf("The FastRequested URL returned error: %d", code)
 			return
@@ -314,33 +300,33 @@ func (hr *H2CRequest) do() (e error) {
 	}
 }
 
-func (hr *H2CRequest) body() (body []byte) {
-	defer hr.resp.Body.Close()
-	if hr.resp.Header.Get("Content-Encoding") == "gzip" {
-		reader, err := gzip.NewReader(hr.resp.Body)
+func (h2cReq *H2CRequest) body() (body []byte) {
+	defer h2cReq.resp.Body.Close()
+	if h2cReq.resp.Header.Get("Content-Encoding") == "gzip" {
+		reader, err := gzip.NewReader(h2cReq.resp.Body)
 		if err != nil {
 			return
 		}
 		body, _ = ioutil.ReadAll(reader)
 		return body
 	}
-	body, _ = ioutil.ReadAll(hr.resp.Body)
+	body, _ = ioutil.ReadAll(h2cReq.resp.Body)
 	return
 }
 
-func (hr *H2CRequest) httpRespone(httpRespone *Response) {
-	httpRespone.StatusCode = hr.resp.StatusCode
+func (h2cReq *H2CRequest) httpRespone(httpRespone *Response) {
+	httpRespone.StatusCode = h2cReq.resp.StatusCode
 	httpRespone.HTTP11 = false
-	if hr.resp.ProtoMajor == 1 && hr.resp.ProtoMinor == 1 {
+	if h2cReq.resp.ProtoMajor == 1 && h2cReq.resp.ProtoMinor == 1 {
 		httpRespone.HTTP11 = true
 	}
 
-	httpRespone.ContentLength = hr.resp.ContentLength
-	httpRespone.ContentType = hr.resp.Header.Get("Content-Type")
+	httpRespone.ContentLength = h2cReq.resp.ContentLength
+	httpRespone.ContentType = h2cReq.resp.Header.Get("Content-Type")
 	if httpRespone.Header == nil {
 		httpRespone.Header = make(map[string]string)
 	}
-	for key, values := range hr.resp.Header {
+	for key, values := range h2cReq.resp.Header {
 		if len(values) < 1 {
 			continue
 		}
@@ -348,45 +334,45 @@ func (hr *H2CRequest) httpRespone(httpRespone *Response) {
 	}
 }
 
-func (hr *H2CRequest) Singleflight(key ...interface{}) Request {
-	hr.singleflightKey = fmt.Sprint(key...)
-	return hr
+func (h2cReq *H2CRequest) Singleflight(key ...interface{}) Request {
+	h2cReq.singleflightKey = fmt.Sprint(key...)
+	return h2cReq
 }
 
-func (hr *H2CRequest) prepare() (e error) {
-	if hr.reqe != nil {
-		return hr.reqe
+func (h2cReq *H2CRequest) prepare() (e error) {
+	if h2cReq.reqe != nil {
+		return h2cReq.reqe
 	}
 
-	u, e := url.Parse(hr.URI())
+	u, e := url.Parse(h2cReq.URI())
 	if e != nil {
 		return
 	}
-	hr.resq.URL = u
+	h2cReq.resq.URL = u
 	return
 }
 
-func (hr *H2CRequest) Next() {
-	hr.responseError = hr.do()
+func (h2cReq *H2CRequest) Next() {
+	h2cReq.responseError = h2cReq.do()
 }
 
-func (hr *H2CRequest) Stop(e ...error) {
-	hr.stop = true
+func (h2cReq *H2CRequest) Stop(e ...error) {
+	h2cReq.stop = true
 	if len(e) > 0 {
-		hr.responseError = e[0]
+		h2cReq.responseError = e[0]
 		return
 	}
-	hr.responseError = errors.New("Middleware stop")
+	h2cReq.responseError = errors.New("Middleware stop")
 }
 
-func (hr *H2CRequest) getStop() bool {
-	return hr.stop
+func (h2cReq *H2CRequest) getStop() bool {
+	return h2cReq.stop
 }
 
-func (hr *H2CRequest) GetRequest() *http.Request {
-	return hr.resq
+func (h2cReq *H2CRequest) GetRequest() *http.Request {
+	return h2cReq.resq
 }
 
-func (hr *H2CRequest) GetRespone() (*http.Response, error) {
-	return hr.resp, hr.responseError
+func (h2cReq *H2CRequest) GetRespone() (*http.Response, error) {
+	return h2cReq.resp, h2cReq.responseError
 }
