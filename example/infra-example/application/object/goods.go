@@ -8,7 +8,7 @@ import (
 
 type Goods struct {
 	changes map[string]interface{}
-	Id      int       `gorm:"primary_key" column:"id"`
+	Id      int       `gorm:"primary_key;column:id"`
 	Name    string    `gorm:"column:name"`  // 商品名称
 	Price   int       `gorm:"column:price"` // 价格
 	Stock   int       `gorm:"column:stock"` // 库存

@@ -7,7 +7,7 @@ import (
 
 type Admin struct {
 	changes map[string]interface{}
-	Id      int       `gorm:"primary_key" column:"id"`
+	Id      int       `gorm:"primary_key;column:id"`
 	Name    string    `gorm:"column:name"` // 管理员名称
 	Created time.Time `gorm:"column:created"`
 	Updated time.Time `gorm:"column:updated"`

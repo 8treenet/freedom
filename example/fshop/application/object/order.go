@@ -8,7 +8,7 @@ import (
 
 type Order struct {
 	changes    map[string]interface{}
-	Id         int       `gorm:"primary_key" column:"id"`
+	Id         int       `gorm:"primary_key;column:id"`
 	OrderNo    string    `gorm:"column:order_no"`
 	UserId     int       `gorm:"column:user_id"`     // 用户id
 	TotalPrice int       `gorm:"column:total_price"` // 总价

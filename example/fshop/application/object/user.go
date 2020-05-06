@@ -8,10 +8,10 @@ import (
 
 type User struct {
 	changes  map[string]interface{}
-	Id       int       `gorm:"primary_key" column:"id"` // 用户id
-	Name     string    `gorm:"column:name"`             // 用户名称
-	Money    int       `gorm:"column:money"`            // 金钱
-	Password string    `gorm:"column:password"`         // 密码
+	Id       int       `gorm:"primary_key;column:id"` // 用户id
+	Name     string    `gorm:"column:name"`           // 用户名称
+	Money    int       `gorm:"column:money"`          // 金钱
+	Password string    `gorm:"column:password"`       // 密码
 	Created  time.Time `gorm:"column:created"`
 	Updated  time.Time `gorm:"column:updated"`
 }

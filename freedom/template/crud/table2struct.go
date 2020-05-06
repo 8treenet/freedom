@@ -143,7 +143,7 @@ func (t *Table2Struct) Run() (result []SturctContent, e error) {
 		for _, v := range item {
 			column := v.Tag
 			if v.Primary == "PRI" {
-				v.Tag = "`" + `gorm:"primary_key" column:"` + v.Tag + `"` + "`"
+				v.Tag = "`" + `gorm:"primary_key;column:` + v.Tag + `"` + "`"
 			} else {
 				v.Tag = "`" + `gorm:"column:` + v.Tag + `"` + "`"
 			}

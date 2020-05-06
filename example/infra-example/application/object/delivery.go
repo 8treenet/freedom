@@ -8,7 +8,7 @@ import (
 
 type Delivery struct {
 	changes        map[string]interface{}
-	Id             int       `gorm:"primary_key" column:"id"`
+	Id             int       `gorm:"primary_key;column:id"`
 	AdminId        int       `gorm:"column:admin_id"`        // 管理员id
 	OrderId        int       `gorm:"column:order_id"`        // 订单id
 	TrackingNumber string    `gorm:"column:tracking_number"` // 快递单号
