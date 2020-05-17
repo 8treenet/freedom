@@ -3,23 +3,10 @@ package requests
 import (
 	"context"
 	"encoding/json"
-	"time"
 )
 
 var Unmarshal func(data []byte, v interface{}) error
 var Marshal func(v interface{}) ([]byte, error)
-var PrometheusImpl prometheus
-
-type prometheus interface {
-	HttpClientWithLabelValues(domain, httpCode, protocol, method string, starTime time.Time)
-}
-
-type mockPrometheusImpl struct {
-}
-
-func (m *mockPrometheusImpl) HttpClientWithLabelValues(domain, httpCode, protocol, method string, starTime time.Time) {
-
-}
 
 func init() {
 	if Unmarshal == nil {
@@ -28,7 +15,6 @@ func init() {
 	if Marshal == nil {
 		Marshal = json.Marshal
 	}
-	PrometheusImpl = new(mockPrometheusImpl)
 }
 
 // Request .
@@ -46,7 +32,7 @@ type Request interface {
 	ToXML(v interface{}) Response
 	SetHeader(key, value string) Request
 	SetParam(key string, value interface{}) Request
-	URI() string
+	URL() string
 	SetContext(context.Context) Request
 	Singleflight(key ...interface{}) Request
 }

@@ -39,6 +39,8 @@ func installMiddleware(app freedom.Application) {
 	app.InstallMiddleware(middleware.NewLogger("TRACE-ID", true))
 	app.InstallMiddleware(middleware.NewRuntimeLogger("TRACE-ID"))
 
+	//http client安装普罗米修斯监控
+	requests.InstallPrometheus(config.Get().App.Other["service_name"].(string), freedom.Prometheus())
 	app.InstallBusMiddleware(newBus(config.Get().App.Other["service_name"].(string)))
 }
 

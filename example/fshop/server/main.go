@@ -8,6 +8,7 @@ import (
 	_ "github.com/8treenet/freedom/example/fshop/adapter/controller"
 	"github.com/8treenet/freedom/example/fshop/infra/config"
 	"github.com/8treenet/freedom/infra/kafka" //需要开启 server/conf/infra/kafka.toml open = true
+	"github.com/8treenet/freedom/infra/requests"
 	"github.com/8treenet/freedom/middleware"
 	"github.com/go-redis/redis"
 	"github.com/jinzhu/gorm"
@@ -31,6 +32,7 @@ func installMiddleware(app freedom.Application) {
 	app.InstallMiddleware(middleware.NewTrace("TRACE-ID"))
 	app.InstallMiddleware(middleware.NewLogger("TRACE-ID", true))
 	app.InstallMiddleware(middleware.NewRuntimeLogger("TRACE-ID"))
+	requests.InstallPrometheus(config.Get().App.Other["service_name"].(string), freedom.Prometheus())
 
 	//安装序列化和反序列化
 	extjson.SetDefaultOption(extjson.ExtJSONEntityOption{

@@ -4,6 +4,7 @@ import (
 	"github.com/8treenet/freedom"
 	_ "github.com/8treenet/freedom/example/http2/adapter/controllers"
 	"github.com/8treenet/freedom/example/http2/infra/config"
+	"github.com/8treenet/freedom/infra/requests"
 	"github.com/8treenet/freedom/middleware"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/sirupsen/logrus"
@@ -30,6 +31,8 @@ func installMiddleware(app freedom.Application) {
 	app.InstallMiddleware(middleware.NewLogger("TRACE-ID", true))
 	app.InstallMiddleware(middleware.NewRuntimeLogger("TRACE-ID"))
 
+	//http client安装普罗米修斯监控
+	requests.InstallPrometheus(config.Get().App.Other["service_name"].(string), freedom.Prometheus())
 	app.InstallBusMiddleware(newBus(config.Get().App.Other["service_name"].(string)))
 }
 

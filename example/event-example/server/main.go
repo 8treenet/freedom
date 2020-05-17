@@ -8,6 +8,7 @@ import (
 	_ "github.com/8treenet/freedom/example/event-example/adapter/controllers"
 	"github.com/8treenet/freedom/example/event-example/infra/config"
 	"github.com/8treenet/freedom/infra/kafka"
+	"github.com/8treenet/freedom/infra/requests"
 	"github.com/8treenet/freedom/middleware"
 	"github.com/Shopify/sarama"
 )
@@ -35,4 +36,5 @@ func installMiddleware(app freedom.Application) {
 	app.InstallMiddleware(middleware.NewTrace("TRACE-ID"))
 	app.InstallMiddleware(middleware.NewLogger("TRACE-ID", true))
 	app.InstallMiddleware(middleware.NewRuntimeLogger("TRACE-ID"))
+	requests.InstallPrometheus(config.Get().App.Other["service_name"].(string), freedom.Prometheus())
 }

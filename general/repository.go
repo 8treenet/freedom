@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/8treenet/freedom/general/requests"
+	"github.com/8treenet/freedom/infra/requests"
 	"github.com/go-redis/redis"
 	"github.com/kataras/iris"
 

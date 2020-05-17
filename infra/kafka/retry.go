@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/8treenet/freedom"
-	"github.com/8treenet/freedom/general/requests"
 	cluster "github.com/8treenet/freedom/infra/kafka/cluster"
+	"github.com/8treenet/freedom/infra/requests"
 	"github.com/Shopify/sarama"
 )
 

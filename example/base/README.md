@@ -34,10 +34,12 @@ installMiddleware(app)
 app.Run(addrRunner, *config.Get().App)
 
 func installMiddleware(app freedom.Application) {
-    //安装TRACE中间件，框架已默认安装普罗米修斯
+    //安装TRACE中间件
+    app.InstallMiddleware(middleware.NewRecover())
     app.InstallMiddleware(middleware.NewTrace("TRACE-ID"))
     app.InstallMiddleware(middleware.NewLogger("TRACE-ID", true))
     app.InstallMiddleware(middleware.NewRuntimeLogger("TRACE-ID"))
+    requests.InstallPrometheus(config.Get().App.Other["service_name"].(string), freedom.Prometheus())
 }
 ```
 

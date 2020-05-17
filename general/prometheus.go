@@ -41,11 +41,14 @@ type Prometheus struct {
 	ormReqs    *prometheus.CounterVec
 	ormLatency *prometheus.HistogramVec
 
-	httpClientReqs    *prometheus.CounterVec
-	httpClientLatency *prometheus.HistogramVec
+	// httpClientReqs    *prometheus.CounterVec
+	// httpClientLatency *prometheus.HistogramVec
 
 	kafkaProducerReqs    *prometheus.CounterVec
 	kafkaProducerLatency *prometheus.HistogramVec
+
+	counters   []*prometheus.CounterVec
+	histograms []*prometheus.HistogramVec
 }
 
 type log interface {
@@ -55,8 +58,11 @@ type log interface {
 // newPrometheus returns a new prometheus middleware.
 //
 // If buckets are empty then `DefaultBuckets` are set.
-func newPrometheus(name, listen string) *Prometheus {
-	p := Prometheus{}
+func newPrometheus() *Prometheus {
+	p := &Prometheus{}
+	return p
+}
+func registerPrometheus(p *Prometheus, name, listen string) {
 	p.listen = listen
 	p.reqs = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
@@ -95,24 +101,24 @@ func newPrometheus(name, listen string) *Prometheus {
 	)
 	prometheus.MustRegister(p.ormLatency)
 
-	p.httpClientReqs = prometheus.NewCounterVec(
-		prometheus.CounterOpts{
-			Name:        httpClientReqsName,
-			Help:        "",
-			ConstLabels: prometheus.Labels{"service": name},
-		},
-		[]string{"domain", "http_code", "protocol", "method"},
-	)
-	prometheus.MustRegister(p.httpClientReqs)
+	// p.httpClientReqs = prometheus.NewCounterVec(
+	// 	prometheus.CounterOpts{
+	// 		Name:        httpClientReqsName,
+	// 		Help:        "",
+	// 		ConstLabels: prometheus.Labels{"service": name},
+	// 	},
+	// 	[]string{"domain", "http_code", "protocol", "method"},
+	// )
+	// prometheus.MustRegister(p.httpClientReqs)
 
-	p.httpClientLatency = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Name:        httpClientLatencyName,
-		Help:        "",
-		ConstLabels: prometheus.Labels{"service": name},
-	},
-		[]string{"domain", "http_code", "protocol", "method"},
-	)
-	prometheus.MustRegister(p.httpClientLatency)
+	// p.httpClientLatency = prometheus.NewHistogramVec(prometheus.HistogramOpts{
+	// 	Name:        httpClientLatencyName,
+	// 	Help:        "",
+	// 	ConstLabels: prometheus.Labels{"service": name},
+	// },
+	// 	[]string{"domain", "http_code", "protocol", "method"},
+	// )
+	// prometheus.MustRegister(p.httpClientLatency)
 
 	p.kafkaProducerReqs = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
@@ -132,7 +138,14 @@ func newPrometheus(name, listen string) *Prometheus {
 		[]string{"topic", "error"},
 	)
 	prometheus.MustRegister(p.kafkaProducerLatency)
-	return &p
+
+	for i := 0; i < len(p.counters); i++ {
+		prometheus.MustRegister(p.counters[i])
+	}
+	for i := 0; i < len(p.histograms); i++ {
+		prometheus.MustRegister(p.histograms[i])
+	}
+	return
 }
 
 // newPrometheusHandle .
@@ -177,10 +190,10 @@ func (p *Prometheus) OrmWithLabelValues(model, method string, e error, starTime 
 	p.ormLatency.WithLabelValues(model, method, result).Observe(float64(time.Since(starTime).Nanoseconds()) / 1000000000)
 }
 
-func (p *Prometheus) HttpClientWithLabelValues(domain, httpCode, protocol, method string, starTime time.Time) {
-	p.httpClientReqs.WithLabelValues(domain, httpCode, protocol, method).Inc()
-	p.httpClientLatency.WithLabelValues(domain, httpCode, protocol, method).Observe(float64(time.Since(starTime).Nanoseconds()) / 1000000000)
-}
+// func (p *Prometheus) HttpClientWithLabelValues(domain, httpCode, protocol, method string, starTime time.Time) {
+// 	p.httpClientReqs.WithLabelValues(domain, httpCode, protocol, method).Inc()
+// 	p.httpClientLatency.WithLabelValues(domain, httpCode, protocol, method).Observe(float64(time.Since(starTime).Nanoseconds()) / 1000000000)
+// }
 
 func (p *Prometheus) KafkaProducerWithLabelValues(topic string, e error, starTime time.Time) {
 	err := ""
@@ -189,4 +202,12 @@ func (p *Prometheus) KafkaProducerWithLabelValues(topic string, e error, starTim
 	}
 	p.kafkaProducerReqs.WithLabelValues(topic, err).Inc()
 	p.kafkaProducerLatency.WithLabelValues(topic, err).Observe(float64(time.Since(starTime).Nanoseconds()) / 1000000000)
+}
+
+func (p *Prometheus) RegisterCounter(conter *prometheus.CounterVec) {
+	p.counters = append(p.counters, conter)
+}
+
+func (p *Prometheus) RegisterHistogram(histogram *prometheus.HistogramVec) {
+	p.histograms = append(p.histograms, histogram)
 }

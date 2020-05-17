@@ -12,15 +12,14 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"strconv"
 	"time"
 
 	"golang.org/x/net/http2"
 )
 
 var (
-	h2cclient      *http.Client
-	h2cclientGroup Group
+	DefaultH2CClient *http.Client
+	h2cclientGroup   Group
 )
 
 func init() {
@@ -28,16 +27,20 @@ func init() {
 }
 
 // Newh2cClient .
-func NewH2cClient(rwTimeout time.Duration) {
+func NewH2cClient(rwTimeout time.Duration, connectTimeout ...time.Duration) {
 	tran := &http2.Transport{
 		AllowHTTP: true,
 		DialTLS: func(network, addr string, cfg *tls.Config) (net.Conn, error) {
-			fun := timeoutDialer(5 * time.Second)
+			t := 2 * time.Second
+			if len(connectTimeout) > 0 {
+				t = connectTimeout[0]
+			}
+			fun := timeoutDialer(t)
 			return fun(network, addr)
 		},
 	}
 
-	h2cclient = &http.Client{
+	DefaultH2CClient = &http.Client{
 		Transport: tran,
 		Timeout:   rwTimeout,
 	}
@@ -194,7 +197,7 @@ func (h2cReq *H2CRequest) SetHeader(key, value string) Request {
 }
 
 // URI .
-func (h2cReq *H2CRequest) URI() string {
+func (h2cReq *H2CRequest) URL() string {
 	params := h2cReq.params.Encode()
 	if params != "" {
 		return h2cReq.url + "?" + params
@@ -239,65 +242,19 @@ func (h2cReq *H2CRequest) singleflightDo() (r Response, body []byte) {
 }
 
 func (h2cReq *H2CRequest) do() (e error) {
-	waitChanErr := make(chan error)
-	defer close(waitChanErr)
-
-	go func(waitErr chan error) {
-		var err error
-		now := time.Now()
-		defer func() {
-			code := ""
-			pro := ""
-			if h2cReq.resp != nil {
-				code = strconv.Itoa(h2cReq.resp.StatusCode)
-				pro = h2cReq.resp.Proto
-			}
-			host := ""
-			if u, err := url.Parse(h2cReq.url); err == nil {
-				host = u.Host
-			}
-			if err != nil {
-				code = "error"
-			}
-			PrometheusImpl.HttpClientWithLabelValues(host, code, pro, h2cReq.resq.Method, now)
-		}()
-		h2cReq.resp, err = h2cclient.Do(h2cReq.resq)
-		waitErr <- err
-	}(waitChanErr)
-
-	if h2cReq.ctx == nil {
-		if err := <-waitChanErr; err != nil {
-			e = err
-			return
-		}
-
-		code := h2cReq.resp.StatusCode
-		if code >= 400 && code <= 600 {
-			e = fmt.Errorf("The FastRequested URL returned error: %d", code)
-			return
-		}
-		return
+	if h2cReq.reqe != nil {
+		return h2cReq.reqe
 	}
-
-	select {
-	case <-time.After(h2cclient.Timeout):
-		e = errors.New("Timeout")
-		return
-	case <-h2cReq.ctx.Done():
-		e = h2cReq.ctx.Err()
-		return
-	case err := <-waitChanErr:
-		if err != nil {
-			e = err
-			return
-		}
-		code := h2cReq.resp.StatusCode
-		if code >= 400 && code <= 600 {
-			e = fmt.Errorf("The FastRequested URL returned error: %d", code)
-			return
-		}
-		return
+	u, e := url.Parse(h2cReq.URL())
+	if e != nil {
+		return e
 	}
+	if h2cReq.ctx != nil {
+		h2cReq.resq = h2cReq.resq.WithContext(h2cReq.ctx)
+	}
+	h2cReq.resq.URL = u
+	h2cReq.resp, e = DefaultH2CClient.Do(h2cReq.resq)
+	return
 }
 
 func (h2cReq *H2CRequest) body() (body []byte) {
@@ -344,7 +301,7 @@ func (h2cReq *H2CRequest) prepare() (e error) {
 		return h2cReq.reqe
 	}
 
-	u, e := url.Parse(h2cReq.URI())
+	u, e := url.Parse(h2cReq.URL())
 	if e != nil {
 		return
 	}

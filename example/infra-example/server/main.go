@@ -6,6 +6,7 @@ import (
 	"github.com/8treenet/freedom"
 	_ "github.com/8treenet/freedom/example/infra-example/adapter/controllers"
 	"github.com/8treenet/freedom/example/infra-example/infra/config"
+	"github.com/8treenet/freedom/infra/requests"
 	"github.com/8treenet/freedom/middleware"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
@@ -25,6 +26,7 @@ func installMiddleware(app freedom.Application) {
 	app.InstallMiddleware(middleware.NewTrace("TRACE-ID"))
 	app.InstallMiddleware(middleware.NewLogger("TRACE-ID", true))
 	app.InstallMiddleware(middleware.NewRuntimeLogger("TRACE-ID"))
+	requests.InstallPrometheus(config.Get().App.Other["service_name"].(string), freedom.Prometheus())
 }
 
 func installDatabase(app freedom.Application) {

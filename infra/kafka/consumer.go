@@ -4,7 +4,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/8treenet/freedom/general/requests"
+	"github.com/8treenet/freedom/infra/requests"
 
 	"github.com/8treenet/freedom"
 	cluster "github.com/8treenet/freedom/infra/kafka/cluster"

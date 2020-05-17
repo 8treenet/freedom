@@ -23,7 +23,7 @@
 $ go get github.com/8treenet/freedom/freedom
 
 #升级
-$ go get github.com/8treenet/freedom/freedom@v1.6.6
+$ go get github.com/8treenet/freedom/freedom@v1.6.8
 ```
 
 ## 创建项目

@@ -65,7 +65,7 @@ func mainTemplate() string {
 		"github.com/jinzhu/gorm"
 		"github.com/sirupsen/logrus"
 		"github.com/8treenet/freedom/middleware"
-		
+		"github.com/8treenet/freedom/infra/requests"
 	)
 	
 	func main() {
@@ -89,6 +89,7 @@ func mainTemplate() string {
 		app.InstallMiddleware(middleware.NewTrace("TRACE-ID"))
 		app.InstallMiddleware(middleware.NewLogger("TRACE-ID", true))
 		app.InstallMiddleware(middleware.NewRuntimeLogger("TRACE-ID"))
+		requests.InstallPrometheus(config.Get().App.Other["service_name"].(string), freedom.Prometheus())
 	}
 	
 	func installDatabase(app freedom.Application) {

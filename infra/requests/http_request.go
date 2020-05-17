@@ -11,13 +11,12 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"strconv"
 	"time"
 )
 
 var (
-	httpclient      *http.Client
-	httpclientGroup Group
+	DefaultHttpClient *http.Client
+	httpclientGroup   Group
 )
 
 func init() {
@@ -25,11 +24,16 @@ func init() {
 }
 
 // Newhttpclient .
-func NewHttpClient(rwTimeout time.Duration) {
+func NewHttpClient(rwTimeout time.Duration, connectTimeout ...time.Duration) {
+	t := 2 * time.Second
+	if len(connectTimeout) > 0 {
+		t = connectTimeout[0]
+	}
+
 	tran := &http.Transport{
 		Proxy: http.ProxyFromEnvironment,
 		DialContext: (&net.Dialer{
-			Timeout:   5 * time.Second,
+			Timeout:   t,
 			KeepAlive: 15 * time.Second,
 			DualStack: true,
 		}).DialContext,
@@ -41,7 +45,7 @@ func NewHttpClient(rwTimeout time.Duration) {
 		MaxIdleConnsPerHost:   100,
 	}
 
-	httpclient = &http.Client{
+	DefaultHttpClient = &http.Client{
 		Transport: tran,
 		Timeout:   rwTimeout,
 	}
@@ -188,7 +192,7 @@ func (req *HttpRequest) SetHeader(key, value string) Request {
 }
 
 // URI .
-func (req *HttpRequest) URI() string {
+func (req *HttpRequest) URL() string {
 	params := req.params.Encode()
 	if params != "" {
 		return req.url + "?" + params
@@ -238,66 +242,19 @@ func (req *HttpRequest) singleflightDo() (r Response, body []byte) {
 }
 
 func (req *HttpRequest) do() (e error) {
-	waitChanErr := make(chan error)
-	defer close(waitChanErr)
-
-	go func(waitErr chan error) {
-		var err error
-		now := time.Now()
-		defer func() {
-			code := ""
-			pro := ""
-			if req.resp != nil {
-				code = strconv.Itoa(req.resp.StatusCode)
-				pro = req.resp.Proto
-			}
-			host := ""
-			if u, err := url.Parse(req.url); err == nil {
-				host = u.Host
-			}
-			if err != nil {
-				code = "error"
-			}
-
-			PrometheusImpl.HttpClientWithLabelValues(host, code, pro, req.resq.Method, now)
-		}()
-		req.resp, err = httpclient.Do(req.resq)
-		waitErr <- err
-	}(waitChanErr)
-
-	if req.ctx == nil {
-		if err := <-waitChanErr; err != nil {
-			e = err
-			return
-		}
-
-		code := req.resp.StatusCode
-		if code >= 400 && code <= 600 {
-			e = fmt.Errorf("The FastRequested URL returned error: %d", code)
-			return
-		}
-		return
+	if req.reqe != nil {
+		return req.reqe
 	}
-
-	select {
-	case <-time.After(httpclient.Timeout):
-		e = errors.New("Timeout")
-		return
-	case <-req.ctx.Done():
-		e = req.ctx.Err()
-		return
-	case err := <-waitChanErr:
-		if err != nil {
-			e = err
-			return
-		}
-		code := req.resp.StatusCode
-		if code >= 400 && code <= 600 {
-			e = fmt.Errorf("The FastRequested URL returned error: %d", code)
-			return
-		}
-		return
+	u, e := url.Parse(req.URL())
+	if e != nil {
+		return e
 	}
+	if req.ctx != nil {
+		req.resq = req.resq.WithContext(req.ctx)
+	}
+	req.resq.URL = u
+	req.resp, e = DefaultHttpClient.Do(req.resq)
+	return
 }
 
 func (req *HttpRequest) body() (body []byte) {
@@ -344,7 +301,7 @@ func (req *HttpRequest) prepare() (e error) {
 		return req.reqe
 	}
 
-	u, e := url.Parse(req.URI())
+	u, e := url.Parse(req.URL())
 	if e != nil {
 		return
 	}

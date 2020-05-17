@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/8treenet/extjson"
-	"github.com/8treenet/freedom/general/requests"
+	"github.com/8treenet/freedom/infra/requests"
 )
 
 func init() {

@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/8treenet/freedom/example/fshop/application/dto"
-	"github.com/8treenet/freedom/general/requests"
+	"github.com/8treenet/freedom/infra/requests"
 )
 
 // 获取全部购物车商品
