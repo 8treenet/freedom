@@ -7,8 +7,8 @@ import (
 	"sync"
 
 	"github.com/8treenet/freedom"
-	"github.com/kataras/iris"
-	"github.com/kataras/iris/context"
+	iris "github.com/kataras/iris/v12"
+	"github.com/kataras/iris/v12/context"
 
 	"github.com/kataras/golog"
 )
@@ -21,18 +21,6 @@ func init() {
 			return &freedomLogger{}
 		},
 	}
-}
-
-// NewLogger .
-func NewLogger(traceIDName string, body bool) func(context.Context) {
-	loggerConf := DefaultConfig()
-	loggerConf.IP = false
-	loggerConf.Query = false
-	if body {
-		loggerConf.Query = true
-	}
-	loggerConf.MessageContextKeys = append(loggerConf.MessageContextKeys, traceIDName, "logger_message")
-	return NewRequest(loggerConf)
 }
 
 // NewRuntimeLogger .
@@ -151,12 +139,12 @@ func (l *freedomLogger) Debugf(format string, args ...interface{}) {
 // format
 func (l *freedomLogger) format(v ...interface{}) string {
 	var list []string
-	traceID, ok := freedom.PickRuntime(l.ctx).Bus().Get(l.traceIDName)
+	traceID := freedom.PickRuntime(l.ctx).Bus().Get(l.traceIDName)
 
-	if ok {
+	if traceID != "" {
 		traceIDStr := fmt.Sprint(traceID)
 		if traceIDStr != "" && l.traceIDName != "" {
-			list = append(list, "trace-id:"+traceIDStr)
+			list = append(list, l.traceIDName+":"+traceIDStr)
 		}
 	}
 

@@ -8,16 +8,16 @@ import (
 	"github.com/8treenet/freedom"
 
 	uuid "github.com/iris-contrib/go.uuid"
-	"github.com/kataras/iris/context"
+	"github.com/kataras/iris/v12/context"
 )
 
 // NewTrace .
 func NewTrace(traceIDName string) func(context.Context) {
 	return func(ctx context.Context) {
 		bus := freedom.PickRuntime(ctx).Bus()
-		traceID, ok := bus.Get(traceIDName)
+		traceID := bus.Get(traceIDName)
 		for {
-			if ok || traceID != nil {
+			if traceID != "" {
 				break
 			}
 			uuidv1, e := uuid.NewV1()
@@ -25,11 +25,9 @@ func NewTrace(traceIDName string) func(context.Context) {
 				break
 			}
 			traceID = strings.ReplaceAll(uuidv1.String(), "-", "")
+			bus.Add(traceIDName, traceID)
 			break
 		}
-
-		// ctx.Values().Set(traceIDName, traceID)
-		bus.Add(traceIDName, traceID)
 		ctx.Next()
 	}
 }

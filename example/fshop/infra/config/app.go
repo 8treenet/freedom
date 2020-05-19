@@ -2,7 +2,7 @@ package config
 
 import (
 	"github.com/8treenet/freedom"
-	"github.com/kataras/iris"
+	iris "github.com/kataras/iris/v12"
 )
 
 func newAppConf() *iris.Configuration {

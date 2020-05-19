@@ -92,10 +92,8 @@ import (
 	"strconv"
 
 	"github.com/8treenet/extjson"
-	"github.com/8treenet/freedom/general"
-	"github.com/kataras/iris"
-	"github.com/kataras/iris/context"
-	"github.com/kataras/iris/hero"
+	"github.com/kataras/iris/v12/context"
+	"github.com/kataras/iris/v12/hero"
 )
 
 type JSONResponse struct {
@@ -113,27 +111,19 @@ func (jrep JSONResponse) Dispatch(ctx context.Context) {
 		Error string       %sjson:"error"%s
 		Data  interface{}  %sjson:"data,omitempty"%s
 	}
+
 	repData.Data = jrep.Object
 	repData.Code = jrep.Code
 	if jrep.Error != nil {
 		repData.Error = jrep.Error.Error()
 	}
 	if repData.Error != "" && repData.Code == 0 {
-		repData.Code = iris.StatusNotImplemented
+		repData.Code = 501
 	}
-	loggger := ctx.Values().Get("logger_impl")
 	ctx.Values().Set("code", strconv.Itoa(repData.Code))
 
-	var jsonErr error
-	jrep.content, jsonErr = extjson.Marshal(repData)
-	if loggger != nil {
-		log := loggger.(general.Logger)
-		if jsonErr != nil {
-			log.Info("JSONResponse json error:", jsonErr, "from data", repData)
-			return
-		}
-		log.Info("JSONResponse:", string(jrep.content))
-	}
+	jrep.content, _ = extjson.Marshal(repData)
+	ctx.Values().Set("response", string(jrep.content))
 	hero.DispatchCommon(ctx, 0, jrep.contentType, jrep.content, nil, nil, true)
 }
 

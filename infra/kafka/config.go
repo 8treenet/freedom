@@ -33,13 +33,8 @@ type producerConf struct {
 }
 
 type consumerConf struct {
-	Servers          []string `toml:"servers"`
-	GroupID          string   `toml:"group_id"`
-	RetryCount       int      `toml:"retry_count"`
-	RetryGroupID     string   `toml:"retry_group_id"`
-	RetryPrefix      string   `toml:"retry_prefix"`
-	RetryIntervalSec int      `toml:"retry_interval_sec"`
-	RetryFailPrefix  string   `toml:"retry_fail_prefix"`
+	Servers []string `toml:"servers"`
+	GroupID string   `toml:"group_id"`
 	// Username string   `toml:"topics"`
 	// Password string   `toml:"topics"`
 	// CertFile string   `toml:"topics"`

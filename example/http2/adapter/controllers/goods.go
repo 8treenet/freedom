@@ -19,7 +19,7 @@ type GoodsController struct {
 func (goods *GoodsController) GetBy(id int) (result objects.GoodsModel, e error) {
 	goods.Runtime.Logger().Info("我是GoodsController.GetByID控制器,返回商品名称和价格")
 	//打印出bus的数据
-	name, _ := goods.Runtime.Bus().Get("service-name")
+	name := goods.Runtime.Bus().Get("x-service-name")
 	goods.Runtime.Logger().Error("bus.service-name", name)
 	switch id {
 	case 1:

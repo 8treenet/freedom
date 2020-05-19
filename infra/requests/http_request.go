@@ -186,8 +186,14 @@ func (req *HttpRequest) SetParam(key string, value interface{}) Request {
 }
 
 // SetHeader .
-func (req *HttpRequest) SetHeader(key, value string) Request {
-	req.resq.Header.Set(key, value)
+func (req *HttpRequest) SetHeader(header http.Header) Request {
+	req.resq.Header = header
+	return req
+}
+
+// AddHeader .
+func (req *HttpRequest) AddHeader(key, value string) Request {
+	req.resq.Header.Add(key, value)
 	return req
 }
 
@@ -280,15 +286,7 @@ func (req *HttpRequest) httpRespone(httpRespone *Response) {
 
 	httpRespone.ContentLength = req.resp.ContentLength
 	httpRespone.ContentType = req.resp.Header.Get("Content-Type")
-	if httpRespone.Header == nil {
-		httpRespone.Header = make(map[string]string)
-	}
-	for key, values := range req.resp.Header {
-		if len(values) < 1 {
-			continue
-		}
-		httpRespone.Header[key] = values[0]
-	}
+	httpRespone.Header = req.resp.Header
 }
 
 func (req *HttpRequest) Singleflight(key ...interface{}) Request {

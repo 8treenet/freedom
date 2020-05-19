@@ -13,13 +13,13 @@ import (
 	"golang.org/x/net/http2/h2c"
 
 	"github.com/kataras/golog"
-	"github.com/kataras/iris/core/host"
-	"github.com/kataras/iris/mvc"
+	"github.com/kataras/iris/v12/core/host"
+	"github.com/kataras/iris/v12/mvc"
 
 	stdContext "context"
 
-	"github.com/kataras/iris"
-	"github.com/kataras/iris/context"
+	iris "github.com/kataras/iris/v12"
+	"github.com/kataras/iris/v12/context"
 )
 
 var _ Initiator = new(Application)

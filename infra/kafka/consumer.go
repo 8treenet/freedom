@@ -25,7 +25,6 @@ type Consumer struct {
 	topicPath       map[string]string
 	limiter         *Limiter
 	conf            kafkaConf
-	retry           *retryHandle
 	startUpCallBack []func()
 }
 
@@ -47,10 +46,8 @@ func (c *Consumer) Booting(sb freedom.SingleBoot) {
 		freedom.Logger().Error("'infra/kafka.toml' file under '[[consumer_clients]]' error")
 		return
 	}
-	c.retry = newRetryHandle(c.topicPath, c.conf, c.limiter)
 	sb.Closeing(func() {
 		c.Close()
-		c.retry.Close()
 	})
 
 	c.Listen()
@@ -78,11 +75,6 @@ func (c *Consumer) Listen() {
 		freedom.Logger().Debug("Consumer connect servers: ", c.conf.Consumers[index].Servers)
 		c.saramaConsumers = append(c.saramaConsumers, instance)
 		c.consume(instance, &c.conf.Consumers[index])
-
-		if c.conf.Consumers[index].RetryCount > 0 {
-			c.retry.StartProducer(&c.conf.Consumers[index])
-			go c.retry.StartConsumer(&c.conf.Consumers[index], topicNames)
-		}
 	}
 }
 
@@ -132,15 +124,12 @@ func (kc *Consumer) call(msg *sarama.ConsumerMessage, conf *consumerConf) {
 	}
 	request = request.SetBody(msg.Value)
 	for index := 0; index < len(msg.Headers); index++ {
-		request = request.SetHeader(string(msg.Headers[index].Key), string(msg.Headers[index].Value))
+		request = request.AddHeader(string(msg.Headers[index].Key), string(msg.Headers[index].Value))
 	}
-	request.SetHeader("x-message-key", string(msg.Key)).SetHeader(XRetryCount, "0")
+	request.AddHeader("x-message-key", string(msg.Key))
 	_, resp := request.Post().ToString()
 
 	if resp.Error != nil || resp.StatusCode != 200 {
 		freedom.Logger().Errorf("Call message processing failed, path:%s, topic:%s, addr:%v, body:%v, error:%v", path, msg.Topic, conf.Servers, string(msg.Value), resp.Error)
-		if conf.RetryCount > 0 {
-			kc.retry.RetryMsg(msg.Topic, msg.Value, msg.Key, msg.Headers, conf)
-		}
 	}
 }

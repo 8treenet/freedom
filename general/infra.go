@@ -40,8 +40,8 @@ func (c *Infra) NewHttpRequest(url string, transferCtx ...bool) Request {
 	}
 	HandleBusMiddleware(c.Runtime)
 
-	bus := c.Runtime.Bus()
-	req.SetHeader("x-freedom-bus", bus.ToJson())
+	//bus := c.Runtime.Bus()
+	//req.AddHeader("x-freedom-bus", bus.ToJson())
 	return req
 }
 
@@ -53,7 +53,7 @@ func (c *Infra) NewH2CRequest(url string, transferCtx ...bool) Request {
 	}
 	HandleBusMiddleware(c.Runtime)
 
-	bus := c.Runtime.Bus()
-	req.SetHeader("x-freedom-bus", bus.ToJson())
+	//bus := c.Runtime.Bus()
+	//req.AddHeader("x-freedom-bus", bus.ToJson())
 	return req
 }

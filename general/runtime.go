@@ -3,9 +3,9 @@ package general
 import (
 	"reflect"
 
-	"github.com/kataras/iris"
-	"github.com/kataras/iris/context"
-	"github.com/kataras/iris/core/memstore"
+	iris "github.com/kataras/iris/v12"
+	"github.com/kataras/iris/v12/context"
+	"github.com/kataras/iris/v12/core/memstore"
 )
 
 func newRuntimeHandle() context.Handler {
@@ -25,8 +25,7 @@ func newRuntime(ctx iris.Context) *appRuntime {
 	rt.coms = make(map[reflect.Type]interface{})
 	rt.ctx = ctx
 	rt.store = ctx.Values()
-	busStr := ctx.GetHeader("x-freedom-bus")
-	rt.bus = newBus(busStr)
+	rt.bus = newBus(ctx.Request().Header)
 	return rt
 }
 

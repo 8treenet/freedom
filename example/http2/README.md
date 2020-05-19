@@ -32,12 +32,12 @@ func installLogrus(app freedom.Application) {
 func installMiddleware(app freedom.Application) {
 	/*
 		设置框架自带中间件,可重写
-		NewTrace默认设置了总线, 下游服务和事件消费者服务都会拿到TRACE-ID
-		NewLogger和NewRuntimeLogger 默认读取了总线里的TRACE-ID, 所有上下游服务打印日志全部都携带TRACE-ID
+		NewTrace默认设置了总线, 下游服务和事件消费者服务都会拿到x-request-id
+		NewRequestLogger和NewRuntimeLogger 默认读取了总线里的x-request-id, 所有上下游服务打印日志全部都携带x-request-id
 	*/
-	app.InstallMiddleware(middleware.NewTrace("TRACE-ID"))
-	app.InstallMiddleware(middleware.NewLogger("TRACE-ID", true))
-	app.InstallMiddleware(middleware.NewRuntimeLogger("TRACE-ID"))
+	app.InstallMiddleware(middleware.NewTrace("x-request-id"))
+	app.InstallMiddleware(middleware.NewRequestLogger("x-request-id", true))
+	app.InstallMiddleware(middleware.NewRuntimeLogger("x-request-id"))
 
 	//http client安装普罗米修斯监控
 	requests.InstallPrometheus(config.Get().App.Other["service_name"].(string), freedom.Prometheus())
@@ -49,7 +49,7 @@ func newBus(serviceName string) func(freedom.Runtime) {
 	//调用下游服务和事件消费者将传递service-name， 下游服务和mq事件消费者，使用 Runtime.Bus() 可获取到service-name。
 	return func(run freedom.Runtime) {
 		bus := run.Bus()
-		bus.Add("service-name", serviceName)
+		bus.Add("x-service-name", serviceName)
 	}
 }
 

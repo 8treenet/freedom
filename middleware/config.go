@@ -3,7 +3,7 @@ package middleware
 import (
 	"time"
 
-	"github.com/kataras/iris/context"
+	"github.com/kataras/iris/v12/context"
 )
 
 // The SkipperFunc signature, used to serve the main request without logs.
@@ -78,6 +78,8 @@ type Config struct {
 	// the Skippers as one function in order to reduce the time needed to
 	// combine them at serve time.
 	skip SkipperFunc
+
+	TraceName string
 }
 
 // DefaultConfig returns a default config

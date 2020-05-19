@@ -6,7 +6,7 @@ import (
 
 	"github.com/8treenet/freedom/infra/requests"
 	"github.com/go-redis/redis"
-	"github.com/kataras/iris"
+	iris "github.com/kataras/iris/v12"
 
 	"github.com/jinzhu/gorm"
 )
@@ -76,18 +76,14 @@ func (repo *Repository) NewHttpRequest(url string, transferCtx ...bool) Request 
 	if len(transferCtx) > 0 && !transferCtx[0] {
 		return req
 	}
-	HandleBusMiddleware(repo.Runtime)
 
 	bus := repo.Runtime.Bus()
-	req.SetHeader("x-freedom-bus", bus.ToJson())
-
-	m := globalApp.Iris().ConfigurationReadOnly().GetOther()
-	if serviceName, ok := m["service_name"]; ok {
-		str, strok := serviceName.(string)
-		if strok {
-			req.SetHeader("user-agent", str)
-		}
-	}
+	head := bus.Header
+	cloneHead := bus.Header.Clone()
+	bus.Header = cloneHead
+	HandleBusMiddleware(repo.Runtime)
+	bus.Header = head
+	req.SetHeader(cloneHead)
 	return req
 }
 
@@ -97,18 +93,14 @@ func (repo *Repository) NewH2CRequest(url string, transferCtx ...bool) Request {
 	if len(transferCtx) > 0 && !transferCtx[0] {
 		return req
 	}
-	HandleBusMiddleware(repo.Runtime)
 
 	bus := repo.Runtime.Bus()
-	req.SetHeader("x-freedom-bus", bus.ToJson())
-
-	m := globalApp.Iris().ConfigurationReadOnly().GetOther()
-	if serviceName, ok := m["service_name"]; ok {
-		str, strok := serviceName.(string)
-		if strok {
-			req.SetHeader("user-agent", str)
-		}
-	}
+	head := bus.Header
+	cloneHead := bus.Header.Clone()
+	bus.Header = cloneHead
+	HandleBusMiddleware(repo.Runtime)
+	bus.Header = head
+	req.SetHeader(cloneHead)
 	return req
 }
 

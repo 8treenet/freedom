@@ -5,15 +5,15 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/kataras/iris/core/host"
-	"github.com/kataras/iris/hero"
+	"github.com/kataras/iris/v12/core/host"
+	"github.com/kataras/iris/v12/hero"
 
 	"github.com/8treenet/freedom/general"
 	"github.com/BurntSushi/toml"
 	"github.com/go-redis/redis"
 	"github.com/jinzhu/gorm"
 	"github.com/kataras/golog"
-	"github.com/kataras/iris"
+	iris "github.com/kataras/iris/v12"
 )
 
 var app *general.Application
@@ -59,6 +59,8 @@ type (
 	Bus = general.Bus
 
 	BusHandler = general.BusHandler
+
+	Configuration = iris.Configuration
 )
 
 // NewApplication .
@@ -87,8 +89,23 @@ func Prometheus() *general.Prometheus {
 
 var path string
 
+type Configurer interface {
+	Configure(obj interface{}, file string, must bool, metaData ...interface{})
+}
+
+var configurer Configurer
+
+// SetConfigurer .
+func SetConfigurer(confer Configurer) {
+	configurer = confer
+}
+
 // Configure .
-func Configure(obj interface{}, fileName string, def bool) {
+func Configure(obj interface{}, file string, must bool, metaData ...interface{}) {
+	if configurer != nil {
+		configurer.Configure(obj, file, must)
+		return
+	}
 	if path == "" {
 		path = os.Getenv("FREEDOM_PROJECT_CONFIG")
 		_, err := os.Stat(path)
@@ -128,8 +145,8 @@ func Configure(obj interface{}, fileName string, def bool) {
 	if path == "" {
 		panic("No profile directory found:" + "'$FREEDOM_PROJECT_CONFIG' or './conf' or './server/conf' or '" + callerProjectDir + "'")
 	}
-	_, err := toml.DecodeFile(path+"/"+fileName, obj)
-	if err != nil && !def {
+	_, err := toml.DecodeFile(path+"/"+file, obj)
+	if err != nil && !must {
 		panic(err)
 	}
 }
@@ -157,4 +174,8 @@ func PickRuntime(ctx Context) Runtime {
 		return result
 	}
 	return nil
+}
+
+func DefaultConfiguration() Configuration {
+	return iris.DefaultConfiguration()
 }

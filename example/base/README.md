@@ -36,9 +36,9 @@ app.Run(addrRunner, *config.Get().App)
 func installMiddleware(app freedom.Application) {
     //安装TRACE中间件
     app.InstallMiddleware(middleware.NewRecover())
-    app.InstallMiddleware(middleware.NewTrace("TRACE-ID"))
-    app.InstallMiddleware(middleware.NewLogger("TRACE-ID", true))
-    app.InstallMiddleware(middleware.NewRuntimeLogger("TRACE-ID"))
+    app.InstallMiddleware(middleware.NewTrace("x-request-id"))
+    app.InstallMiddleware(middleware.NewRequestLogger("x-request-id", true))
+    app.InstallMiddleware(middleware.NewRuntimeLogger("x-request-id"))
     requests.InstallPrometheus(config.Get().App.Other["service_name"].(string), freedom.Prometheus())
 }
 ```
@@ -73,7 +73,7 @@ type Application interface {
     InstallOther(f func() interface{})
     //启动回调: Prepare之后，Run之前.
     Start(f func(starter Starter))
-    //安装序列化:应用内的 bus总线数据、领域事件对象、实体等序列化和反序列化。未安装默认使用官方json
+    //安装序列化:应用内的 领域事件对象、实体等序列化和反序列化。未安装默认使用官方json
     InstallSerializer(marshal func(v interface{}) ([]byte, error), unmarshal func(data []byte, v interface{}) error)
 }
 
@@ -88,6 +88,9 @@ type Runtime interface {
     Logger() Logger
     //获取一级缓存实例，请求结束，该缓存生命周期结束。
     Store() *memstore.Store
+    //获取总线，读写上下游透传的数据
+    Bus() *Bus
+}
 
 // Initiator 实例初始化接口，在Prepare使用。
 type Initiator interface {
@@ -129,7 +132,7 @@ type Starter interface {
 
 
 #### controllers/default.go
-##### [iris路由文档](https://github.com/kataras/iris/wiki/MVC)
+##### [iris路由文档](https://github.com/kataras/iris/v12/wiki/MVC)
 ```go
 func init() {
     freedom.Prepare(func(initiator freedom.Initiator) {

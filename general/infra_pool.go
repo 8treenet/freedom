@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/kataras/iris/context"
+	"github.com/kataras/iris/v12/context"
 )
 
 func newInfraPool() *InfraPool {

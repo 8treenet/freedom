@@ -1,34 +1,36 @@
 package general
 
-func newBus(headerStr string) *Bus {
-	// headerStr
-	result := &Bus{
-		m: make(map[string]interface{}),
-	}
+import "net/http"
 
-	globalApp.unmarshal([]byte(headerStr), &result.m)
+func newBus(head http.Header) *Bus {
+	result := &Bus{
+		Header: head.Clone(),
+	}
 	return result
 }
 
 type Bus struct {
-	m map[string]interface{}
+	http.Header
 }
 
 // Add .
-func (b *Bus) Add(key string, obj interface{}) {
-	b.m[key] = obj
+func (b *Bus) Add(key, obj string) {
+	b.Header.Add(key, obj)
 }
 
 // Get .
-func (b *Bus) Get(key string) (obj interface{}, ok bool) {
-	obj, ok = b.m[key]
-	return
+func (b *Bus) Get(key string) string {
+	return b.Header.Get(key)
 }
 
-// ToJson .
-func (b *Bus) ToJson() string {
-	bys, _ := globalApp.marshal(b.m)
-	return string(bys)
+// Set .
+func (b *Bus) Set(key, obj string) {
+	b.Header.Set(key, obj)
+}
+
+// Set .
+func (b *Bus) Del(key string) {
+	b.Header.Del(key)
 }
 
 type BusHandler func(Runtime)

@@ -191,7 +191,13 @@ func (h2cReq *H2CRequest) SetParam(key string, value interface{}) Request {
 }
 
 // SetHeader .
-func (h2cReq *H2CRequest) SetHeader(key, value string) Request {
+func (h2cReq *H2CRequest) SetHeader(header http.Header) Request {
+	h2cReq.resq.Header = header
+	return h2cReq
+}
+
+// AddHeader .
+func (h2cReq *H2CRequest) AddHeader(key, value string) Request {
 	h2cReq.resq.Header.Add(key, value)
 	return h2cReq
 }
@@ -280,15 +286,7 @@ func (h2cReq *H2CRequest) httpRespone(httpRespone *Response) {
 
 	httpRespone.ContentLength = h2cReq.resp.ContentLength
 	httpRespone.ContentType = h2cReq.resp.Header.Get("Content-Type")
-	if httpRespone.Header == nil {
-		httpRespone.Header = make(map[string]string)
-	}
-	for key, values := range h2cReq.resp.Header {
-		if len(values) < 1 {
-			continue
-		}
-		httpRespone.Header[key] = values[0]
-	}
+	httpRespone.Header = h2cReq.resp.Header
 }
 
 func (h2cReq *H2CRequest) Singleflight(key ...interface{}) Request {

@@ -6,7 +6,7 @@ import (
 	"runtime"
 
 	"github.com/kataras/golog"
-	"github.com/kataras/iris/context"
+	"github.com/kataras/iris/v12/context"
 
 	"github.com/8treenet/freedom"
 )

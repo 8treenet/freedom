@@ -13,7 +13,7 @@ func confTemplate() string {
 	return `package config
 
 	import (
-		"github.com/kataras/iris"
+		"github.com/8treenet/freedom"
 	)
 	
 	func init() {
@@ -29,7 +29,7 @@ func confTemplate() string {
 	// Configuration .
 	type Configuration struct {
 		DB    *DBConf
-		App   *iris.Configuration
+		App   *freedom.Configuration
 		Redis *RedisConf
 	}
 	
@@ -43,12 +43,11 @@ func appConfTemplate() string {
 	return `package config
 
 	import (
-		"github.com/kataras/iris"
 		"github.com/8treenet/freedom"
 	)
 	
-	func newAppConf() *iris.Configuration {
-		result := iris.DefaultConfiguration()
+	func newAppConf() *freedom.Configuration {
+		result := freedom.DefaultConfiguration()
 		result.Other["listen_addr"] = ":8000"
 		result.Other["service_name"] = "default"
 		freedom.Configure(&result, "app.toml", false)

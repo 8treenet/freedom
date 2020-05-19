@@ -8,13 +8,28 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kataras/iris/context"
+	"github.com/8treenet/freedom"
+	"github.com/kataras/iris/v12/context"
 
 	"github.com/ryanuber/columnize"
 )
 
+// NewRequestLogger .
+func NewRequestLogger(traceIDName string, body bool) func(context.Context) {
+	loggerConf := DefaultConfig()
+	loggerConf.IP = false
+	loggerConf.Query = false
+	if body {
+		loggerConf.Query = true
+	}
+	loggerConf.MessageContextKeys = append(loggerConf.MessageContextKeys, "logger_message", "response")
+	loggerConf.MessageHeaderKeys = append(loggerConf.MessageHeaderKeys, traceIDName)
+	return NewRequest(loggerConf)
+}
+
 type requestLoggerMiddleware struct {
-	config Config
+	config      Config
+	traceIDName string
 }
 
 func NewRequest(cfg ...Config) context.Handler {
@@ -74,13 +89,19 @@ func (l *requestLoggerMiddleware) ServeHTTP(ctx context.Context) {
 	}
 
 	var message interface{}
-	if ctxKeys := l.config.MessageContextKeys; len(ctxKeys) > 0 {
-		for _, key := range ctxKeys {
-			msg := ctx.Values().Get(key)
-			if message == nil {
-				message = msg
+	var headerMessage interface{}
+	if headerKeys := l.config.MessageHeaderKeys; len(headerKeys) > 0 {
+		bus := freedom.PickRuntime(ctx).Bus()
+		for _, key := range headerKeys {
+			msg := bus.Get(key)
+			if msg == "" {
+				continue
+			}
+			msg = key + ":" + msg
+			if headerMessage == nil {
+				headerMessage = msg
 			} else {
-				message = fmt.Sprintf(" %v %v", message, msg)
+				headerMessage = fmt.Sprintf(" %v %v", headerMessage, msg)
 			}
 		}
 	}
@@ -91,6 +112,24 @@ func (l *requestLoggerMiddleware) ServeHTTP(ctx context.Context) {
 			msg := string(reqBodyBys)
 			msg = strings.Replace(msg, "\n", "", -1)
 			msg = strings.Replace(msg, " ", "", -1)
+			if msg != "" {
+				msg = "request:" + msg
+				if message == nil {
+					message = msg
+				} else {
+					message = fmt.Sprintf(" %v %v", message, msg)
+				}
+			}
+		}
+	}
+
+	if ctxKeys := l.config.MessageContextKeys; len(ctxKeys) > 0 {
+		for _, key := range ctxKeys {
+			msg := ctx.Values().Get(key)
+			if msg == nil {
+				continue
+			}
+			msg = key + ":" + fmt.Sprint(msg)
 			if message == nil {
 				message = msg
 			} else {
@@ -98,21 +137,10 @@ func (l *requestLoggerMiddleware) ServeHTTP(ctx context.Context) {
 			}
 		}
 	}
-	var headerMessage interface{}
-	if headerKeys := l.config.MessageHeaderKeys; len(headerKeys) > 0 {
-		for _, key := range headerKeys {
-			msg := ctx.GetHeader(key)
-			if headerMessage == nil {
-				headerMessage = msg
-			} else {
-				headerMessage = fmt.Sprintf(" %v %v", headerMessage, msg)
-			}
-		}
-	}
 
 	// print the logs
 	if logFunc := l.config.LogFunc; logFunc != nil {
-		logFunc(endTime, latency, status, ip, method, path, message, headerMessage)
+		logFunc(endTime, latency, status, ip, method, path, headerMessage, message)
 		return
 	} else if logFuncCtx := l.config.LogFuncCtx; logFuncCtx != nil {
 		logFuncCtx(ctx, latency)
@@ -121,19 +149,19 @@ func (l *requestLoggerMiddleware) ServeHTTP(ctx context.Context) {
 
 	if l.config.Columns {
 		endTimeFormatted := endTime.Format("2006/01/02 - 15:04:05")
-		output := Columnize(endTimeFormatted, latency, status, ip, method, path, message, headerMessage)
+		output := Columnize(endTimeFormatted, latency, status, ip, method, path, headerMessage, message)
 		ctx.Application().Logger().Printer.Output.Write([]byte(output))
 		return
 	}
 	// no new line, the framework's logger is responsible how to render each log.
 	line := fmt.Sprintf("%v %4v %s %s %s", status, latency, ip, method, path)
+	if headerMessage != nil {
+		line += fmt.Sprintf(" %v", headerMessage)
+	}
 	if message != nil {
 		line += fmt.Sprintf(" %v", message)
 	}
 
-	if headerMessage != nil {
-		line += fmt.Sprintf(" %v", headerMessage)
-	}
 	ctx.Application().Logger().Info(line)
 }
 

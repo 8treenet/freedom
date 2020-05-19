@@ -2,7 +2,6 @@ package project
 
 func init() {
 	content["/application/default.go"] = servicesTemplate()
-	content["/application/interface.go"] = servicesInterfaceTemplate()
 }
 
 func servicesInterfaceTemplate() string {

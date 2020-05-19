@@ -3,6 +3,7 @@ package requests
 import (
 	"context"
 	"encoding/json"
+	"net/http"
 )
 
 var Unmarshal func(data []byte, v interface{}) error
@@ -30,17 +31,18 @@ type Request interface {
 	ToString() (string, Response)
 	ToBytes() ([]byte, Response)
 	ToXML(v interface{}) Response
-	SetHeader(key, value string) Request
 	SetParam(key string, value interface{}) Request
 	URL() string
 	SetContext(context.Context) Request
 	Singleflight(key ...interface{}) Request
+	SetHeader(header http.Header) Request
+	AddHeader(key, value string) Request
 }
 
 // Response .
 type Response struct {
 	Error         error
-	Header        map[string]string
+	Header        http.Header
 	ContentLength int64
 	ContentType   string
 	StatusCode    int

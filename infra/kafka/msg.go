@@ -3,6 +3,7 @@ package kafka
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/8treenet/freedom"
@@ -12,7 +13,7 @@ import (
 
 // Msg .
 type Msg struct {
-	bus          string
+	httpHeader   http.Header
 	topic        string
 	key          string
 	content      []byte
@@ -23,9 +24,7 @@ type Msg struct {
 // SetRuntime .
 func (msg *Msg) SetRuntime(rt freedom.Runtime) *Msg {
 	general.HandleBusMiddleware(rt)
-
-	bus := rt.Bus()
-	msg.bus = bus.ToJson()
+	msg.httpHeader = rt.Bus().Header
 	return msg
 }
 
@@ -37,8 +36,8 @@ func (msg *Msg) Publish() {
 		Value:     sarama.StringEncoder(msg.content),
 		Timestamp: time.Now(),
 	}
-	if msg.bus != "" {
-		saramaMsg.Headers = append(saramaMsg.Headers, sarama.RecordHeader{Key: []byte("x-freedom-bus"), Value: []byte(msg.bus)})
+	for key := range msg.httpHeader {
+		saramaMsg.Headers = append(saramaMsg.Headers, sarama.RecordHeader{Key: []byte(key), Value: []byte(msg.httpHeader.Get(key))})
 	}
 
 	for key, value := range msg.headers {
