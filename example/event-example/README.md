@@ -113,17 +113,6 @@ servers = [":9092"]
 [[consumer_clients]]
 servers = [":9092"]
 group_id = "freedom"
-
-
-# retry 避免离线后丢失 Topic, 所以使用 OffsetOldest。如果新增集群group，手动设置该group 为最新offset
-# kafka-consumer-groups --bootstrap-server 127.0.0.1:9092 --group retry_freedom --reset-offsets --all-topics --to-latest --execute
-# 重试次数为0 关闭
-retry_count = 3
-retry_group_id = "retry_freedom"
-retry_prefix = "retry-"
-#重试的消息间隔时间，最小45秒
-retry_interval_sec = 45
-retry_fail_prefix="fail-"
 ```
 
 
