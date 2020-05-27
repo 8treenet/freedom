@@ -99,7 +99,7 @@ func (app *Application) BindControllerByParty(party iris.Party, controller inter
 
 // GetService .
 func (app *Application) GetService(ctx iris.Context, service interface{}) {
-	app.pool.get(ctx.Values().Get(RuntimeKey).(*appRuntime), service)
+	app.pool.get(ctx.Values().Get(WorkerKey).(*worker), service)
 	return
 }
 
@@ -149,7 +149,7 @@ func (app *Application) BindInfra(single bool, com interface{}) {
 
 // GetInfra .
 func (app *Application) GetInfra(ctx iris.Context, com interface{}) {
-	app.comPool.get(ctx.Values().Get(RuntimeKey).(*appRuntime), reflect.ValueOf(com).Elem())
+	app.comPool.get(ctx.Values().Get(WorkerKey).(*worker), reflect.ValueOf(com).Elem())
 }
 
 // AsyncCachePreheat .
@@ -165,8 +165,8 @@ func (app *Application) CachePreheat(f func(repo *Repository)) {
 }
 
 func (app *Application) generalDep() (result []interface{}) {
-	result = append(result, func(ctx iris.Context) (rt Runtime) {
-		rt = ctx.Values().Get(RuntimeKey).(Runtime)
+	result = append(result, func(ctx iris.Context) (rt Worker) {
+		rt = ctx.Values().Get(WorkerKey).(Worker)
 		return
 	})
 	result = append(result, app.ControllerDep...)
@@ -297,7 +297,7 @@ func (app *Application) GetSingleInfra(com interface{}) {
 }
 
 func (app *Application) addMiddlewares(irisConf iris.Configuration) {
-	app.IrisApp.Use(newRuntimeHandle())
+	app.IrisApp.Use(newWorkerHandle())
 	app.IrisApp.Use(globalApp.pool.freeHandle())
 	app.IrisApp.Use(globalApp.comPool.freeHandle())
 	if pladdr, ok := irisConf.Other["prometheus_listen_addr"]; ok {

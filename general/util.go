@@ -43,6 +43,36 @@ func InSlice(array interface{}, item interface{}) bool {
 	return false
 }
 
+//NewSlice 创建数组
+func NewSlice(dsc interface{}, len int) error {
+	dstv := reflect.ValueOf(dsc)
+	if dstv.Elem().Kind() != reflect.Slice {
+		return errors.New("dsc error")
+	}
+
+	result := reflect.MakeSlice(reflect.TypeOf(dsc).Elem(), len, len)
+	dstv.Elem().Set(result)
+	return nil
+}
+
+//SliceDelete 删除数组指定下标元素
+func SliceDelete(arr interface{}, indexArr ...int) error {
+	dstv := reflect.ValueOf(arr)
+	if dstv.Elem().Kind() != reflect.Slice {
+		return errors.New("dsc error")
+	}
+	result := reflect.MakeSlice(reflect.TypeOf(arr).Elem(), 0, dstv.Elem().Len()-len(indexArr))
+	for index := 0; index < dstv.Elem().Len(); index++ {
+		if InSlice(indexArr, index) {
+			continue
+		}
+		result = reflect.Append(result, dstv.Elem().Index(index))
+	}
+
+	dstv.Elem().Set(result)
+	return nil
+}
+
 func ConvertAssign(dest, src interface{}) error {
 	// Common cases, without reflect.
 	switch s := src.(type) {

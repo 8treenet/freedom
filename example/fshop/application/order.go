@@ -23,7 +23,7 @@ func init() {
 
 // Order 订单领域服务.
 type Order struct {
-	Runtime      freedom.Runtime         //运行时，一个请求绑定一个运行时
+	Worker       freedom.Worker          //运行时，一个请求绑定一个运行时
 	UserRepo     repository.UserRepo     //用户仓库
 	OrderRepo    repository.OrderRepo    //订单仓库
 	AdminRepo    repository.AdminRepo    //管理仓库
@@ -78,7 +78,7 @@ func (o *Order) Delivery(req dto.DeliveryReq) (e error) {
 	cmd := aggregate.NewDeliveryCmd(o.AdminRepo, o.OrderRepo, o.DeliveryRepo, o.Transaction)
 	if e = cmd.LoadEntity(req.OrderNo, req.AdminId); e != nil {
 		//加载实体失败
-		o.Runtime.Logger().Error(e)
+		o.Worker.Logger().Error(e)
 		return
 	}
 

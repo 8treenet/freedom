@@ -8,12 +8,12 @@ import (
 
 // Infra .
 type Infra struct {
-	Runtime Runtime `json:"-"`
+	Worker Worker `json:"-"`
 }
 
 // BeginRequest .子实现多态
-func (c *Infra) BeginRequest(rt Runtime) {
-	c.Runtime = rt
+func (c *Infra) BeginRequest(rt Worker) {
+	c.Worker = rt
 }
 
 // DB .
@@ -32,28 +32,24 @@ func (repo *Infra) GetOther(obj interface{}) {
 	return
 }
 
-// NewHttpRequest, transferCtx : Whether to pass the context, turned on by default. Typically used for tracking internal services.
-func (c *Infra) NewHttpRequest(url string, transferCtx ...bool) Request {
+// NewHttpRequest, transferBus : Whether to pass the context, turned on by default. Typically used for tracking internal services.
+func (c *Infra) NewHttpRequest(url string, transferBus ...bool) Request {
 	req := requests.NewHttpRequest(url)
-	if len(transferCtx) > 0 && !transferCtx[0] {
+	if len(transferBus) > 0 && !transferBus[0] {
 		return req
 	}
-	HandleBusMiddleware(c.Runtime)
 
-	//bus := c.Runtime.Bus()
-	//req.AddHeader("x-freedom-bus", bus.ToJson())
+	req.SetHeader(c.Worker.Bus().Header)
 	return req
 }
 
-// NewH2CRequest, transferCtx : Whether to pass the context, turned on by default. Typically used for tracking internal services.
-func (c *Infra) NewH2CRequest(url string, transferCtx ...bool) Request {
+// NewH2CRequest, transferBus : Whether to pass the context, turned on by default. Typically used for tracking internal services.
+func (c *Infra) NewH2CRequest(url string, transferBus ...bool) Request {
 	req := requests.NewH2CRequest(url)
-	if len(transferCtx) > 0 && !transferCtx[0] {
+	if len(transferBus) > 0 && !transferBus[0] {
 		return req
 	}
-	HandleBusMiddleware(c.Runtime)
 
-	//bus := c.Runtime.Bus()
-	//req.AddHeader("x-freedom-bus", bus.ToJson())
+	req.SetHeader(c.Worker.Bus().Header)
 	return req
 }

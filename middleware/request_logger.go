@@ -24,6 +24,7 @@ func NewRequestLogger(traceIDName string, body bool) func(context.Context) {
 	}
 	loggerConf.MessageContextKeys = append(loggerConf.MessageContextKeys, "logger_message", "response")
 	loggerConf.MessageHeaderKeys = append(loggerConf.MessageHeaderKeys, traceIDName)
+	loggerConf.TraceName = traceIDName
 	return NewRequest(loggerConf)
 }
 
@@ -62,7 +63,14 @@ func (l *requestLoggerMiddleware) ServeHTTP(ctx context.Context) {
 	ctx.Request().Body.Close() //  must close
 	ctx.Request().Body = ioutil.NopCloser(bytes.NewBuffer(reqBodyBys))
 
+	work := freedom.ToWorker(ctx)
+	freelog := newFreedomLogger(l.config.TraceName, work.Bus().Get(l.config.TraceName))
+	work.Store().Set("logger_impl", freelog)
 	ctx.Next()
+
+	if !work.IsDeferRecycle() {
+		loggerPool.Put(freelog)
+	}
 
 	// no time.Since in order to format it well after
 	endTime = time.Now()
@@ -91,7 +99,7 @@ func (l *requestLoggerMiddleware) ServeHTTP(ctx context.Context) {
 	var message interface{}
 	var headerMessage interface{}
 	if headerKeys := l.config.MessageHeaderKeys; len(headerKeys) > 0 {
-		bus := freedom.PickRuntime(ctx).Bus()
+		bus := freedom.ToWorker(ctx).Bus()
 		for _, key := range headerKeys {
 			msg := bus.Get(key)
 			if msg == "" {

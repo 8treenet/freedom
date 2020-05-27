@@ -28,16 +28,16 @@ func init() {
 }
 
 type StoreController struct {
-	Runtime freedom.Runtime
+	Worker freedom.Worker
 }
 
 // PostSellGoodsBy 事件方法为 Post开头, 参数是事件id
 func (s *StoreController) PostSellGoodsBy(eventID string) error {
-	//rawData, err := ioutil.ReadAll(s.Runtime.Ctx().Request().Body)
+	//rawData, err := ioutil.ReadAll(s.Worker.Ctx().Request().Body)
 	var goods objects.Goods
-	s.Runtime.Ctx().ReadJSON(&goods)
+	s.Worker.IrisContext().ReadJSON(&goods)
 
-	action := s.Runtime.Ctx().GetHeader("x-action")
-	s.Runtime.Logger().Infof("消耗商品ID:%d, %d件, 行为:%s, 消息key:%s", goods.ID, goods.Amount, action, eventID)
+	action := s.Worker.IrisContext().GetHeader("x-action")
+	s.Worker.Logger().Infof("消耗商品ID:%d, %d件, 行为:%s, 消息key:%s", goods.ID, goods.Amount, action, eventID)
 	return nil
 }

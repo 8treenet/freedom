@@ -29,7 +29,7 @@ type CartAddCmd struct {
 func (cmd *CartAddCmd) LoadEntity(goodsId, userId int) error {
 	user, e := cmd.userRepo.Get(userId)
 	if e != nil {
-		cmd.GetRuntime().Logger().Error(e, "userId", userId)
+		cmd.GetWorker().Logger().Error(e, "userId", userId)
 		//用户不存在
 		return e
 	}
@@ -38,7 +38,7 @@ func (cmd *CartAddCmd) LoadEntity(goodsId, userId int) error {
 	goods, e := cmd.goodsRepo.Get(goodsId)
 	if e != nil {
 		//商品不存在
-		cmd.GetRuntime().Logger().Error(e, "userId", userId, "goodsId", goodsId)
+		cmd.GetWorker().Logger().Error(e, "userId", userId, "goodsId", goodsId)
 		return e
 	}
 	cmd.goods = *goods

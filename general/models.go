@@ -12,7 +12,7 @@ type GORMRepository interface {
 	DB() *gorm.DB
 	InjectBaseEntity(entity Entity)
 	InjectBaseEntitys(entitys interface{})
-	GetRuntime() Runtime
+	GetWorker() Worker
 }
 
 // QueryBuilder .

@@ -41,7 +41,7 @@ func (pool *InfraPool) bind(single bool, t reflect.Type, com interface{}) {
 }
 
 // get .
-func (pool *InfraPool) get(rt *appRuntime, ptr reflect.Value) bool {
+func (pool *InfraPool) get(rt *worker, ptr reflect.Value) bool {
 	if rtCom := pool.com(rt, ptr.Type()); rtCom != nil {
 		ptr.Set(reflect.ValueOf(rtCom))
 		return true
@@ -108,7 +108,7 @@ func (pool *InfraPool) single(t reflect.Type) interface{} {
 	return nil
 }
 
-func (pool *InfraPool) com(rt *appRuntime, t reflect.Type) interface{} {
+func (pool *InfraPool) com(rt *worker, t reflect.Type) interface{} {
 	if t.Kind() != reflect.Interface {
 		return rt.coms[t]
 	}
@@ -138,7 +138,10 @@ func (pool *InfraPool) much(t reflect.Type) (*sync.Pool, bool) {
 func (pool *InfraPool) freeHandle() context.Handler {
 	return func(ctx context.Context) {
 		ctx.Next()
-		rt := ctx.Values().Get(RuntimeKey).(*appRuntime)
+		rt := ctx.Values().Get(WorkerKey).(*worker)
+		if rt.IsDeferRecycle() {
+			return
+		}
 		for objType, obj := range rt.coms {
 			pool.free(objType, obj)
 		}
@@ -154,7 +157,7 @@ func (pool *InfraPool) free(objType reflect.Type, obj interface{}) {
 	syncpool.Put(obj)
 }
 
-func (pool *InfraPool) diInfra(rt *appRuntime, obj interface{}) {
+func (pool *InfraPool) diInfra(rt *worker, obj interface{}) {
 	allFields(obj, func(value reflect.Value) {
 		globalApp.comPool.get(rt, value)
 	})

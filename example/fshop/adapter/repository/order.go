@@ -73,7 +73,7 @@ func (repo *Order) Find(orderNo string, userId int) (orderEntity *entity.Order, 
 		return
 	}
 
-	e = findOrderDetails(repo, object.OrderDetail{OrderNo: orderEntity.OrderNo}, &orderEntity.Details)
+	e = findOrderDetailList(repo, object.OrderDetail{OrderNo: orderEntity.OrderNo}, &orderEntity.Details)
 	if e != nil {
 		return
 	}
@@ -87,13 +87,13 @@ func (repo *Order) Find(orderNo string, userId int) (orderEntity *entity.Order, 
 func (repo *Order) Finds(userId int, page, pageSize int) (entitys []*entity.Order, totalPage int, e error) {
 	pager := repo.NewORMDescBuilder("id").NewPageBuilder(page, pageSize)
 
-	e = findOrders(repo, object.Order{UserId: userId}, &entitys, pager)
+	e = findOrderList(repo, object.Order{UserId: userId}, &entitys, pager)
 	if e != nil {
 		return
 	}
 
 	for i := 0; i < len(entitys); i++ {
-		e = findOrderDetails(repo, object.OrderDetail{OrderNo: entitys[i].OrderNo}, &entitys[i].Details)
+		e = findOrderDetailList(repo, object.OrderDetail{OrderNo: entitys[i].OrderNo}, &entitys[i].Details)
 		if e != nil {
 			return
 		}
@@ -113,7 +113,7 @@ func (repo *Order) Get(orderNo string) (orderEntity *entity.Order, e error) {
 		return
 	}
 
-	e = findOrderDetails(repo, object.OrderDetail{OrderNo: orderEntity.OrderNo}, &orderEntity.Details)
+	e = findOrderDetailList(repo, object.OrderDetail{OrderNo: orderEntity.OrderNo}, &orderEntity.Details)
 	if e != nil {
 		return
 	}

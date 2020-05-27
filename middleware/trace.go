@@ -14,7 +14,7 @@ import (
 // NewTrace .
 func NewTrace(traceIDName string) func(context.Context) {
 	return func(ctx context.Context) {
-		bus := freedom.PickRuntime(ctx).Bus()
+		bus := freedom.ToWorker(ctx).Bus()
 		traceID := bus.Get(traceIDName)
 		for {
 			if traceID != "" {

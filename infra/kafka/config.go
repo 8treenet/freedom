@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"time"
 
-	cluster "github.com/8treenet/freedom/infra/kafka/cluster"
 	"github.com/Shopify/sarama"
 )
 
@@ -40,10 +39,9 @@ type consumerConf struct {
 	// CertFile string   `toml:"topics"`
 }
 
-func newConsumerConfig(kc consumerConf) *cluster.Config {
-	config := cluster.NewConfig()
+func newConsumerConfig(kc consumerConf) *sarama.Config {
+	config := sarama.NewConfig()
 	config.Version = sarama.V0_11_0_0
-	config.Consumer.Return.Errors = true
 	config.Consumer.Retry.Backoff = 500 * time.Millisecond
 
 	// if kc.Username != "" && kc.Password != "" && kc.CertFile != "" {

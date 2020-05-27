@@ -22,23 +22,18 @@ type GoodsRepository struct {
 
 // GetGoods implment Goods interface
 func (repo *GoodsRepository) GetGoods(goodsID int) (result objects.GoodsModel) {
-	repo.Runtime.Logger().Info("我是GoodsRepository")
+	repo.Worker.Logger().Info("我是GoodsRepository")
+	repo.Worker.Bus().Add("x-sender-name", "GoodsRepository")
 	//通过h2c request 访问本服务 /goods/:id
 	addr := "http://127.0.0.1:8000/goods/" + strconv.Itoa(goodsID)
 	repo.NewH2CRequest(addr).Get().ToJSON(&result)
 
-	correctReq := repo.NewH2CRequest(addr)
+	//开启go 并发,并且没有group wait。请求结束触发相关对象回收，会快于当前并发go的读取数据，所以使用DeferRecycle
+	repo.Worker.DeferRecycle()
 	go func() {
 		var model objects.GoodsModel
-		/*
-			panic 错误方式, repo.NewH2CRequest方法使用了Runtime.Bus(),用来设置传递给下游的总线相关数据，并发中请求运行时结束会导致panic
-			repo.NewH2CRequest(addr).Get().ToJSON(&model)
-		*/
-		//正确方式1, 在请求内创建
-		correctReq.Get().ToJSON(&model)
-
-		//正确方式2, 不向下游传递trace相关数据,不会访问请求运行时。通常访问外部服务设置false。
-		repo.NewH2CRequest(addr, false).Get().ToJSON(&model)
+		repo.NewH2CRequest(addr).Get().ToJSON(&model)
+		repo.NewHttpRequest(addr, false).Get().ToJSON(&model)
 	}()
 	return result
 }

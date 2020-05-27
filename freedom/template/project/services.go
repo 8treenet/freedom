@@ -30,7 +30,7 @@ func servicesTemplate() string {
 	
 	// Default .
 	type Default struct {
-		Runtime   freedom.Runtime
+		Worker   freedom.Worker
 		DefRepo   *repository.Default
 		DefRepoIF repository.DefaultRepoInterface
 	}
@@ -40,7 +40,7 @@ func servicesTemplate() string {
 		Ip string
 		Ua string
 	}) {
-		s.Runtime.Logger().Infof("我是service")
+		s.Worker.Logger().Infof("我是service")
 		result.Ip = s.DefRepo.GetIP()
 		result.Ua = s.DefRepoIF.GetUA()
 		return

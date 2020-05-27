@@ -7,8 +7,6 @@ import (
 	"sync"
 
 	"github.com/8treenet/freedom"
-	iris "github.com/kataras/iris/v12"
-	"github.com/kataras/iris/v12/context"
 
 	"github.com/kataras/golog"
 )
@@ -23,31 +21,21 @@ func init() {
 	}
 }
 
-// NewRuntimeLogger .
-func NewRuntimeLogger(traceIDName string) func(context.Context) {
-	return func(ctx context.Context) {
-		freelog := newFreedomLogger(ctx, traceIDName)
-		ctx.Values().Set("logger_impl", freelog)
-		ctx.Next()
-		loggerPool.Put(freelog)
-	}
-}
-
-func newFreedomLogger(ctx iris.Context, traceIDName string) *freedomLogger {
+func newFreedomLogger(traceName, traceId string) *freedomLogger {
 	logger := loggerPool.New().(*freedomLogger)
-	logger.ctx = ctx
-	logger.traceIDName = traceIDName
+	logger.traceId = traceId
+	logger.traceName = traceName
 	return logger
 }
 
 type freedomLogger struct {
-	ctx         iris.Context
-	traceIDName string
+	traceId   string
+	traceName string
 }
 
 // Print prints a log message without levels and colors.
 func (l *freedomLogger) Print(v ...interface{}) {
-	l.ctx.Application().Logger().Print(l.format(v...))
+	freedom.Logger().Print(l.format(v...))
 }
 
 // Printf formats according to a format specifier and writes to `Printer#Output` without levels and colors.
@@ -58,14 +46,14 @@ func (l *freedomLogger) Printf(format string, args ...interface{}) {
 // Println prints a log message without levels and colors.
 // It adds a new line at the end, it overrides the `NewLine` option.
 func (l *freedomLogger) Println(v ...interface{}) {
-	l.ctx.Application().Logger().Println(l.format(v...))
+	freedom.Logger().Println(l.format(v...))
 }
 
 // Log prints a leveled log message to the output.
 // This method can be used to use custom log levels if needed.
 // It adds a new line in the end.
 func (l *freedomLogger) Log(level golog.Level, v ...interface{}) {
-	l.ctx.Application().Logger().Log(level, l.format(v...))
+	freedom.Logger().Log(level, l.format(v...))
 }
 
 // Logf prints a leveled log message to the output.
@@ -80,7 +68,7 @@ func (l *freedomLogger) Logf(level golog.Level, format string, args ...interface
 // then it will print the log message too.
 func (l *freedomLogger) Fatal(v ...interface{}) {
 	fileLine := fileLine()
-	l.ctx.Application().Logger().Fatal(l.format(v...), " ", fileLine)
+	freedom.Logger().Fatal(l.format(v...), " ", fileLine)
 }
 
 // Fatalf will `os.Exit(1)` no matter the level of the freedomLogger.
@@ -94,7 +82,7 @@ func (l *freedomLogger) Fatalf(format string, args ...interface{}) {
 // Error will print only when freedomLogger's Level is error, warn, info or debug.
 func (l *freedomLogger) Error(v ...interface{}) {
 	fileLine := fileLine()
-	l.ctx.Application().Logger().Error(l.format(v...), " ", fileLine)
+	freedom.Logger().Error(l.format(v...), " ", fileLine)
 }
 
 // Errorf will print only when freedomLogger's Level is error, warn, info or debug.
@@ -105,7 +93,8 @@ func (l *freedomLogger) Errorf(format string, args ...interface{}) {
 
 // Warn will print when freedomLogger's Level is warn, info or debug.
 func (l *freedomLogger) Warn(v ...interface{}) {
-	l.ctx.Application().Logger().Warn(l.format(v...))
+	fileLine := fileLine()
+	freedom.Logger().Warn(l.format(v...), " ", fileLine)
 }
 
 // Warnf will print when freedomLogger's Level is warn, info or debug.
@@ -116,7 +105,7 @@ func (l *freedomLogger) Warnf(format string, args ...interface{}) {
 
 // Info will print when freedomLogger's Level is info or debug.
 func (l *freedomLogger) Info(v ...interface{}) {
-	l.ctx.Application().Logger().Info(l.format(v...))
+	freedom.Logger().Info(l.format(v...))
 }
 
 // Infof will print when freedomLogger's Level is info or debug.
@@ -127,7 +116,8 @@ func (l *freedomLogger) Infof(format string, args ...interface{}) {
 
 // Debug will print when freedomLogger's Level is debug.
 func (l *freedomLogger) Debug(v ...interface{}) {
-	l.ctx.Application().Logger().Debug(l.format(v...))
+	fileLine := fileLine()
+	freedom.Logger().Debug(l.format(v...), " ", fileLine)
 }
 
 // Debugf will print when freedomLogger's Level is debug.
@@ -139,13 +129,8 @@ func (l *freedomLogger) Debugf(format string, args ...interface{}) {
 // format
 func (l *freedomLogger) format(v ...interface{}) string {
 	var list []string
-	traceID := freedom.PickRuntime(l.ctx).Bus().Get(l.traceIDName)
-
-	if traceID != "" {
-		traceIDStr := fmt.Sprint(traceID)
-		if traceIDStr != "" && l.traceIDName != "" {
-			list = append(list, l.traceIDName+":"+traceIDStr)
-		}
+	if l.traceId != "" {
+		list = append(list, l.traceName+":"+l.traceId)
 	}
 
 	for _, i := range v {

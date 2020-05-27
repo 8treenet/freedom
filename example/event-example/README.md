@@ -13,17 +13,9 @@
 
 #### producer
 ```go
-import (
-	"github.com/8treenet/freedom/infra/kafka"
-)
-
-const (
-	EventSell = "event-sell"
-)
-
 //购买控制器
 type ShopController struct {
-    Runtime freedom.Runtime
+    Worker freedom.Worker
     /*
         github.com/8treenet/freedom/infra/kafka
         type Producer interface {
@@ -35,18 +27,15 @@ type ShopController struct {
 
 /* 
     Get handles the GET: /shop/:id route.
-    Producer.NewMsg(Topic string, Content []byte) : 创建消息
-    Msg.SetHeaders(map[string]inteface{}) : 设置k/v 头
-    Msg.SetRuntime(Runtime) : 设置请求上下文，设置后请求的上下文会透传到消费端
-    msg.Publish() : 发布
 */
 func (s *ShopController) GetBy(id int) string {
+    //生产消息
     data, _ := json.Marshal(objects.Goods{
         ID:     id,
         Amount: 10,
     })
     msg := s.Producer.NewMsg(EventSell, data)
-    msg.SetHeaders(map[string]string{"x-action": "购买"}).SetRuntime(s.Runtime).Publish()
+    msg.SetHeaders(map[string]string{"x-action": "购买"}).SetWorker(s.Worker).Publish()
     return "ok"
 }  
 ```
@@ -54,36 +43,26 @@ func (s *ShopController) GetBy(id int) string {
 
 #### consumer
 ```go
-import (
-	"github.com/8treenet/freedom/infra/kafka"
-)
-
 func init() {
     freedom.Prepare(func(initiator freedom.Initiator) {
         store := &StoreController{}
         initiator.BindController("/store", store)
 
-        //绑定事件
+        //绑定消费事件
         initiator.ListenEvent(EventSell, "StoreController.PostSellGoodsBy")
     })
 }
 
-//库存控制器
 type StoreController struct {
-    Runtime freedom.Runtime
+    Worker freedom.Worker
 }
 
 /*
-    PostSellGoodsBy 事件方法为 Post开头, 参数是事件唯一id
+    消费事件必须 Post, 参数是事件唯一id
 */
 func (s *StoreController) PostSellGoodsBy(eventID string) error {
-    //rawData, err := ioutil.ReadAll(s.Runtime.Ctx().Request().Body)
     var goods objects.Goods
-    s.Runtime.Ctx().ReadJSON(&goods)
-
-    action := s.Runtime.Ctx().GetHeader("x-action")
-    s.Runtime.Logger().Infof("消耗商品ID:%d, %d件, 行为:%s, 消息key:%s", goods.ID, goods.Amount, action, eventID)
-    //返回错误 或 http code 不为200 触发重试
+    s.Worker.Ctx().ReadJSON(&goods)
     return nil
 }
 ```
@@ -145,19 +124,13 @@ type Goods struct {
     goodsObj objects.Goods     //商品值对象
 }
 
-/*
-	DomainEvent(fun interface{}, object interface{}, header ...map[string]string)
-	fun : 为触发事件的方法, `实体名字:方法名`
-	object : 结构体数据,会做json转换
-	header : k/v 附加数据
-*/
 func (g *Goods) Shopping() {
     /*
         相关购买逻辑。。。
     */
 
     //触发领域事件 `Goods:Shopping`
-	g.DomainEvent("Goods:Shopping", g.goodsObj)
+    g.DomainEvent("Goods:Shopping", g.goodsObj)
 }
 
 func (g *Goods) Identity() string {

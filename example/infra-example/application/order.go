@@ -21,7 +21,7 @@ func init() {
 
 // OrderService .
 type OrderService struct {
-	Runtime   freedom.Runtime
+	Worker    freedom.Worker
 	GoodsRepo repositorys.GoodsInterface
 	OrderRepo repositorys.OrderInterface
 	Tx        transaction.Transaction

@@ -11,7 +11,6 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
 
-// application/goods_test.go
 func TestGoodsService_Get(t *testing.T) {
 	//创建单元测试工具
 	unitTest := freedom.NewUnitTest()
@@ -42,7 +41,21 @@ func TestGoodsService_Get(t *testing.T) {
 		panic(rep)
 	}
 	t.Log(rep)
-	//在这里做 rep的case，如果不满足条件 触发panic
+	//在这里做 case，如果不满足条件 触发panic
+}
+
+func TestGoodsService_MockGet(t *testing.T) {
+	unitTest := freedom.NewUnitTest()
+	unitTest.Run()
+
+	var srv *GoodsService
+	unitTest.GetService(&srv)
+	srv.GoodsRepo = new(MockGoodsRepository)
+	rep, err := srv.Get(1)
+	if err != nil {
+		panic(rep)
+	}
+	t.Log(rep)
 }
 
 type MockGoodsRepository struct {
@@ -59,17 +72,3 @@ func (repo *MockGoodsRepository) Get(id int) (result object.Goods, e error) {
 
 func (repo *MockGoodsRepository) GetAll() (goods []object.Goods, e error) { return }
 func (repo *MockGoodsRepository) Save(*object.Goods) error                { return nil }
-
-func TestGoodsService_MockGet(t *testing.T) {
-	unitTest := freedom.NewUnitTest()
-	unitTest.Run()
-
-	var srv *GoodsService
-	unitTest.GetService(&srv)
-	srv.GoodsRepo = new(MockGoodsRepository)
-	rep, err := srv.Get(1)
-	if err != nil {
-		panic(rep)
-	}
-	t.Log(rep)
-}

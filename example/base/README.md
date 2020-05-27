@@ -22,27 +22,6 @@
 
 
 ---
-#### 入口main.go
-```go
-
-//创建应用
-app := freedom.NewApplication()
-//安装中间件
-installMiddleware(app)
-
-//应用启动 传入绑定地址和应用配置;
-app.Run(addrRunner, *config.Get().App)
-
-func installMiddleware(app freedom.Application) {
-    //安装TRACE中间件
-    app.InstallMiddleware(middleware.NewRecover())
-    app.InstallMiddleware(middleware.NewTrace("x-request-id"))
-    app.InstallMiddleware(middleware.NewRequestLogger("x-request-id", true))
-    app.InstallMiddleware(middleware.NewRuntimeLogger("x-request-id"))
-    requests.InstallPrometheus(config.Get().App.Other["service_name"].(string), freedom.Prometheus())
-}
-```
-
 #### 接口介绍
 ```go
 // main 应用安装接口
@@ -78,18 +57,25 @@ type Application interface {
 }
 
  /*
-    每一个请求都会串行的创建一系列对象(controller,service,repository)，不用太担心内存问题，因为底层有对象池。
-    Runtime 运行时对象导出接口，一个请求创建一个运行时对象，在不同层里使用也是同一实例。
+    Worker 请求运行时对象，一个请求创建一个运行时对象，可以注入到controller、service、repository。
  */
-type Runtime interface {
+type Worker interface {
     //获取iris的上下文
-    Ctx() freedom.Context
+    IrisContext() freedom.Context
     //获取带上下文的日志实例。
     Logger() Logger
     //获取一级缓存实例，请求结束，该缓存生命周期结束。
     Store() *memstore.Store
     //获取总线，读写上下游透传的数据
     Bus() *Bus
+    //获取标准上下文
+    Context() stdContext.Context
+    //With标准上下文
+    WithContext(stdContext.Context)
+    //该worker起始的时间
+    StartTime() time.Time
+    //延迟回收对象
+    DelayReclaiming()
 }
 
 // Initiator 实例初始化接口，在Prepare使用。
@@ -130,124 +116,250 @@ type Starter interface {
 
 ```
 
+---
+#### 应用生命周期
+|外部使用 | 内部调用 |
+| ----- | :---: |
+|Application.InstallMiddleware| 注册安装的全局中间件|
+|Application.InstallGorm|触发回调|
+|freedom.Prepare|触发回调|
+|Initiator.Starter|触发回调|
+|infra.Booting|触发组件方法|
+|http.Run|开启监听服务|
+|infra.Closeing|触发回调|
+|Application.Close|程序关闭|
 
-#### controllers/default.go
-##### [iris路由文档](https://github.com/kataras/iris/v12/wiki/MVC)
+#### 请求生命周期
+###### 每一个请求开始都会创建若干依赖对象，worker、controller、service、repository、infra等。每一个请求独立使用这些对象，不会多请求并发的读写共享对象。当然也无需担心效率问题，框架已经做了池。请求结束会回收这些对象。 如果过程中使用了go func(){//访问相关对象}，请在之前调用 **Worker.DelayReclaiming()**.
+
+---
+#### main
 ```go
-func init() {
-    freedom.Prepare(func(initiator freedom.Initiator) {
-        /*
-        普通方式绑定 Default控制器到路径 /
-        initiator.BindController("/", &DefaultController{})
-        */
+func main() {
+    app := freedom.NewApplication() //创建应用
+    installDatabase(app)
+    installRedis(app)
+    installMiddleware(app)
 
-        //中间件方式绑定， 只对本控制器生效，全局中间件请在main加入。
-        initiator.BindController("/", &DefaultController{}, func(ctx freedom.Context) {
-            runtime := freedom.PickRuntime(ctx)
-            runtime.Logger().Info("Hello middleware begin")
-            ctx.Next()
-            runtime.Logger().Info("Hello middleware end")
-        })
+    //创建http 监听
+    addrRunner := app.CreateRunner(config.Get().App.Other["listen_addr"].(string))
+    //创建http2.0 h2c 监听
+    addrRunner = app.CreateH2CRunner(config.Get().App.Other["listen_addr"].(string))
+    app.Run(addrRunner, *config.Get().App)
+}
+
+func installMiddleware(app freedom.Application) {
+    //安装全局中间件
+    app.InstallMiddleware(middleware.NewRecover())
+    app.InstallMiddleware(middleware.NewTrace("x-request-id"))
+    app.InstallMiddleware(middleware.NewRequestLogger("x-request-id", true))
+
+    requests.InstallPrometheus(config.Get().App.Other["service_name"].(string), freedom.Prometheus())
+    app.InstallBusMiddleware(middleware.NewLimiter())
+}
+
+func installDatabase(app freedom.Application) {
+    app.InstallGorm(func() (db *gorm.DB) {
+        //安装db的回调函数
+        conf := config.Get().DB
+        var e error
+        db, e = gorm.Open("mysql", conf.Addr)
+        if e != nil {
+            freedom.Logger().Fatal(e.Error())
+        }
+        return
     })
 }
 
-/*
-    控制器 DefaultController
-    Sev : 使用服务对象定义成员变量，与init里的依赖注入相关。可以声明接口成员变量接收。
-*/
-type DefaultController struct {
-    Sev     *services.DefaultService //被注入的变量名，必须是大写开头。go规范小写变量名，反射是无法注入的。
-    Runtime freedom.Runtime //注入请求运行时
+func installRedis(app freedom.Application) {
+    app.InstallRedis(func() (client redis.Cmdable) {
+        cfg := config.Get().Redis
+        opt := &redis.Options{
+            Addr:               cfg.Addr,
+        }
+        redisClient := redis.NewClient(opt)
+        if e := redisClient.Ping().Err(); e != nil {
+            freedom.Logger().Fatal(e.Error())
+        }
+        client = redisClient
+        return
+    })
+}
+```
+---
+#### controllers/default.go
+##### [iris路由文档](https://github.com/kataras/iris/wiki/MVC)
+```go
+package controller
+
+import (
+	"github.com/8treenet/freedom/example/base/application"
+	"github.com/8treenet/freedom/example/base/infra"
+
+	"github.com/8treenet/freedom"
+)
+
+func init() {
+	freedom.Prepare(func(initiator freedom.Initiator) {
+		/*
+		   普通方式绑定 Default控制器到路径 /
+		   initiator.BindController("/", &DefaultController{})
+		*/
+
+		//中间件方式绑定， 只对本控制器生效，全局中间件请在main加入。
+		initiator.BindController("/", &Default{}, func(ctx freedom.Context) {
+			worker := freedom.ToWorker(ctx)
+			worker.Logger().Info("Hello middleware begin")
+			ctx.Next()
+			worker.Logger().Info("Hello middleware end")
+		})
+	})
 }
 
-/* 
-    Get handles the GET: / route.
-    返回json数据 result到客户端
-*/
-func (c *DefaultController) Get() (result struct {
-    IP string
-    UA string
-}, e error) {
-    
-    //打印日志，并且调用服务的 RemoteInfo 方法。
-    c.Runtime.Logger().Infof("我是控制器")
-    remote := c.Sev.RemoteInfo()
+type Default struct {
+	Sev    *application.Default //注入领域服务 Default
+	Worker freedom.Worker //注入请求运行时 Worker
+}
 
-    result.IP = remote.IP
-    result.UA = remote.UA
-    return
+// Get handles the GET: / route.
+func (c *Default) Get() freedom.Result {
+    c.Worker.Logger().Infof("我是控制器")
+    remote := c.Sev.RemoteInfo() //调用服务方法
+    //返回JSON对象
+    return &infra.JSONResponse{Object: remote}
+}
+
+// GetHello handles the GET: /hello route.
+func (c *Default) GetHello() string {
+	return "hello"
+}
+
+// PutHello handles the PUT: /hello route.
+func (c *Default) PutHello() freedom.Result {
+	return &infra.JSONResponse{Object: "putHello"}
+}
+
+// PostHello handles the POST: /hello route.
+func (c *Default) PostHello() freedom.Result {
+	/*
+		var postJsonData struct {
+			UserName     string validate:"required"
+			UserPassword string validate:"required"
+		}
+		if err := c.JSONRequest.ReadJSON(&postJsonData); err != nil {
+			return &infra.JSONResponse{Error: err}
+		}
+	*/
+	return &infra.JSONResponse{Object: "postHello"}
+}
+
+func (m *Default) BeforeActivation(b freedom.BeforeActivation) {
+	b.Handle("ANY", "/custom", "CustomHello")
+	//b.Handle("GET", "/custom", "CustomHello")
+	//b.Handle("PUT", "/custom", "CustomHello")
+	//b.Handle("POST", "/custom", "CustomHello")
+}
+
+// PostHello handles the POST: /hello route.
+func (c *Default) CustomHello() freedom.Result {
+	method := c.Worker.IrisContext().Request().Method
+	c.Worker.Logger().Info(method, "CustomHello")
+	return &infra.JSONResponse{Object: method + "CustomHello"}
+}
+
+// GetUserBy handles the GET: /user/{username:string} route.
+func (c *Default) GetUserBy(username string) string {
+	return username
+}
+
+// GetAgeByUserBy handles the GET: /age/{age:int}/user/{user:string} route.
+func (c *Default) GetAgeByUserBy(age int, user string) freedom.Result {
+	var result struct {
+		User string
+		Age  int
+	}
+	result.Age = age
+	result.User = user
+
+	return &infra.JSONResponse{Object: result}
 }
 ```
 
-#### application/default.go
+#### 领域服务 application/default.go
 ```go
-func init() {
-    freedom.Prepare(func(initiator freedom.Initiator) {
-        //绑定服务
-        initiator.BindService(func() *DefaultService {
-            return &DefaultService{}
-        })
+package application
 
-        //控制器中使用依赖注入, 需要注入到控制器.
-        initiator.InjectController(func(ctx freedom.Context) (ds *DefaultService) {
-            //从对象池中获取service
-            initiator.GetService(ctx, &ds)
-            return
-        })
-    })
+import (
+	"github.com/8treenet/freedom"
+	"github.com/8treenet/freedom/example/base/adapter/repository"
+)
+
+func init() {
+	freedom.Prepare(func(initiator freedom.Initiator) {
+            //绑定 Default Service
+            initiator.BindService(func() *Default {
+                return &Default{}
+            })
+            initiator.InjectController(func(ctx freedom.Context) (service *Default) {
+                //把 Default 注入到控制器
+                initiator.GetService(ctx, &service)
+                return
+            })
+	})
 }
 
-//  领域服务 DefaultService
-type DefaultService struct {
-    Runtime freedom.Runtime
-    DefRepo   *repositorys.DefaultRepository
+// Default .
+type Default struct {
+	Worker    freedom.Worker    //注入请求运行时
+	DefRepo   *repository.Default   //注入仓库对象  DI方式
+	DefRepoIF repository.DefaultRepoInterface  //也可以注入仓库接口 DIP方式
 }
 
 // RemoteInfo .
-func (s *DefaultService) RemoteInfo() (result struct {
-	IP string
-	UA string
+func (s *Default) RemoteInfo() (result struct {
+	Ip string
+	Ua string
 }) {
-    s.Runtime.Logger().Infof("我是service")
-
-    //调用repo获取数据
-    result.IP = s.DefRepo.GetIP()
-    result.UA = s.DefRepo.GetUA()
-    return
+        s.Worker.Logger().Infof("我是service")
+        //调用仓库的方法
+        result.Ip = s.DefRepo.GetIP()
+        result.Ua = s.DefRepoIF.GetUA()
+        return
 }
 ```
 
 #### repositorys/default.go
 ```go
+import (
+	"github.com/8treenet/freedom"
+)
+
 func init() {
-    freedom.Prepare(func(initiator freedom.Initiator) {
-        //绑定 Repository
-        initiator.BindRepository(func() *DefaultRepository {
-            return &DefaultRepository{}
-        })
-    })
+	freedom.Prepare(func(initiator freedom.Initiator) {
+        //绑定 Default Repository
+		initiator.BindRepository(func() *Default {
+			return &Default{}
+		})
+	})
 }
 
-/* 
-    数据仓库 DefaultRepository 
-    数据仓库主要用于 db、缓存、http...的数据组织和抽象，示例直接返回上下文里的ip数据。
-*/
-type DefaultRepository struct {
-    freedom.Repository
+// Default .
+type Default struct {
+    //继承 freedom.Repository
+	freedom.Repository
 }
 
 // GetIP .
-func (repo *DefaultRepository) GetIP() string {
-    repo.Runtime.Logger().Infof("我是Repository GetIP")
-    return repo.Runtime.Ctx().RemoteAddr()
+func (repo *Default) GetIP() string {
+    //只有继承仓库后才有DB、Redis、NewHttp、Other 访问权限, 并且可以直接获取 Worker
+    repo.DB()
+    repo.Redis()
+    repo.Other()
+    repo.NewHttpRequest()
+    repo.Worker.Logger().Infof("我是Repository GetIP")
+    return repo.Worker.IrisContext().RemoteAddr()
 }
 
-// GetUA - implment DefaultRepoInterface interface
-func (repo *DefaultRepository) GetUA() string {
-    //该方法的接口声明在application/default.go
-    repo.Runtime.Logger().Infof("我是Repository GetUA")
-    return repo.Runtime.Ctx().Request().UserAgent()
-}  
 ```
 
 #### 配置文件
@@ -258,6 +370,3 @@ func (repo *DefaultRepository) GetUA() string {
 |server/conf/db.toml|db配置|
 |server/conf/redis.toml|缓存配置|
 |server/conf/infra/.toml|组件相关配置|
-
-#### 生命周期
-###### 每一个请求接入都会创建若干依赖对象，从controller、service、repository、infra。简单的讲每一个请求都是独立的创建和使用这一系列对象，不会导致并发的问题。当然也无需担心效率问题，框架已经做了池。可以参见 initiator 里的各种Bind方法。

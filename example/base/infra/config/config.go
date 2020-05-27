@@ -1,7 +1,7 @@
 package config
 
 import (
-	iris "github.com/kataras/iris/v12"
+	"github.com/8treenet/freedom"
 )
 
 func init() {
@@ -17,7 +17,7 @@ var cfg *Configuration
 // Configuration .
 type Configuration struct {
 	DB    *DBConf
-	App   *iris.Configuration
+	App   *freedom.Configuration
 	Redis *RedisConf
 }
 

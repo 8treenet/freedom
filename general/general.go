@@ -5,7 +5,6 @@ import (
 
 	iris "github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/context"
-	"github.com/kataras/iris/v12/core/memstore"
 )
 
 // Initiator .
@@ -45,15 +44,7 @@ type SingleBoot interface {
 
 // BeginRequest .
 type BeginRequest interface {
-	BeginRequest(runtime Runtime)
-}
-
-// Runtime .
-type Runtime interface {
-	Ctx() iris.Context
-	Logger() Logger
-	Store() *memstore.Store
-	Bus() *Bus
+	BeginRequest(Worker Worker)
 }
 
 var (

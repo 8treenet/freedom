@@ -126,10 +126,10 @@ func (p *ProducerImpl) NewMsg(topic string, content []byte, producerName ...stri
 }
 
 // DomainEvent .
-func (p *ProducerImpl) DomainEvent(producer, topic string, data []byte, runtime freedom.Runtime, header ...map[string]string) {
+func (p *ProducerImpl) DomainEvent(producer, topic string, data []byte, worker freedom.Worker, header ...map[string]string) {
 	msg := p.NewMsg(topic, data, producer)
 	if len(header) > 0 {
 		msg = msg.SetHeaders(header[0])
 	}
-	msg.SetRuntime(runtime).Publish()
+	msg.SetWorker(worker).Publish()
 }

@@ -41,7 +41,7 @@ func (repo *Goods) Finds(ids []int) (entitys []*entity.Goods, e error) {
 	for i := 0; i < len(ids); i++ {
 		primarys = append(primarys, ids[i])
 	}
-	e = findGoodssByPrimarys(repo, &entitys, primarys...)
+	e = findGoodsListByPrimarys(repo, &entitys, primarys...)
 	if e != nil {
 		return
 	}
@@ -53,7 +53,7 @@ func (repo *Goods) Finds(ids []int) (entitys []*entity.Goods, e error) {
 
 func (repo *Goods) FindsByPage(page, pageSize int, tag string) (entitys []*entity.Goods, e error) {
 	build := repo.NewORMDescBuilder("id").NewPageBuilder(page, pageSize)
-	e = findGoodss(repo, object.Goods{Tag: tag}, &entitys, build)
+	e = findGoodsList(repo, object.Goods{Tag: tag}, &entitys, build)
 	if e != nil {
 		return
 	}

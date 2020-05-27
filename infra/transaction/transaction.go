@@ -30,9 +30,9 @@ type TransactionImpl struct {
 }
 
 // BeginRequest
-func (t *TransactionImpl) BeginRequest(rt freedom.Runtime) {
+func (t *TransactionImpl) BeginRequest(worker freedom.Worker) {
 	t.db = nil
-	t.Infra.BeginRequest(rt)
+	t.Infra.BeginRequest(worker)
 }
 
 func (t *TransactionImpl) Execute(fun func() error) (e error) {
@@ -55,19 +55,19 @@ func (t *TransactionImpl) execute(fun func() error, ctx context.Context, opts *s
 		t.db = t.DB().Begin()
 	}
 
-	t.Runtime.Store().Set("freedom_local_transaction_db", t.db)
+	t.Worker.Store().Set("freedom_local_transaction_db", t.db)
 
 	defer func() {
 		if perr := recover(); perr != nil {
 			t.db.Rollback()
 			t.db = nil
 			e = errors.New(fmt.Sprint(perr))
-			t.Runtime.Store().Remove("freedom_local_transaction_db")
+			t.Worker.Store().Remove("freedom_local_transaction_db")
 			return
 		}
 
 		deferdb := t.db
-		t.Runtime.Store().Remove("freedom_local_transaction_db")
+		t.Worker.Store().Remove("freedom_local_transaction_db")
 		t.db = nil
 		if e != nil {
 			e2 := deferdb.Rollback()

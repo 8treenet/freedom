@@ -29,7 +29,6 @@ func installMiddleware(app freedom.Application) {
 	*/
 	app.InstallMiddleware(middleware.NewTrace("x-request-id"))
 	app.InstallMiddleware(middleware.NewRequestLogger("x-request-id", true))
-	app.InstallMiddleware(middleware.NewRuntimeLogger("x-request-id"))
 
 	//http client安装普罗米修斯监控
 	requests.InstallPrometheus(config.Get().App.Other["service_name"].(string), freedom.Prometheus())
@@ -44,9 +43,9 @@ func installLogrus(app freedom.Application) {
 }
 
 // newBus 自定义总线中间件示例.
-func newBus(serviceName string) func(freedom.Runtime) {
-	//调用下游服务和事件消费者将传递service-name， 下游服务和mq事件消费者，使用 Runtime.Bus() 可获取到service-name。
-	return func(run freedom.Runtime) {
+func newBus(serviceName string) func(freedom.Worker) {
+	//调用下游服务和事件消费者将传递service-name， 下游服务和mq事件消费者，使用 Worker.Bus() 可获取到service-name。
+	return func(run freedom.Worker) {
 		bus := run.Bus()
 		bus.Add("x-service-name", serviceName)
 	}

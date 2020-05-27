@@ -21,13 +21,13 @@ func init() {
 
 // ShopService .
 type ShopService struct {
-	Runtime freedom.Runtime
-	Goods   repositorys.GoodsInterface
+	Worker freedom.Worker
+	Goods  repositorys.GoodsInterface
 }
 
 // Shopping implment Shopping interface
 func (s *ShopService) Shopping(goodsID int) string {
-	s.Runtime.Logger().Info("我是ShopService.Shopping")
+	s.Worker.Logger().Info("我是ShopService.Shopping")
 	entity := s.Goods.GetGoods(goodsID)
 	return fmt.Sprintf("您花费了%d元, 购买了一件 %s。", entity.Price, entity.Name)
 }

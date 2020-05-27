@@ -15,7 +15,7 @@ func init() {
 }
 
 type ShopController struct {
-	Runtime  freedom.Runtime
+	Worker   freedom.Worker
 	Producer kafka.Producer
 }
 
@@ -26,6 +26,6 @@ func (s *ShopController) GetBy(id int) string {
 		Amount: 10,
 	})
 	msg := s.Producer.NewMsg(EventSell, data)
-	msg.SetHeaders(map[string]string{"x-action": "购买"}).SetRuntime(s.Runtime).Publish()
+	msg.SetHeaders(map[string]string{"x-action": "购买"}).SetWorker(s.Worker).Publish()
 	return "ok"
 }

@@ -62,7 +62,7 @@ func TestPut(t *testing.T) {
 
 	PostUserReq.ID = 3
 	PostUserReq.NewPassword = "123321"
-	PostUserReq.OldPassword = "4561232"
+	PostUserReq.OldPassword = "123321"
 	err := requests.NewH2CRequest("http://127.0.0.1:8000/user").Put().SetJSONBody(PostUserReq).ToJSON(&Resp)
 	t.Log(Resp, err)
 }

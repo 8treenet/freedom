@@ -16,7 +16,7 @@ func init() {
 }
 
 type Order struct {
-	Runtime     freedom.Runtime
+	Worker      freedom.Worker
 	JSONRequest *infra.JSONRequest //基础设施 用于处理客户端请求io的json数据和验证
 	OrderSrv    *application.Order //订单领域服务
 }
@@ -24,7 +24,7 @@ type Order struct {
 // PutPay 支付订单, PUT: /order/pay route.
 func (o *Order) PutPay() freedom.Result {
 	var req dto.OrderPayReq
-	e := o.JSONRequest.ReadBodyJSON(&req)
+	e := o.JSONRequest.ReadJSON(&req)
 	if e != nil {
 		return &infra.JSONResponse{Error: e}
 	}
@@ -35,9 +35,9 @@ func (o *Order) PutPay() freedom.Result {
 
 // GetItems 获取商品列表, GET: /order/items route.
 func (o *Order) GetItems() freedom.Result {
-	page := o.Runtime.Ctx().URLParamIntDefault("page", 1)
-	pageSize := o.Runtime.Ctx().URLParamIntDefault("pageSize", 10)
-	userId, err := o.Runtime.Ctx().URLParamInt("userId")
+	page := o.Worker.IrisContext().URLParamIntDefault("page", 1)
+	pageSize := o.Worker.IrisContext().URLParamIntDefault("pageSize", 10)
+	userId, err := o.Worker.IrisContext().URLParamInt("userId")
 	if err != nil {
 		return &infra.JSONResponse{Error: err}
 	}
@@ -46,7 +46,7 @@ func (o *Order) GetItems() freedom.Result {
 	if err != nil {
 		return &infra.JSONResponse{Error: err}
 	}
-	o.Runtime.Ctx().Header("X-Total-Page", strconv.Itoa(totalPage))
+	o.Worker.IrisContext().Header("X-Total-Page", strconv.Itoa(totalPage))
 
 	return &infra.JSONResponse{Object: dtoItems}
 }

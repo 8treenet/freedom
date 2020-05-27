@@ -39,7 +39,7 @@ type ShopCartGoodsCmd struct {
 func (cmd *ShopCartGoodsCmd) LoadEntity(userId int) error {
 	user, e := cmd.userRepo.Get(userId)
 	if e != nil {
-		cmd.GetRuntime().Logger().Error(e, "userId", userId)
+		cmd.GetWorker().Logger().Error(e, "userId", userId)
 		//用户不存在
 		return e
 	}

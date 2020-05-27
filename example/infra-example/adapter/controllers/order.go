@@ -13,13 +13,13 @@ func init() {
 }
 
 type OrderController struct {
-	Runtime  freedom.Runtime
+	Worker   freedom.Worker
 	OrderSev *application.OrderService
 }
 
 // GetBy handles the GET: /order/:id route 通过id获取订单.
 func (c *OrderController) GetBy(goodsID int) freedom.Result {
-	userId, err := c.Runtime.Ctx().URLParamInt("userId")
+	userId, err := c.Worker.IrisContext().URLParamInt("userId")
 	if err != nil {
 		return &infra.JSONResponse{Error: err}
 	}
@@ -33,7 +33,7 @@ func (c *OrderController) GetBy(goodsID int) freedom.Result {
 
 // GetBy handles the GET: /order route 获取全部订单.
 func (c *OrderController) Get() freedom.Result {
-	userId, err := c.Runtime.Ctx().URLParamInt("userId")
+	userId, err := c.Worker.IrisContext().URLParamInt("userId")
 	if err != nil {
 		return &infra.JSONResponse{Error: err}
 	}

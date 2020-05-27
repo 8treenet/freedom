@@ -24,7 +24,7 @@ func main() {
 	})
 	app := freedom.NewApplication()
 	installMiddleware(app)
-	addrRunner := app.CreateRunner(config.Get().App.Other["listen_addr"].(string))
+	addrRunner := app.CreateH2CRunner(config.Get().App.Other["listen_addr"].(string))
 
 	//获取领域事件的kafka基础设施并安装
 	app.InstallDomainEventInfra(kafka.GetDomainEventInfra())
@@ -35,7 +35,7 @@ func installMiddleware(app freedom.Application) {
 	app.InstallMiddleware(middleware.NewRecover())
 	app.InstallMiddleware(middleware.NewTrace("x-request-id"))
 	app.InstallMiddleware(middleware.NewRequestLogger("x-request-id", true))
-	app.InstallMiddleware(middleware.NewRuntimeLogger("x-request-id"))
+
 	app.InstallBusMiddleware(middleware.NewLimiter())
 	requests.InstallPrometheus(config.Get().App.Other["service_name"].(string), freedom.Prometheus())
 }

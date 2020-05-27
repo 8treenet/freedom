@@ -24,7 +24,7 @@ func init() {
 
 // Goods 商品领域服务.
 type Goods struct {
-	Runtime   freedom.Runtime      //运行时，一个请求绑定一个运行时
+	Worker    freedom.Worker       //运行时，一个请求绑定一个运行时
 	GoodsRepo repository.GoodsRepo //商品仓库
 	OrderRepo repository.OrderRepo //订单仓库
 	UserRepo  repository.UserRepo  //用户仓库
@@ -86,9 +86,9 @@ func (g *Goods) MarkedTag(goodsId int, tag string) (e error) {
 func (g *Goods) Shop(goodsId, goodsNum, userId int) (e error) {
 	defer func() {
 		if e != nil {
-			g.Runtime.Logger().Error("shop失败", e)
+			g.Worker.Logger().Error("shop失败", e)
 		} else {
-			g.Runtime.Logger().Info("shop 成功", goodsId, goodsNum, userId)
+			g.Worker.Logger().Info("shop 成功", goodsId, goodsNum, userId)
 		}
 	}()
 

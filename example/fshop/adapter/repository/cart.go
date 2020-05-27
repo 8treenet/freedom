@@ -26,8 +26,7 @@ type Cart struct {
 
 // FindAll 获取用户购物车实体
 func (repo *Cart) FindAll(userId int) (entitys []*entity.Cart, e error) {
-	findCarts(repo, object.Cart{UserId: userId}, &entitys)
-	e = findCarts(repo, object.Cart{UserId: userId}, &entitys)
+	e = findCartList(repo, object.Cart{UserId: userId}, &entitys)
 	return
 }
 

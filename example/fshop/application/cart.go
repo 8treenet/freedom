@@ -23,7 +23,7 @@ func init() {
 
 // Cart 领域服务.
 type Cart struct {
-	Runtime     freedom.Runtime         //运行时，一个请求绑定一个运行时
+	Worker      freedom.Worker          //运行时，一个请求绑定一个运行时
 	UserRepo    repository.UserRepo     //用户仓库
 	CartRepo    repository.CartRepo     //购物车仓库
 	GoodsRepo   repository.GoodsRepo    //商品仓库

@@ -13,20 +13,28 @@ import (
 
 // Repository .
 type Repository struct {
-	Runtime Runtime
+	Worker Worker
 }
 
 // BeginRequest .
-func (repo *Repository) BeginRequest(rt Runtime) {
-	repo.Runtime = rt
+func (repo *Repository) BeginRequest(rt Worker) {
+	repo.Worker = rt
 }
 
 // DB .
 func (repo *Repository) DB() (db *gorm.DB) {
-	transactionData := repo.Runtime.Store().Get("freedom_local_transaction_db")
+	transactionData := repo.Worker.Store().Get("freedom_local_transaction_db")
 	if transactionData != nil {
 		return transactionData.(*gorm.DB)
 	}
+
+	db = globalApp.Database.db.New()
+	db.SetLogger(repo.Worker.Logger())
+	return
+}
+
+// SourceDB .
+func (repo *Repository) SourceDB() (db *gorm.DB) {
 	return globalApp.Database.db
 }
 
@@ -70,37 +78,23 @@ func (repo *Repository) Redis() redis.Cmdable {
 // Request .
 type Request requests.Request
 
-// NewHttpRequest, transferCtx : Whether to pass the context, turned on by default. Typically used for tracking internal services.
-func (repo *Repository) NewHttpRequest(url string, transferCtx ...bool) Request {
+// NewHttpRequest, transferBus : Whether to pass the context, turned on by default. Typically used for tracking internal services.
+func (repo *Repository) NewHttpRequest(url string, transferBus ...bool) Request {
 	req := requests.NewHttpRequest(url)
-	if len(transferCtx) > 0 && !transferCtx[0] {
+	if len(transferBus) > 0 && !transferBus[0] {
 		return req
 	}
-
-	bus := repo.Runtime.Bus()
-	head := bus.Header
-	cloneHead := bus.Header.Clone()
-	bus.Header = cloneHead
-	HandleBusMiddleware(repo.Runtime)
-	bus.Header = head
-	req.SetHeader(cloneHead)
+	req.SetHeader(repo.Worker.Bus().Header)
 	return req
 }
 
-// NewH2CRequest, transferCtx : Whether to pass the context, turned on by default. Typically used for tracking internal services.
-func (repo *Repository) NewH2CRequest(url string, transferCtx ...bool) Request {
+// NewH2CRequest, transferBus : Whether to pass the context, turned on by default. Typically used for tracking internal services.
+func (repo *Repository) NewH2CRequest(url string, transferBus ...bool) Request {
 	req := requests.NewH2CRequest(url)
-	if len(transferCtx) > 0 && !transferCtx[0] {
+	if len(transferBus) > 0 && !transferBus[0] {
 		return req
 	}
-
-	bus := repo.Runtime.Bus()
-	head := bus.Header
-	cloneHead := bus.Header.Clone()
-	bus.Header = cloneHead
-	HandleBusMiddleware(repo.Runtime)
-	bus.Header = head
-	req.SetHeader(cloneHead)
+	req.SetHeader(repo.Worker.Bus().Header)
 	return req
 }
 
@@ -129,7 +123,7 @@ func (repo *Repository) NewH2CRequest(url string, transferCtx ...bool) Request {
 
 // InjectBaseEntity .
 func (repo *Repository) InjectBaseEntity(entity Entity) {
-	injectBaseEntity(repo.Runtime, entity)
+	injectBaseEntity(repo.Worker, entity)
 	return
 }
 
@@ -144,13 +138,13 @@ func (repo *Repository) InjectBaseEntitys(entitys interface{}) {
 		if _, ok := iface.(Entity); !ok {
 			panic("This is not an entity")
 		}
-		injectBaseEntity(repo.Runtime, iface)
+		injectBaseEntity(repo.Worker, iface)
 	}
 	return
 }
 
-// GetOther .
-func (repo *Repository) GetOther(obj interface{}) {
+// Other .
+func (repo *Repository) Other(obj interface{}) {
 	globalApp.other.get(obj)
 	return
 }
@@ -165,6 +159,6 @@ func repositoryAPIRun(irisConf iris.Configuration) {
 }
 
 // GetRuntime .
-func (repo *Repository) GetRuntime() Runtime {
-	return repo.Runtime
+func (repo *Repository) GetWorker() Worker {
+	return repo.Worker
 }

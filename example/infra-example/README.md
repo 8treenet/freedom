@@ -1,11 +1,9 @@
 # freedom
-### repository和事务组件
+### 事务组件和自定义组件
 ---
 
 #### 本篇概要 
-- 围绕购物项目
 - CRUD代码生成 
-- repository
 - 事务组件
 - 单元测试
 - 如何自定义基础设施组件
@@ -18,60 +16,6 @@
 #创建表模型 freedom new-crud
 $ freedom new-crud
 ```
-
-#### repository
-###### 数据仓库，用来读写Goods和Order的模型，限于篇幅 示例只使用到mysql数据。
-```go
-package repositorys
-
-import (
-	"github.com/8treenet/freedom"
-	//objects 目录下的模型 和repositorys/generate.go 由crud生成
-	"github.com/8treenet/freedom/example/infra-example/application/objects"
-)
-
-func init() {
-	freedom.Prepare(func(initiator freedom.Initiator) {
-		//初始化绑定该仓库实例
-		initiator.BindRepository(func() *GoodsRepository {
-			return &GoodsRepository{}
-		})
-	})
-}
-
-// GoodsRepository .
-type GoodsRepository struct {
-	freedom.Repository	//仓库必须继承 freedom.Repository，否则无法使用数据源
-}
-
-func (repo *GoodsRepository) Get(id int) (result objects.Goods, e error) {
-	/*
-		通过主键id 查询该商品
-		findGoodsByPrimary 由代码生成
-	*/
-	e = findGoodsByPrimary(repo, &result, id)
-	return
-}
-
-func (repo *GoodsRepository) GetAll() (result []objects.Goods, e error) {
-	/*
-		查看全部商品
-		findGoodss由代码生成
-	*/
-	e = findGoodss(repo, objects.Goods{}, &result)
-	return
-}
-
-func (repo *GoodsRepository) Save(goods *objects.Goods) (e error) {
-	/*
-		保存更新商品
-		saveGoods 由代码生成
-	*/
-	_, e = saveGoods(repo, goods)
-	return
-}
-```
-
 
 #### 事务组件
 ###### 事务组件也是以依赖注入的方式使用，简单的来说定义成员变量后开箱即用。本示例在service定义使用，也可以在repository定义使用。
@@ -97,17 +41,9 @@ func init() {
 
 // OrderService .
 type OrderService struct {
-	Runtime   freedom.Runtime
+	Worker   freedom.Worker
 	GoodsRepo repositorys.GoodsInterface	//repositorys包声明的商品仓库接口
 	OrderRepo repositorys.OrderInterface	//repositorys包声明的订单仓库接口
-
-	/*
-		github.com/8treenet/freedom/infra/transaction
-		type Transaction interface {
-			Execute(fun func() error) (e error)
-			ExecuteTx(fun func() error, ctx context.Context, opts *sql.TxOptions) (e error)
-		}
-	*/
 	Tx        transaction.Transaction 	    //transaction包下的 事务组件接口
 }
 
@@ -141,22 +77,13 @@ func (srv *OrderService) Add(goodsID, num, userId int) (resp string, e error) {
 
 #### 单元测试
 ```go
-// application/goods_test.go
 func TestGoodsService_Get(t *testing.T) {
 	//创建单元测试工具
 	unitTest := freedom.NewUnitTest()
 	unitTest.InstallGorm(func() (db *gorm.DB) {
-		//这是连接数据库方式，mock方式参见TestGoodsService_MockGet
+		//这是连接数据库方式，mock方式参见goods_test.go
 		conf := config.Get().DB
-		var e error
-		db, e = gorm.Open("mysql", conf.Addr)
-		if e != nil {
-			freedom.Logger().Fatal(e.Error())
-		}
-
-		db.DB().SetMaxIdleConns(conf.MaxIdleConns)
-		db.DB().SetMaxOpenConns(conf.MaxOpenConns)
-		db.DB().SetConnMaxLifetime(time.Duration(conf.ConnMaxLifeTime) * time.Second)
+		db, _ = gorm.Open("mysql", conf.Addr)
 		return
 	})
 
@@ -166,12 +93,11 @@ func TestGoodsService_Get(t *testing.T) {
 	var srv *GoodsService
 	//获取领域服务
 	unitTest.GetService(&srv)
-	//调用服务方法。 篇幅有限，没有具体逻辑 只是读取个数据
+	//调用服务方法执行测试
 	rep, err := srv.Get(1)
 	if err != nil {
 		panic(rep)
 	}
-	//在这里做 rep的case，如果不满足条件 触发panic
 }
 ```
 ###### 单测工具介绍
@@ -230,9 +156,6 @@ func init() {
 	})
 }
 
-/*
-	不论单例组件还是多例组件 必须继承freedom.Infra, freedom.Infra提供了一些基础设施相关的功能。
-*/
 type Single struct {
 	life int //生命
 }
@@ -264,7 +187,7 @@ func (goods *GoodsController) PutStock() freedom.Result {
 	}
 
 	//使用自定义的json组件读取请求数据, 并且处理数据验证。
-	if e := goods.JSONRequest.ReadBodyJSON(&request); e != nil {
+	if e := goods.JSONRequest.ReadJSON(&request); e != nil {
 		return &infra.JSONResponse{Err: e}
 	}
 }
@@ -289,19 +212,19 @@ func init() {
 
 // Transaction .
 type JSONRequest struct {
-	freedom.Infra	//继承freedom.Infra
+	freedom.Infra	//多例需继承freedom.Infra
 }
 
 // BeginRequest 每一个请求只会触发一次
-func (req *JSONRequest) BeginRequest(rt freedom.Runtime) {
+func (req *JSONRequest) BeginRequest(worker freedom.Worker) {
 	// 调用基类初始化请求运行时
-	req.Infra.BeginRequest(rt)
+	req.Infra.BeginRequest(worker)
 }
 
-// ReadBodyJSON .
-func (req *JSONRequest) ReadBodyJSON(obj interface{}) error {
+// ReadJSON .
+func (req *JSONRequest) ReadJSON(obj interface{}) error {
 	//从上下文读取io数据
-	rawData, err := ioutil.ReadAll(req.Runtime.Ctx().Request().Body)
+	rawData, err := ioutil.ReadAll(req.Worker.Ctx().Request().Body)
 	if err != nil {
 		return err
 	}

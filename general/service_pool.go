@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	RuntimeKey = "runtime-ctx"
+	WorkerKey = "freedom-worker-ctx"
 )
 
 func newServicePool() *ServicePool {
@@ -23,7 +23,7 @@ type ServicePool struct {
 }
 
 // get .
-func (pool *ServicePool) get(rt *appRuntime, service interface{}) {
+func (pool *ServicePool) get(rt *worker, service interface{}) {
 	svalue := reflect.ValueOf(service)
 	ptr := svalue.Elem() // 1级
 
@@ -42,7 +42,10 @@ func (pool *ServicePool) get(rt *appRuntime, service interface{}) {
 func (pool *ServicePool) freeHandle() context.Handler {
 	return func(ctx context.Context) {
 		ctx.Next()
-		rt := ctx.Values().Get(RuntimeKey).(*appRuntime)
+		rt := ctx.Values().Get(WorkerKey).(*worker)
+		if rt.IsDeferRecycle() {
+			return
+		}
 		for index := 0; index < len(rt.freeServices); index++ {
 			pool.free(rt.freeServices[index])
 		}
@@ -94,7 +97,7 @@ func (pool *ServicePool) allType() (list []reflect.Type) {
 	return
 }
 
-func (pool *ServicePool) objBeginRequest(rt *appRuntime, obj interface{}) {
+func (pool *ServicePool) objBeginRequest(rt *worker, obj interface{}) {
 	rtValue := reflect.ValueOf(rt)
 	allFields(obj, func(value reflect.Value) {
 		kind := value.Kind()

@@ -2,40 +2,35 @@ package application
 
 import (
 	"github.com/8treenet/freedom"
-	"github.com/8treenet/freedom/example/base/adapter/repositorys"
+	"github.com/8treenet/freedom/example/base/adapter/repository"
 )
 
 func init() {
 	freedom.Prepare(func(initiator freedom.Initiator) {
-		initiator.BindService(func() *DefaultService {
-			return &DefaultService{}
+		initiator.BindService(func() *Default {
+			return &Default{}
 		})
-		initiator.InjectController(func(ctx freedom.Context) (ds *DefaultService) {
-			initiator.GetService(ctx, &ds)
+		initiator.InjectController(func(ctx freedom.Context) (service *Default) {
+			initiator.GetService(ctx, &service)
 			return
 		})
 	})
 }
 
-// DefaultRepoInterface .
-type DefaultRepoInterface interface {
-	GetUA() string
-}
-
-// DefaultService .
-type DefaultService struct {
-	Runtime   freedom.Runtime
-	DefRepo   *repositorys.DefaultRepository
-	DefRepoIF DefaultRepoInterface
+// Default .
+type Default struct {
+	Worker    freedom.Worker
+	DefRepo   *repository.Default
+	DefRepoIF repository.DefaultRepoInterface
 }
 
 // RemoteInfo .
-func (s *DefaultService) RemoteInfo() (result struct {
-	IP string
-	UA string
+func (s *Default) RemoteInfo() (result struct {
+	Ip string
+	Ua string
 }) {
-	s.Runtime.Logger().Infof("我是service")
-	result.IP = s.DefRepo.GetIP()
-	result.UA = s.DefRepoIF.GetUA()
+	s.Worker.Logger().Infof("我是service")
+	result.Ip = s.DefRepo.GetIP()
+	result.Ua = s.DefRepoIF.GetUA()
 	return
 }

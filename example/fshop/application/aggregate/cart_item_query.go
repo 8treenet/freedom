@@ -28,7 +28,7 @@ type CartItemQuery struct {
 func (query *CartItemQuery) LoadEntity(userId int) error {
 	user, e := query.userRepo.Get(userId)
 	if e != nil {
-		query.GetRuntime().Logger().Error(e, "userId", userId)
+		query.GetWorker().Logger().Error(e, "userId", userId)
 		//用户不存在
 		return e
 	}

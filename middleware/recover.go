@@ -20,7 +20,7 @@ func NewRecover() context.Handler {
 					return
 				}
 
-				rt := freedom.PickRuntime(ctx)
+				rt := freedom.ToWorker(ctx)
 				// when stack finishes
 				logMessage := fmt.Sprintf("Recovered from path('%s')\n", ctx.Path())
 				logMessage += fmt.Sprintf("Panic: %s\n", err)

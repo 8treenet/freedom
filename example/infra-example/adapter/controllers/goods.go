@@ -14,7 +14,7 @@ func init() {
 }
 
 type GoodsController struct {
-	Runtime     freedom.Runtime
+	Worker      freedom.Worker
 	GoodsSev    *application.GoodsService
 	JSONRequest *infra.JSONRequest
 }
@@ -45,7 +45,7 @@ func (goods *GoodsController) PutStock() freedom.Result {
 		Num     int `validate:"min=1,max=15"`
 	}
 	//使用自定义的json基础设施
-	if e := goods.JSONRequest.ReadBodyJSON(&request); e != nil {
+	if e := goods.JSONRequest.ReadJSON(&request); e != nil {
 		return &infra.JSONResponse{Error: e}
 	}
 

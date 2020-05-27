@@ -14,7 +14,7 @@ func TestDelivery(t *testing.T) {
 	var req dto.DeliveryReq
 	req.AdminId = 1
 	req.TrackingNumber = fmt.Sprint(rand.Intn(999999999999999))
-	req.OrderNo = "1590228134"
+	req.OrderNo = "1590849460"
 
 	str, rep := requests.NewH2CRequest("http://127.0.0.1:8000/delivery").Post().SetJSONBody(req).ToString()
 	t.Log(str, rep)

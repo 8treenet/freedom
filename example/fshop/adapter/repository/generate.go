@@ -12,307 +12,7 @@ func errorLog(repo freedom.GORMRepository, model, method string, e error, expres
 	if e == nil || e == gorm.ErrRecordNotFound {
 		return
 	}
-	repo.GetRuntime().Logger().Errorf("Orm error, model: %s, method: %s, expression :%v, reason for error:%v", model, method, expression, e)
-}
-
-// findOrderDetailByPrimary .
-func findOrderDetailByPrimary(repo freedom.GORMRepository, result interface{}, primary interface{}) (e error) {
-	now := time.Now()
-	e = repo.DB().Find(result, primary).Error
-	freedom.Prometheus().OrmWithLabelValues("OrderDetail", "findOrderDetailByPrimary", e, now)
-	errorLog(repo, "OrderDetail", "findOrderDetailByPrimary", e, primary)
-	return
-}
-
-// findOrderDetailsByPrimarys .
-func findOrderDetailsByPrimarys(repo freedom.GORMRepository, results interface{}, primarys ...interface{}) (e error) {
-	now := time.Now()
-	e = repo.DB().Find(results, primarys).Error
-	freedom.Prometheus().OrmWithLabelValues("OrderDetail", "findOrderDetailsByPrimarys", e, now)
-	errorLog(repo, "OrderDetail", "findOrderDetailsByPrimarys", e, primarys)
-	return
-}
-
-// findOrderDetail .
-func findOrderDetail(repo freedom.GORMRepository, query object.OrderDetail, result interface{}, builders ...freedom.QueryBuilder) (e error) {
-	now := time.Now()
-	defer func() {
-		freedom.Prometheus().OrmWithLabelValues("OrderDetail", "findOrderDetail", e, now)
-		errorLog(repo, "OrderDetail", "findOrderDetail", e, query)
-	}()
-	db := repo.DB().Where(query)
-	if len(builders) == 0 {
-		e = db.Last(result).Error
-		return
-	}
-
-	e = builders[0].Execute(db.Limit(1), result)
-	return
-}
-
-// findOrderDetailByWhere .
-func findOrderDetailByWhere(repo freedom.GORMRepository, query string, args []interface{}, result interface{}, builders ...freedom.QueryBuilder) (e error) {
-	now := time.Now()
-	defer func() {
-		freedom.Prometheus().OrmWithLabelValues("OrderDetail", "findOrderDetailByWhere", e, now)
-		errorLog(repo, "OrderDetail", "findOrderDetailByWhere", e, query, args)
-	}()
-	db := repo.DB()
-	if query != "" {
-		db = db.Where(query, args...)
-	}
-	if len(builders) == 0 {
-		e = db.Last(result).Error
-		return
-	}
-
-	e = builders[0].Execute(db.Limit(1), result)
-	return
-}
-
-// findOrderDetailByMap .
-func findOrderDetailByMap(repo freedom.GORMRepository, query map[string]interface{}, result interface{}, builders ...freedom.QueryBuilder) (e error) {
-	now := time.Now()
-	defer func() {
-		freedom.Prometheus().OrmWithLabelValues("OrderDetail", "findOrderDetailByMap", e, now)
-		errorLog(repo, "OrderDetail", "findOrderDetailByMap", e, query)
-	}()
-
-	db := repo.DB().Where(query)
-	if len(builders) == 0 {
-		e = db.Last(result).Error
-		return
-	}
-
-	e = builders[0].Execute(db.Limit(1), result)
-	return
-}
-
-// findOrderDetails .
-func findOrderDetails(repo freedom.GORMRepository, query object.OrderDetail, results interface{}, builders ...freedom.QueryBuilder) (e error) {
-	now := time.Now()
-	defer func() {
-		freedom.Prometheus().OrmWithLabelValues("OrderDetail", "findOrderDetails", e, now)
-		errorLog(repo, "OrderDetail", "findOrderDetails", e, query)
-	}()
-	db := repo.DB().Where(query)
-
-	if len(builders) == 0 {
-		e = db.Find(results).Error
-		return
-	}
-	e = builders[0].Execute(db, results)
-	return
-}
-
-// findOrderDetailsByWhere .
-func findOrderDetailsByWhere(repo freedom.GORMRepository, query string, args []interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
-	now := time.Now()
-	defer func() {
-		freedom.Prometheus().OrmWithLabelValues("OrderDetail", "findOrderDetailsByWhere", e, now)
-		errorLog(repo, "OrderDetail", "findOrderDetailsByWhere", e, query, args)
-	}()
-	db := repo.DB()
-	if query != "" {
-		db = db.Where(query, args...)
-	}
-
-	if len(builders) == 0 {
-		e = db.Find(results).Error
-		return
-	}
-	e = builders[0].Execute(db, results)
-	return
-}
-
-// findOrderDetailsByMap .
-func findOrderDetailsByMap(repo freedom.GORMRepository, query map[string]interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
-	now := time.Now()
-	defer func() {
-		freedom.Prometheus().OrmWithLabelValues("OrderDetail", "findOrderDetailsByMap", e, now)
-		errorLog(repo, "OrderDetail", "findOrderDetailsByMap", e, query)
-	}()
-
-	db := repo.DB().Where(query)
-
-	if len(builders) == 0 {
-		e = db.Find(results).Error
-		return
-	}
-	e = builders[0].Execute(db, results)
-	return
-}
-
-// createOrderDetail .
-func createOrderDetail(repo freedom.GORMRepository, object *object.OrderDetail) (rowsAffected int64, e error) {
-	now := time.Now()
-	db := repo.DB().Create(object)
-	rowsAffected = db.RowsAffected
-	e = db.Error
-	freedom.Prometheus().OrmWithLabelValues("OrderDetail", "createOrderDetail", e, now)
-	errorLog(repo, "OrderDetail", "createOrderDetail", e, *object)
-	return
-}
-
-// saveOrderDetail .
-func saveOrderDetail(repo freedom.GORMRepository, object *object.OrderDetail) (affected int64, e error) {
-	now := time.Now()
-	db := repo.DB().Model(object).Updates(object.TakeChanges())
-	e = db.Error
-	affected = db.RowsAffected
-	freedom.Prometheus().OrmWithLabelValues("OrderDetail", "saveOrderDetail", e, now)
-	errorLog(repo, "OrderDetail", "saveOrderDetail", e, *object)
-	return
-}
-
-// findUserByPrimary .
-func findUserByPrimary(repo freedom.GORMRepository, result interface{}, primary interface{}) (e error) {
-	now := time.Now()
-	e = repo.DB().Find(result, primary).Error
-	freedom.Prometheus().OrmWithLabelValues("User", "findUserByPrimary", e, now)
-	errorLog(repo, "User", "findUserByPrimary", e, primary)
-	return
-}
-
-// findUsersByPrimarys .
-func findUsersByPrimarys(repo freedom.GORMRepository, results interface{}, primarys ...interface{}) (e error) {
-	now := time.Now()
-	e = repo.DB().Find(results, primarys).Error
-	freedom.Prometheus().OrmWithLabelValues("User", "findUsersByPrimarys", e, now)
-	errorLog(repo, "User", "findUsersByPrimarys", e, primarys)
-	return
-}
-
-// findUser .
-func findUser(repo freedom.GORMRepository, query object.User, result interface{}, builders ...freedom.QueryBuilder) (e error) {
-	now := time.Now()
-	defer func() {
-		freedom.Prometheus().OrmWithLabelValues("User", "findUser", e, now)
-		errorLog(repo, "User", "findUser", e, query)
-	}()
-	db := repo.DB().Where(query)
-	if len(builders) == 0 {
-		e = db.Last(result).Error
-		return
-	}
-
-	e = builders[0].Execute(db.Limit(1), result)
-	return
-}
-
-// findUserByWhere .
-func findUserByWhere(repo freedom.GORMRepository, query string, args []interface{}, result interface{}, builders ...freedom.QueryBuilder) (e error) {
-	now := time.Now()
-	defer func() {
-		freedom.Prometheus().OrmWithLabelValues("User", "findUserByWhere", e, now)
-		errorLog(repo, "User", "findUserByWhere", e, query, args)
-	}()
-	db := repo.DB()
-	if query != "" {
-		db = db.Where(query, args...)
-	}
-	if len(builders) == 0 {
-		e = db.Last(result).Error
-		return
-	}
-
-	e = builders[0].Execute(db.Limit(1), result)
-	return
-}
-
-// findUserByMap .
-func findUserByMap(repo freedom.GORMRepository, query map[string]interface{}, result interface{}, builders ...freedom.QueryBuilder) (e error) {
-	now := time.Now()
-	defer func() {
-		freedom.Prometheus().OrmWithLabelValues("User", "findUserByMap", e, now)
-		errorLog(repo, "User", "findUserByMap", e, query)
-	}()
-
-	db := repo.DB().Where(query)
-	if len(builders) == 0 {
-		e = db.Last(result).Error
-		return
-	}
-
-	e = builders[0].Execute(db.Limit(1), result)
-	return
-}
-
-// findUsers .
-func findUsers(repo freedom.GORMRepository, query object.User, results interface{}, builders ...freedom.QueryBuilder) (e error) {
-	now := time.Now()
-	defer func() {
-		freedom.Prometheus().OrmWithLabelValues("User", "findUsers", e, now)
-		errorLog(repo, "User", "findUsers", e, query)
-	}()
-	db := repo.DB().Where(query)
-
-	if len(builders) == 0 {
-		e = db.Find(results).Error
-		return
-	}
-	e = builders[0].Execute(db, results)
-	return
-}
-
-// findUsersByWhere .
-func findUsersByWhere(repo freedom.GORMRepository, query string, args []interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
-	now := time.Now()
-	defer func() {
-		freedom.Prometheus().OrmWithLabelValues("User", "findUsersByWhere", e, now)
-		errorLog(repo, "User", "findUsersByWhere", e, query, args)
-	}()
-	db := repo.DB()
-	if query != "" {
-		db = db.Where(query, args...)
-	}
-
-	if len(builders) == 0 {
-		e = db.Find(results).Error
-		return
-	}
-	e = builders[0].Execute(db, results)
-	return
-}
-
-// findUsersByMap .
-func findUsersByMap(repo freedom.GORMRepository, query map[string]interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
-	now := time.Now()
-	defer func() {
-		freedom.Prometheus().OrmWithLabelValues("User", "findUsersByMap", e, now)
-		errorLog(repo, "User", "findUsersByMap", e, query)
-	}()
-
-	db := repo.DB().Where(query)
-
-	if len(builders) == 0 {
-		e = db.Find(results).Error
-		return
-	}
-	e = builders[0].Execute(db, results)
-	return
-}
-
-// createUser .
-func createUser(repo freedom.GORMRepository, object *object.User) (rowsAffected int64, e error) {
-	now := time.Now()
-	db := repo.DB().Create(object)
-	rowsAffected = db.RowsAffected
-	e = db.Error
-	freedom.Prometheus().OrmWithLabelValues("User", "createUser", e, now)
-	errorLog(repo, "User", "createUser", e, *object)
-	return
-}
-
-// saveUser .
-func saveUser(repo freedom.GORMRepository, object *object.User) (affected int64, e error) {
-	now := time.Now()
-	db := repo.DB().Model(object).Updates(object.TakeChanges())
-	e = db.Error
-	affected = db.RowsAffected
-	freedom.Prometheus().OrmWithLabelValues("User", "saveUser", e, now)
-	errorLog(repo, "User", "saveUser", e, *object)
-	return
+	repo.GetWorker().Logger().Errorf("Orm error, model: %s, method: %s, expression :%v, reason for error:%v", model, method, expression, e)
 }
 
 // findAdminByPrimary .
@@ -324,11 +24,11 @@ func findAdminByPrimary(repo freedom.GORMRepository, result interface{}, primary
 	return
 }
 
-// findAdminsByPrimarys .
-func findAdminsByPrimarys(repo freedom.GORMRepository, results interface{}, primarys ...interface{}) (e error) {
+// findAdminListByPrimarys .
+func findAdminListByPrimarys(repo freedom.GORMRepository, results interface{}, primarys ...interface{}) (e error) {
 	now := time.Now()
 	e = repo.DB().Find(results, primarys).Error
-	freedom.Prometheus().OrmWithLabelValues("Admin", "findAdminsByPrimarys", e, now)
+	freedom.Prometheus().OrmWithLabelValues("Admin", "findAdminListByPrimarys", e, now)
 	errorLog(repo, "Admin", "findAdminsByPrimarys", e, primarys)
 	return
 }
@@ -388,11 +88,11 @@ func findAdminByMap(repo freedom.GORMRepository, query map[string]interface{}, r
 	return
 }
 
-// findAdmins .
-func findAdmins(repo freedom.GORMRepository, query object.Admin, results interface{}, builders ...freedom.QueryBuilder) (e error) {
+// findAdminList .
+func findAdminList(repo freedom.GORMRepository, query object.Admin, results interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		freedom.Prometheus().OrmWithLabelValues("Admin", "findAdmins", e, now)
+		freedom.Prometheus().OrmWithLabelValues("Admin", "findAdminList", e, now)
 		errorLog(repo, "Admin", "findAdmins", e, query)
 	}()
 	db := repo.DB().Where(query)
@@ -405,11 +105,11 @@ func findAdmins(repo freedom.GORMRepository, query object.Admin, results interfa
 	return
 }
 
-// findAdminsByWhere .
-func findAdminsByWhere(repo freedom.GORMRepository, query string, args []interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
+// findAdminListByWhere .
+func findAdminListByWhere(repo freedom.GORMRepository, query string, args []interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		freedom.Prometheus().OrmWithLabelValues("Admin", "findAdminsByWhere", e, now)
+		freedom.Prometheus().OrmWithLabelValues("Admin", "findAdminListByWhere", e, now)
 		errorLog(repo, "Admin", "findAdminsByWhere", e, query, args)
 	}()
 	db := repo.DB()
@@ -425,11 +125,11 @@ func findAdminsByWhere(repo freedom.GORMRepository, query string, args []interfa
 	return
 }
 
-// findAdminsByMap .
-func findAdminsByMap(repo freedom.GORMRepository, query map[string]interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
+// findAdminListByMap .
+func findAdminListByMap(repo freedom.GORMRepository, query map[string]interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		freedom.Prometheus().OrmWithLabelValues("Admin", "findAdminsByMap", e, now)
+		freedom.Prometheus().OrmWithLabelValues("Admin", "findAdminListByMap", e, now)
 		errorLog(repo, "Admin", "findAdminsByMap", e, query)
 	}()
 
@@ -474,11 +174,11 @@ func findCartByPrimary(repo freedom.GORMRepository, result interface{}, primary 
 	return
 }
 
-// findCartsByPrimarys .
-func findCartsByPrimarys(repo freedom.GORMRepository, results interface{}, primarys ...interface{}) (e error) {
+// findCartListByPrimarys .
+func findCartListByPrimarys(repo freedom.GORMRepository, results interface{}, primarys ...interface{}) (e error) {
 	now := time.Now()
 	e = repo.DB().Find(results, primarys).Error
-	freedom.Prometheus().OrmWithLabelValues("Cart", "findCartsByPrimarys", e, now)
+	freedom.Prometheus().OrmWithLabelValues("Cart", "findCartListByPrimarys", e, now)
 	errorLog(repo, "Cart", "findCartsByPrimarys", e, primarys)
 	return
 }
@@ -538,11 +238,11 @@ func findCartByMap(repo freedom.GORMRepository, query map[string]interface{}, re
 	return
 }
 
-// findCarts .
-func findCarts(repo freedom.GORMRepository, query object.Cart, results interface{}, builders ...freedom.QueryBuilder) (e error) {
+// findCartList .
+func findCartList(repo freedom.GORMRepository, query object.Cart, results interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		freedom.Prometheus().OrmWithLabelValues("Cart", "findCarts", e, now)
+		freedom.Prometheus().OrmWithLabelValues("Cart", "findCartList", e, now)
 		errorLog(repo, "Cart", "findCarts", e, query)
 	}()
 	db := repo.DB().Where(query)
@@ -555,11 +255,11 @@ func findCarts(repo freedom.GORMRepository, query object.Cart, results interface
 	return
 }
 
-// findCartsByWhere .
-func findCartsByWhere(repo freedom.GORMRepository, query string, args []interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
+// findCartListByWhere .
+func findCartListByWhere(repo freedom.GORMRepository, query string, args []interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		freedom.Prometheus().OrmWithLabelValues("Cart", "findCartsByWhere", e, now)
+		freedom.Prometheus().OrmWithLabelValues("Cart", "findCartListByWhere", e, now)
 		errorLog(repo, "Cart", "findCartsByWhere", e, query, args)
 	}()
 	db := repo.DB()
@@ -575,11 +275,11 @@ func findCartsByWhere(repo freedom.GORMRepository, query string, args []interfac
 	return
 }
 
-// findCartsByMap .
-func findCartsByMap(repo freedom.GORMRepository, query map[string]interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
+// findCartListByMap .
+func findCartListByMap(repo freedom.GORMRepository, query map[string]interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		freedom.Prometheus().OrmWithLabelValues("Cart", "findCartsByMap", e, now)
+		freedom.Prometheus().OrmWithLabelValues("Cart", "findCartListByMap", e, now)
 		errorLog(repo, "Cart", "findCartsByMap", e, query)
 	}()
 
@@ -624,11 +324,11 @@ func findDeliveryByPrimary(repo freedom.GORMRepository, result interface{}, prim
 	return
 }
 
-// findDeliverysByPrimarys .
-func findDeliverysByPrimarys(repo freedom.GORMRepository, results interface{}, primarys ...interface{}) (e error) {
+// findDeliveryListByPrimarys .
+func findDeliveryListByPrimarys(repo freedom.GORMRepository, results interface{}, primarys ...interface{}) (e error) {
 	now := time.Now()
 	e = repo.DB().Find(results, primarys).Error
-	freedom.Prometheus().OrmWithLabelValues("Delivery", "findDeliverysByPrimarys", e, now)
+	freedom.Prometheus().OrmWithLabelValues("Delivery", "findDeliveryListByPrimarys", e, now)
 	errorLog(repo, "Delivery", "findDeliverysByPrimarys", e, primarys)
 	return
 }
@@ -688,11 +388,11 @@ func findDeliveryByMap(repo freedom.GORMRepository, query map[string]interface{}
 	return
 }
 
-// findDeliverys .
-func findDeliverys(repo freedom.GORMRepository, query object.Delivery, results interface{}, builders ...freedom.QueryBuilder) (e error) {
+// findDeliveryList .
+func findDeliveryList(repo freedom.GORMRepository, query object.Delivery, results interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		freedom.Prometheus().OrmWithLabelValues("Delivery", "findDeliverys", e, now)
+		freedom.Prometheus().OrmWithLabelValues("Delivery", "findDeliveryList", e, now)
 		errorLog(repo, "Delivery", "findDeliverys", e, query)
 	}()
 	db := repo.DB().Where(query)
@@ -705,11 +405,11 @@ func findDeliverys(repo freedom.GORMRepository, query object.Delivery, results i
 	return
 }
 
-// findDeliverysByWhere .
-func findDeliverysByWhere(repo freedom.GORMRepository, query string, args []interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
+// findDeliveryListByWhere .
+func findDeliveryListByWhere(repo freedom.GORMRepository, query string, args []interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		freedom.Prometheus().OrmWithLabelValues("Delivery", "findDeliverysByWhere", e, now)
+		freedom.Prometheus().OrmWithLabelValues("Delivery", "findDeliveryListByWhere", e, now)
 		errorLog(repo, "Delivery", "findDeliverysByWhere", e, query, args)
 	}()
 	db := repo.DB()
@@ -725,11 +425,11 @@ func findDeliverysByWhere(repo freedom.GORMRepository, query string, args []inte
 	return
 }
 
-// findDeliverysByMap .
-func findDeliverysByMap(repo freedom.GORMRepository, query map[string]interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
+// findDeliveryListByMap .
+func findDeliveryListByMap(repo freedom.GORMRepository, query map[string]interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		freedom.Prometheus().OrmWithLabelValues("Delivery", "findDeliverysByMap", e, now)
+		freedom.Prometheus().OrmWithLabelValues("Delivery", "findDeliveryListByMap", e, now)
 		errorLog(repo, "Delivery", "findDeliverysByMap", e, query)
 	}()
 
@@ -774,11 +474,11 @@ func findGoodsByPrimary(repo freedom.GORMRepository, result interface{}, primary
 	return
 }
 
-// findGoodssByPrimarys .
-func findGoodssByPrimarys(repo freedom.GORMRepository, results interface{}, primarys ...interface{}) (e error) {
+// findGoodsListByPrimarys .
+func findGoodsListByPrimarys(repo freedom.GORMRepository, results interface{}, primarys ...interface{}) (e error) {
 	now := time.Now()
 	e = repo.DB().Find(results, primarys).Error
-	freedom.Prometheus().OrmWithLabelValues("Goods", "findGoodssByPrimarys", e, now)
+	freedom.Prometheus().OrmWithLabelValues("Goods", "findGoodsListByPrimarys", e, now)
 	errorLog(repo, "Goods", "findGoodssByPrimarys", e, primarys)
 	return
 }
@@ -838,11 +538,11 @@ func findGoodsByMap(repo freedom.GORMRepository, query map[string]interface{}, r
 	return
 }
 
-// findGoodss .
-func findGoodss(repo freedom.GORMRepository, query object.Goods, results interface{}, builders ...freedom.QueryBuilder) (e error) {
+// findGoodsList .
+func findGoodsList(repo freedom.GORMRepository, query object.Goods, results interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		freedom.Prometheus().OrmWithLabelValues("Goods", "findGoodss", e, now)
+		freedom.Prometheus().OrmWithLabelValues("Goods", "findGoodsList", e, now)
 		errorLog(repo, "Goods", "findGoodss", e, query)
 	}()
 	db := repo.DB().Where(query)
@@ -855,11 +555,11 @@ func findGoodss(repo freedom.GORMRepository, query object.Goods, results interfa
 	return
 }
 
-// findGoodssByWhere .
-func findGoodssByWhere(repo freedom.GORMRepository, query string, args []interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
+// findGoodsListByWhere .
+func findGoodsListByWhere(repo freedom.GORMRepository, query string, args []interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		freedom.Prometheus().OrmWithLabelValues("Goods", "findGoodssByWhere", e, now)
+		freedom.Prometheus().OrmWithLabelValues("Goods", "findGoodsListByWhere", e, now)
 		errorLog(repo, "Goods", "findGoodssByWhere", e, query, args)
 	}()
 	db := repo.DB()
@@ -875,11 +575,11 @@ func findGoodssByWhere(repo freedom.GORMRepository, query string, args []interfa
 	return
 }
 
-// findGoodssByMap .
-func findGoodssByMap(repo freedom.GORMRepository, query map[string]interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
+// findGoodsListByMap .
+func findGoodsListByMap(repo freedom.GORMRepository, query map[string]interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		freedom.Prometheus().OrmWithLabelValues("Goods", "findGoodssByMap", e, now)
+		freedom.Prometheus().OrmWithLabelValues("Goods", "findGoodsListByMap", e, now)
 		errorLog(repo, "Goods", "findGoodssByMap", e, query)
 	}()
 
@@ -924,11 +624,11 @@ func findOrderByPrimary(repo freedom.GORMRepository, result interface{}, primary
 	return
 }
 
-// findOrdersByPrimarys .
-func findOrdersByPrimarys(repo freedom.GORMRepository, results interface{}, primarys ...interface{}) (e error) {
+// findOrderListByPrimarys .
+func findOrderListByPrimarys(repo freedom.GORMRepository, results interface{}, primarys ...interface{}) (e error) {
 	now := time.Now()
 	e = repo.DB().Find(results, primarys).Error
-	freedom.Prometheus().OrmWithLabelValues("Order", "findOrdersByPrimarys", e, now)
+	freedom.Prometheus().OrmWithLabelValues("Order", "findOrderListByPrimarys", e, now)
 	errorLog(repo, "Order", "findOrdersByPrimarys", e, primarys)
 	return
 }
@@ -988,11 +688,11 @@ func findOrderByMap(repo freedom.GORMRepository, query map[string]interface{}, r
 	return
 }
 
-// findOrders .
-func findOrders(repo freedom.GORMRepository, query object.Order, results interface{}, builders ...freedom.QueryBuilder) (e error) {
+// findOrderList .
+func findOrderList(repo freedom.GORMRepository, query object.Order, results interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		freedom.Prometheus().OrmWithLabelValues("Order", "findOrders", e, now)
+		freedom.Prometheus().OrmWithLabelValues("Order", "findOrderList", e, now)
 		errorLog(repo, "Order", "findOrders", e, query)
 	}()
 	db := repo.DB().Where(query)
@@ -1005,11 +705,11 @@ func findOrders(repo freedom.GORMRepository, query object.Order, results interfa
 	return
 }
 
-// findOrdersByWhere .
-func findOrdersByWhere(repo freedom.GORMRepository, query string, args []interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
+// findOrderListByWhere .
+func findOrderListByWhere(repo freedom.GORMRepository, query string, args []interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		freedom.Prometheus().OrmWithLabelValues("Order", "findOrdersByWhere", e, now)
+		freedom.Prometheus().OrmWithLabelValues("Order", "findOrderListByWhere", e, now)
 		errorLog(repo, "Order", "findOrdersByWhere", e, query, args)
 	}()
 	db := repo.DB()
@@ -1025,11 +725,11 @@ func findOrdersByWhere(repo freedom.GORMRepository, query string, args []interfa
 	return
 }
 
-// findOrdersByMap .
-func findOrdersByMap(repo freedom.GORMRepository, query map[string]interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
+// findOrderListByMap .
+func findOrderListByMap(repo freedom.GORMRepository, query map[string]interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
 	now := time.Now()
 	defer func() {
-		freedom.Prometheus().OrmWithLabelValues("Order", "findOrdersByMap", e, now)
+		freedom.Prometheus().OrmWithLabelValues("Order", "findOrderListByMap", e, now)
 		errorLog(repo, "Order", "findOrdersByMap", e, query)
 	}()
 
@@ -1062,5 +762,305 @@ func saveOrder(repo freedom.GORMRepository, object *object.Order) (affected int6
 	affected = db.RowsAffected
 	freedom.Prometheus().OrmWithLabelValues("Order", "saveOrder", e, now)
 	errorLog(repo, "Order", "saveOrder", e, *object)
+	return
+}
+
+// findOrderDetailByPrimary .
+func findOrderDetailByPrimary(repo freedom.GORMRepository, result interface{}, primary interface{}) (e error) {
+	now := time.Now()
+	e = repo.DB().Find(result, primary).Error
+	freedom.Prometheus().OrmWithLabelValues("OrderDetail", "findOrderDetailByPrimary", e, now)
+	errorLog(repo, "OrderDetail", "findOrderDetailByPrimary", e, primary)
+	return
+}
+
+// findOrderDetailListByPrimarys .
+func findOrderDetailListByPrimarys(repo freedom.GORMRepository, results interface{}, primarys ...interface{}) (e error) {
+	now := time.Now()
+	e = repo.DB().Find(results, primarys).Error
+	freedom.Prometheus().OrmWithLabelValues("OrderDetail", "findOrderDetailListByPrimarys", e, now)
+	errorLog(repo, "OrderDetail", "findOrderDetailsByPrimarys", e, primarys)
+	return
+}
+
+// findOrderDetail .
+func findOrderDetail(repo freedom.GORMRepository, query object.OrderDetail, result interface{}, builders ...freedom.QueryBuilder) (e error) {
+	now := time.Now()
+	defer func() {
+		freedom.Prometheus().OrmWithLabelValues("OrderDetail", "findOrderDetail", e, now)
+		errorLog(repo, "OrderDetail", "findOrderDetail", e, query)
+	}()
+	db := repo.DB().Where(query)
+	if len(builders) == 0 {
+		e = db.Last(result).Error
+		return
+	}
+
+	e = builders[0].Execute(db.Limit(1), result)
+	return
+}
+
+// findOrderDetailByWhere .
+func findOrderDetailByWhere(repo freedom.GORMRepository, query string, args []interface{}, result interface{}, builders ...freedom.QueryBuilder) (e error) {
+	now := time.Now()
+	defer func() {
+		freedom.Prometheus().OrmWithLabelValues("OrderDetail", "findOrderDetailByWhere", e, now)
+		errorLog(repo, "OrderDetail", "findOrderDetailByWhere", e, query, args)
+	}()
+	db := repo.DB()
+	if query != "" {
+		db = db.Where(query, args...)
+	}
+	if len(builders) == 0 {
+		e = db.Last(result).Error
+		return
+	}
+
+	e = builders[0].Execute(db.Limit(1), result)
+	return
+}
+
+// findOrderDetailByMap .
+func findOrderDetailByMap(repo freedom.GORMRepository, query map[string]interface{}, result interface{}, builders ...freedom.QueryBuilder) (e error) {
+	now := time.Now()
+	defer func() {
+		freedom.Prometheus().OrmWithLabelValues("OrderDetail", "findOrderDetailByMap", e, now)
+		errorLog(repo, "OrderDetail", "findOrderDetailByMap", e, query)
+	}()
+
+	db := repo.DB().Where(query)
+	if len(builders) == 0 {
+		e = db.Last(result).Error
+		return
+	}
+
+	e = builders[0].Execute(db.Limit(1), result)
+	return
+}
+
+// findOrderDetailList .
+func findOrderDetailList(repo freedom.GORMRepository, query object.OrderDetail, results interface{}, builders ...freedom.QueryBuilder) (e error) {
+	now := time.Now()
+	defer func() {
+		freedom.Prometheus().OrmWithLabelValues("OrderDetail", "findOrderDetailList", e, now)
+		errorLog(repo, "OrderDetail", "findOrderDetails", e, query)
+	}()
+	db := repo.DB().Where(query)
+
+	if len(builders) == 0 {
+		e = db.Find(results).Error
+		return
+	}
+	e = builders[0].Execute(db, results)
+	return
+}
+
+// findOrderDetailListByWhere .
+func findOrderDetailListByWhere(repo freedom.GORMRepository, query string, args []interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
+	now := time.Now()
+	defer func() {
+		freedom.Prometheus().OrmWithLabelValues("OrderDetail", "findOrderDetailListByWhere", e, now)
+		errorLog(repo, "OrderDetail", "findOrderDetailsByWhere", e, query, args)
+	}()
+	db := repo.DB()
+	if query != "" {
+		db = db.Where(query, args...)
+	}
+
+	if len(builders) == 0 {
+		e = db.Find(results).Error
+		return
+	}
+	e = builders[0].Execute(db, results)
+	return
+}
+
+// findOrderDetailListByMap .
+func findOrderDetailListByMap(repo freedom.GORMRepository, query map[string]interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
+	now := time.Now()
+	defer func() {
+		freedom.Prometheus().OrmWithLabelValues("OrderDetail", "findOrderDetailListByMap", e, now)
+		errorLog(repo, "OrderDetail", "findOrderDetailsByMap", e, query)
+	}()
+
+	db := repo.DB().Where(query)
+
+	if len(builders) == 0 {
+		e = db.Find(results).Error
+		return
+	}
+	e = builders[0].Execute(db, results)
+	return
+}
+
+// createOrderDetail .
+func createOrderDetail(repo freedom.GORMRepository, object *object.OrderDetail) (rowsAffected int64, e error) {
+	now := time.Now()
+	db := repo.DB().Create(object)
+	rowsAffected = db.RowsAffected
+	e = db.Error
+	freedom.Prometheus().OrmWithLabelValues("OrderDetail", "createOrderDetail", e, now)
+	errorLog(repo, "OrderDetail", "createOrderDetail", e, *object)
+	return
+}
+
+// saveOrderDetail .
+func saveOrderDetail(repo freedom.GORMRepository, object *object.OrderDetail) (affected int64, e error) {
+	now := time.Now()
+	db := repo.DB().Model(object).Updates(object.TakeChanges())
+	e = db.Error
+	affected = db.RowsAffected
+	freedom.Prometheus().OrmWithLabelValues("OrderDetail", "saveOrderDetail", e, now)
+	errorLog(repo, "OrderDetail", "saveOrderDetail", e, *object)
+	return
+}
+
+// findUserByPrimary .
+func findUserByPrimary(repo freedom.GORMRepository, result interface{}, primary interface{}) (e error) {
+	now := time.Now()
+	e = repo.DB().Find(result, primary).Error
+	freedom.Prometheus().OrmWithLabelValues("User", "findUserByPrimary", e, now)
+	errorLog(repo, "User", "findUserByPrimary", e, primary)
+	return
+}
+
+// findUserListByPrimarys .
+func findUserListByPrimarys(repo freedom.GORMRepository, results interface{}, primarys ...interface{}) (e error) {
+	now := time.Now()
+	e = repo.DB().Find(results, primarys).Error
+	freedom.Prometheus().OrmWithLabelValues("User", "findUserListByPrimarys", e, now)
+	errorLog(repo, "User", "findUsersByPrimarys", e, primarys)
+	return
+}
+
+// findUser .
+func findUser(repo freedom.GORMRepository, query object.User, result interface{}, builders ...freedom.QueryBuilder) (e error) {
+	now := time.Now()
+	defer func() {
+		freedom.Prometheus().OrmWithLabelValues("User", "findUser", e, now)
+		errorLog(repo, "User", "findUser", e, query)
+	}()
+	db := repo.DB().Where(query)
+	if len(builders) == 0 {
+		e = db.Last(result).Error
+		return
+	}
+
+	e = builders[0].Execute(db.Limit(1), result)
+	return
+}
+
+// findUserByWhere .
+func findUserByWhere(repo freedom.GORMRepository, query string, args []interface{}, result interface{}, builders ...freedom.QueryBuilder) (e error) {
+	now := time.Now()
+	defer func() {
+		freedom.Prometheus().OrmWithLabelValues("User", "findUserByWhere", e, now)
+		errorLog(repo, "User", "findUserByWhere", e, query, args)
+	}()
+	db := repo.DB()
+	if query != "" {
+		db = db.Where(query, args...)
+	}
+	if len(builders) == 0 {
+		e = db.Last(result).Error
+		return
+	}
+
+	e = builders[0].Execute(db.Limit(1), result)
+	return
+}
+
+// findUserByMap .
+func findUserByMap(repo freedom.GORMRepository, query map[string]interface{}, result interface{}, builders ...freedom.QueryBuilder) (e error) {
+	now := time.Now()
+	defer func() {
+		freedom.Prometheus().OrmWithLabelValues("User", "findUserByMap", e, now)
+		errorLog(repo, "User", "findUserByMap", e, query)
+	}()
+
+	db := repo.DB().Where(query)
+	if len(builders) == 0 {
+		e = db.Last(result).Error
+		return
+	}
+
+	e = builders[0].Execute(db.Limit(1), result)
+	return
+}
+
+// findUserList .
+func findUserList(repo freedom.GORMRepository, query object.User, results interface{}, builders ...freedom.QueryBuilder) (e error) {
+	now := time.Now()
+	defer func() {
+		freedom.Prometheus().OrmWithLabelValues("User", "findUserList", e, now)
+		errorLog(repo, "User", "findUsers", e, query)
+	}()
+	db := repo.DB().Where(query)
+
+	if len(builders) == 0 {
+		e = db.Find(results).Error
+		return
+	}
+	e = builders[0].Execute(db, results)
+	return
+}
+
+// findUserListByWhere .
+func findUserListByWhere(repo freedom.GORMRepository, query string, args []interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
+	now := time.Now()
+	defer func() {
+		freedom.Prometheus().OrmWithLabelValues("User", "findUserListByWhere", e, now)
+		errorLog(repo, "User", "findUsersByWhere", e, query, args)
+	}()
+	db := repo.DB()
+	if query != "" {
+		db = db.Where(query, args...)
+	}
+
+	if len(builders) == 0 {
+		e = db.Find(results).Error
+		return
+	}
+	e = builders[0].Execute(db, results)
+	return
+}
+
+// findUserListByMap .
+func findUserListByMap(repo freedom.GORMRepository, query map[string]interface{}, results interface{}, builders ...freedom.QueryBuilder) (e error) {
+	now := time.Now()
+	defer func() {
+		freedom.Prometheus().OrmWithLabelValues("User", "findUserListByMap", e, now)
+		errorLog(repo, "User", "findUsersByMap", e, query)
+	}()
+
+	db := repo.DB().Where(query)
+
+	if len(builders) == 0 {
+		e = db.Find(results).Error
+		return
+	}
+	e = builders[0].Execute(db, results)
+	return
+}
+
+// createUser .
+func createUser(repo freedom.GORMRepository, object *object.User) (rowsAffected int64, e error) {
+	now := time.Now()
+	db := repo.DB().Create(object)
+	rowsAffected = db.RowsAffected
+	e = db.Error
+	freedom.Prometheus().OrmWithLabelValues("User", "createUser", e, now)
+	errorLog(repo, "User", "createUser", e, *object)
+	return
+}
+
+// saveUser .
+func saveUser(repo freedom.GORMRepository, object *object.User) (affected int64, e error) {
+	now := time.Now()
+	db := repo.DB().Model(object).Updates(object.TakeChanges())
+	e = db.Error
+	affected = db.RowsAffected
+	freedom.Prometheus().OrmWithLabelValues("User", "saveUser", e, now)
+	errorLog(repo, "User", "saveUser", e, *object)
 	return
 }

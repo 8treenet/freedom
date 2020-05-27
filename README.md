@@ -4,7 +4,7 @@
 ###### freedom是一个基于六边形架构的框架，可以支撑充血的领域模型范式。
 
 ## Overview
-- 集成iris
+- 集成iris v12
 - 集成普罗米修斯
 - 集成gorm
 - 链路追踪
@@ -15,15 +15,12 @@
 - DDD&六边形架构
 - 消息事件&事件重试&领域事件
 
-## 进行中
-- xa 强一致
-
 ## 安装
 ```sh
 $ go get github.com/8treenet/freedom/freedom
 
 #升级
-$ go get github.com/8treenet/freedom/freedom@v1.7.0
+$ go get github.com/8treenet/freedom/freedom@v1.7.1
 ```
 
 ## 创建项目
@@ -43,8 +40,8 @@ $ freedom new-crud
 
 #### [基础教程](https://github.com/8treenet/freedom/blob/master/example/base)
 #### [http2监听和依赖倒置](https://github.com/8treenet/freedom/blob/master/example/http2)
-#### [repository和事务组件](https://github.com/8treenet/freedom/blob/master/example/infra-example)
+#### [事务组件和自定义组件](https://github.com/8treenet/freedom/blob/master/example/infra-example)
 #### [消息事件和领域事件](https://github.com/8treenet/freedom/blob/master/example/event-example)
 
-#### [ddd-example](https://github.com/8treenet/freedom/blob/master/example/fshop)
-###### 一个完整的电商项目,包含CQRS、聚合、实体、领域事件、仓库、基础设施。
+#### [一个完整的电商demo,包含CQRS、聚合、实体、领域事件、仓库、基础设施](https://github.com/8treenet/freedom/blob/master/example/fshop)
+

@@ -21,10 +21,10 @@ type Msg struct {
 	producerName string
 }
 
-// SetRuntime .
-func (msg *Msg) SetRuntime(rt freedom.Runtime) *Msg {
-	general.HandleBusMiddleware(rt)
-	msg.httpHeader = rt.Bus().Header
+// SetWorker .
+func (msg *Msg) SetWorker(worker freedom.Worker) *Msg {
+	general.HandleBusMiddleware(worker)
+	msg.httpHeader = worker.Bus().Header
 	return msg
 }
 
