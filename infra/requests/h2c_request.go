@@ -112,9 +112,9 @@ func (h2cReq *H2CRequest) Head() Request {
 	return h2cReq
 }
 
-// SetContext .
-func (h2cReq *H2CRequest) SetContext(ctx context.Context) Request {
-	h2cReq.ctx = ctx
+// WithContext .
+func (h2cReq *H2CRequest) WithContext(ctx context.Context) Request {
+	h2cReq.resq = h2cReq.resq.WithContext(ctx)
 	return h2cReq
 }
 
@@ -254,9 +254,6 @@ func (h2cReq *H2CRequest) do() (e error) {
 	u, e := url.Parse(h2cReq.URL())
 	if e != nil {
 		return e
-	}
-	if h2cReq.ctx != nil {
-		h2cReq.resq = h2cReq.resq.WithContext(h2cReq.ctx)
 	}
 	h2cReq.resq.URL = u
 	h2cReq.resp, e = DefaultH2CClient.Do(h2cReq.resq)

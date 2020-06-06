@@ -107,9 +107,9 @@ func (req *HttpRequest) Head() Request {
 	return req
 }
 
-// SetContext .
-func (req *HttpRequest) SetContext(ctx context.Context) Request {
-	req.ctx = ctx
+// WithContext .
+func (req *HttpRequest) WithContext(ctx context.Context) Request {
+	req.resq = req.resq.WithContext(ctx)
 	return req
 }
 
@@ -254,9 +254,6 @@ func (req *HttpRequest) do() (e error) {
 	u, e := url.Parse(req.URL())
 	if e != nil {
 		return e
-	}
-	if req.ctx != nil {
-		req.resq = req.resq.WithContext(req.ctx)
 	}
 	req.resq.URL = u
 	req.resp, e = DefaultHttpClient.Do(req.resq)

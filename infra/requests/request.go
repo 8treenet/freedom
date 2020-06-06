@@ -33,7 +33,7 @@ type Request interface {
 	ToXML(v interface{}) Response
 	SetParam(key string, value interface{}) Request
 	URL() string
-	SetContext(context.Context) Request
+	WithContext(context.Context) Request
 	Singleflight(key ...interface{}) Request
 	SetHeader(header http.Header) Request
 	AddHeader(key, value string) Request
