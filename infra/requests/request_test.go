@@ -1,7 +1,6 @@
 package requests
 
 import (
-	"errors"
 	"fmt"
 	"sync"
 	"testing"
@@ -15,6 +14,7 @@ func TestMiddlewares(t *testing.T) {
 
 func NewTestMiddlewares() Handler {
 	return func(middle Middleware) {
+		//普罗米修斯等耗时拦截器
 		middle.Next()
 	}
 }
@@ -22,7 +22,10 @@ func NewTestMiddlewares() Handler {
 func NewTestStopMiddlewares() Handler {
 	return func(middle Middleware) {
 		fmt.Println("开始")
-		middle.Stop(errors.New("fuck"))
+		req := middle.GetRequest()
+		fmt.Println(req)
+		//在这里可以拦截
+		middle.Stop()
 		fmt.Println("结束")
 	}
 }
