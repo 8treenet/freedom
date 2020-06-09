@@ -3,9 +3,9 @@ package repository
 import (
 	"time"
 
-	"github.com/8treenet/freedom/example/fshop/application/dto"
-	"github.com/8treenet/freedom/example/fshop/application/entity"
-	"github.com/8treenet/freedom/example/fshop/application/object"
+	"github.com/8treenet/freedom/example/fshop/adapter/dto"
+	"github.com/8treenet/freedom/example/fshop/domain/entity"
+	"github.com/8treenet/freedom/example/fshop/domain/object"
 
 	"github.com/8treenet/freedom"
 )
@@ -27,7 +27,8 @@ type User struct {
 
 func (repo *User) Get(id int) (userEntity *entity.User, e error) {
 	userEntity = &entity.User{}
-	e = findUserByPrimary(repo, userEntity, id)
+	userEntity.Id = id
+	e = findUser(repo, userEntity)
 	if e != nil {
 		return
 	}
@@ -38,8 +39,8 @@ func (repo *User) Get(id int) (userEntity *entity.User, e error) {
 }
 
 func (repo *User) FindByName(userName string) (userEntity *entity.User, e error) {
-	userEntity = &entity.User{}
-	e = findUser(repo, object.User{Name: userName}, userEntity)
+	userEntity = &entity.User{User: object.User{Name: userName}}
+	e = findUser(repo, userEntity)
 	if e != nil {
 		return
 	}

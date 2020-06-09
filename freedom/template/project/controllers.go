@@ -1,15 +1,17 @@
 package project
 
+import "strings"
+
 func init() {
 	content["/adapter/controller/default.go"] = controllerTemplate()
 }
 
 func controllerTemplate() string {
-	return `package controller
+	result := `package controller
 
 	import (
 		"github.com/8treenet/freedom"
-		"{{.PackagePath}}/application"
+		"{{.PackagePath}}/domain"
 		"{{.PackagePath}}/infra"
 	)
 	
@@ -20,8 +22,9 @@ func controllerTemplate() string {
 	}
 	
 	type Default struct {
-		Sev     *application.Default
+		Sev     *domain.Default
 		Worker freedom.Worker
+		Request *infra.Request
 	}
 	
 	// Get handles the GET: / route.
@@ -43,15 +46,14 @@ func controllerTemplate() string {
 
 	// PostHello handles the POST: /hello route.
 	func (c *Default) PostHello() freedom.Result {
-		/*
-			var postJsonData struct {
-				UserName     string validate:"required"
-				UserPassword string validate:"required"
-			}
-			if err := c.JSONRequest.ReadJSON(&postJsonData); err != nil {
-				return &infra.JSONResponse{Error: err}
-			}
-		*/
+		var postJsonData struct {
+			UserName     string $$wavejson:"userName" validate:"required"$$wave
+			UserPassword string $$wavejson:"userPassword" validate:"required"$$wave
+		}
+		if err := c.Request.ReadJSON(&postJsonData); err != nil {
+			return &infra.JSONResponse{Error: err}
+		}
+		
 		return &infra.JSONResponse{Object: "postHello"}
 	}
 
@@ -70,8 +72,23 @@ func controllerTemplate() string {
 	}
 	
 	// GetUserBy handles the GET: /user/{username:string} route.
-	func (c *Default) GetUserBy(username string) string {
-		return username
+	func (c *Default) GetUserBy(username string) freedom.Result {
+		var query struct {
+			Token string $$waveurl:"token" validate:"required"$$wave
+			Id    int64  $$waveurl:"id" validate:"required"$$wave
+		}
+		if err := c.Request.ReadQuery(&query); err != nil {
+			return &infra.JSONResponse{Error: err}
+		}
+		var data struct {
+			Name  string
+			Token string
+			Id    int64
+		}
+		data.Id = query.Id
+		data.Token = query.Token
+		data.Name = username
+		return &infra.JSONResponse{Object: data}
 	}
 	
 	// GetAgeByUserBy handles the GET: /age/{age:int}/user/{user:string} route.
@@ -86,4 +103,7 @@ func controllerTemplate() string {
 		return &infra.JSONResponse{Object: result}
 	}
 	`
+
+	result = strings.ReplaceAll(result, "$$wave", "`")
+	return result
 }

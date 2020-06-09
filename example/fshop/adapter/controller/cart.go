@@ -1,11 +1,11 @@
 package controller
 
 import (
+	domain "github.com/8treenet/freedom/example/fshop/domain"
 	"github.com/8treenet/freedom/example/fshop/infra"
 
 	"github.com/8treenet/freedom"
-	"github.com/8treenet/freedom/example/fshop/application"
-	"github.com/8treenet/freedom/example/fshop/application/dto"
+	"github.com/8treenet/freedom/example/fshop/adapter/dto"
 )
 
 func init() {
@@ -15,9 +15,9 @@ func init() {
 }
 
 type Cart struct {
-	Worker      freedom.Worker
-	CartSev     *application.Cart  //购物车领域服务
-	JSONRequest *infra.JSONRequest //基础设施 用于处理客户端请求io的json数据和验证
+	Worker  freedom.Worker
+	CartSev *domain.Cart   //购物车领域服务
+	Request *infra.Request //基础设施 用于处理客户端请求io的json数据和验证
 }
 
 // GetItems 获取购物车商品列表, GET: /cart/items route.
@@ -37,7 +37,7 @@ func (c *Cart) GetItems() freedom.Result {
 // Post 添加商品到购物车, POST: /cart route.
 func (c *Cart) Post() freedom.Result {
 	var req dto.CartAddReq
-	e := c.JSONRequest.ReadJSON(&req)
+	e := c.Request.ReadJSON(&req)
 	if e != nil {
 		return &infra.JSONResponse{Error: e}
 	}
@@ -59,7 +59,7 @@ func (c *Cart) DeleteAll() freedom.Result {
 // PostShop 购物购物车全部买商品, POST: /cart/shop route.
 func (c *Cart) PostShop() freedom.Result {
 	var req dto.CartShopReq
-	e := c.JSONRequest.ReadJSON(&req)
+	e := c.Request.ReadJSON(&req)
 	if e != nil {
 		return &infra.JSONResponse{Error: e}
 	}

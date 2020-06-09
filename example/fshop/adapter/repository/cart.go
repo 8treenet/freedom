@@ -3,8 +3,8 @@ package repository
 import (
 	"time"
 
-	"github.com/8treenet/freedom/example/fshop/application/entity"
-	"github.com/8treenet/freedom/example/fshop/application/object"
+	"github.com/8treenet/freedom/example/fshop/domain/entity"
+	"github.com/8treenet/freedom/example/fshop/domain/object"
 
 	"github.com/8treenet/freedom"
 )
@@ -32,11 +32,12 @@ func (repo *Cart) FindAll(userId int) (entitys []*entity.Cart, e error) {
 
 // FindByGoodsId 获取用户某商品的购物车
 func (repo *Cart) FindByGoodsId(userId, goodsId int) (cartEntity *entity.Cart, e error) {
-	cartEntity = &entity.Cart{}
-	e = findCart(repo, object.Cart{UserId: userId, GoodsId: goodsId}, cartEntity)
+	cartEntity = &entity.Cart{Cart: object.Cart{UserId: userId, GoodsId: goodsId}}
+	e = findCart(repo, cartEntity)
 	if e != nil {
 		return
 	}
+	repo.InjectBaseEntity(cartEntity)
 	return
 }
 

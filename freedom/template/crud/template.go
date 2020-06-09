@@ -56,7 +56,7 @@ func FunTemplatePackage() string {
 		"{{.PackagePath}}"
 	)
 
-	func errorLog(repo freedom.GORMRepository, model, method string, e error, expression ...interface{}) {
+	func ormErrorLog(repo freedom.GORMRepository, model, method string, e error, expression ...interface{}) {
 		if e == nil || e == gorm.ErrRecordNotFound {
 			return
 		}
@@ -66,12 +66,19 @@ func FunTemplatePackage() string {
 }
 func FunTemplate() string {
 	return `
-	// find{{.Name}}ByPrimary .
-	func find{{.Name}}ByPrimary(repo freedom.GORMRepository, result interface{}, primary interface{}) (e error) {
+	// find{{.Name}} .
+	func find{{.Name}}(repo freedom.GORMRepository, result interface{}, builders ...freedom.QueryBuilder) (e error) {
 		now := time.Now()
-		e = repo.DB().Find(result, primary).Error
-		freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "find{{.Name}}ByPrimary", e, now)
-		errorLog(repo, "{{.Name}}", "find{{.Name}}ByPrimary", e, primary)
+		defer func() {
+			freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "find{{.Name}}", e, now)
+			ormErrorLog(repo, "{{.Name}}", "find{{.Name}}", e, result)
+		}()
+		db := repo.DB()
+		if len(builders) == 0 {
+			e = db.Where(result).Last(result).Error
+			return
+		}
+		e = builders[0].Execute(db.Limit(1), result)
 		return
 	}
 	
@@ -80,24 +87,7 @@ func FunTemplate() string {
 		now := time.Now()
 		e = repo.DB().Find(results, primarys).Error
 		freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "find{{.Name}}ListByPrimarys", e, now)
-		errorLog(repo, "{{.Name}}", "find{{.Name}}sByPrimarys", e, primarys)
-		return
-	}
-	
-	// find{{.Name}} .
-	func find{{.Name}}(repo freedom.GORMRepository, query object.{{.Name}}, result interface{}, builders ...freedom.QueryBuilder) (e error) {
-		now := time.Now()
-		defer func() {
-			freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "find{{.Name}}", e, now)
-			errorLog(repo, "{{.Name}}", "find{{.Name}}", e, query)
-		}()
-		db := repo.DB().Where(query)
-		if len(builders) == 0 {
-			e = db.Last(result).Error
-			return
-		}
-
-		e = builders[0].Execute(db.Limit(1), result)
+		ormErrorLog(repo, "{{.Name}}", "find{{.Name}}sByPrimarys", e, primarys)
 		return
 	}
 	
@@ -106,7 +96,7 @@ func FunTemplate() string {
 		now := time.Now()
 		defer func() {
 			freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "find{{.Name}}ByWhere", e, now)
-			errorLog(repo, "{{.Name}}", "find{{.Name}}ByWhere", e, query, args)
+			ormErrorLog(repo, "{{.Name}}", "find{{.Name}}ByWhere", e, query, args)
 		}()
 		db := repo.DB()
 		if query != "" {
@@ -126,7 +116,7 @@ func FunTemplate() string {
 		now := time.Now()
 		defer func() {
 			freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "find{{.Name}}ByMap", e, now)
-			errorLog(repo, "{{.Name}}", "find{{.Name}}ByMap", e, query)
+			ormErrorLog(repo, "{{.Name}}", "find{{.Name}}ByMap", e, query)
 		}()
 
 		db := repo.DB().Where(query)
@@ -144,7 +134,7 @@ func FunTemplate() string {
 		now := time.Now()
 		defer func() {
 			freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "find{{.Name}}List", e, now)
-			errorLog(repo, "{{.Name}}", "find{{.Name}}s", e, query)
+			ormErrorLog(repo, "{{.Name}}", "find{{.Name}}s", e, query)
 		}()
 		db := repo.DB().Where(query)
 	
@@ -161,7 +151,7 @@ func FunTemplate() string {
 		now := time.Now()
 		defer func() {
 			freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "find{{.Name}}ListByWhere", e, now)
-			errorLog(repo, "{{.Name}}", "find{{.Name}}sByWhere", e, query, args)
+			ormErrorLog(repo, "{{.Name}}", "find{{.Name}}sByWhere", e, query, args)
 		}()
 		db := repo.DB()
 		if query != "" {
@@ -181,7 +171,7 @@ func FunTemplate() string {
 		now := time.Now()
 		defer func() {
 			freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "find{{.Name}}ListByMap", e, now)
-			errorLog(repo, "{{.Name}}", "find{{.Name}}sByMap", e, query)
+			ormErrorLog(repo, "{{.Name}}", "find{{.Name}}sByMap", e, query)
 		}()
 
 		db := repo.DB().Where(query)
@@ -201,7 +191,7 @@ func FunTemplate() string {
 		rowsAffected = db.RowsAffected
 		e = db.Error
 		freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "create{{.Name}}", e, now)
-		errorLog(repo, "{{.Name}}", "create{{.Name}}", e, *object)
+		ormErrorLog(repo, "{{.Name}}", "create{{.Name}}", e, *object)
 		return
 	}
 
@@ -212,7 +202,7 @@ func FunTemplate() string {
 		e = db.Error
 		affected = db.RowsAffected
 		freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "save{{.Name}}", e, now)
-		errorLog(repo, "{{.Name}}", "save{{.Name}}", e, *object)
+		ormErrorLog(repo, "{{.Name}}", "save{{.Name}}", e, *object)
 		return
 	}
 `

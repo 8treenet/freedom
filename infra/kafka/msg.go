@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/8treenet/freedom"
-	"github.com/8treenet/freedom/general"
 	"github.com/Shopify/sarama"
 )
 
@@ -23,7 +22,7 @@ type Msg struct {
 
 // SetWorker .
 func (msg *Msg) SetWorker(worker freedom.Worker) *Msg {
-	general.HandleBusMiddleware(worker)
+	freedom.HandleBusMiddleware(worker)
 	msg.httpHeader = worker.Bus().Header
 	return msg
 }

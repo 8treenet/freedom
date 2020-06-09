@@ -1,8 +1,8 @@
 package repository
 
 import (
-	"github.com/8treenet/freedom/example/fshop/application/dto"
-	"github.com/8treenet/freedom/example/fshop/application/entity"
+	"github.com/8treenet/freedom/example/fshop/adapter/dto"
+	"github.com/8treenet/freedom/example/fshop/domain/entity"
 )
 
 type UserRepo interface {

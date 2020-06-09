@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"github.com/8treenet/freedom/example/infra-example/application"
+	"github.com/8treenet/freedom/example/infra-example/domain"
 
 	"github.com/8treenet/freedom"
 	"github.com/8treenet/freedom/example/infra-example/infra"
@@ -14,9 +14,9 @@ func init() {
 }
 
 type GoodsController struct {
-	Worker      freedom.Worker
-	GoodsSev    *application.GoodsService
-	JSONRequest *infra.JSONRequest
+	Worker   freedom.Worker
+	GoodsSev *domain.GoodsService
+	Request  *infra.Request
 }
 
 // GetBy handles the GET: /goods/:id route 获取指定商品.
@@ -45,7 +45,7 @@ func (goods *GoodsController) PutStock() freedom.Result {
 		Num     int `validate:"min=1,max=15"`
 	}
 	//使用自定义的json基础设施
-	if e := goods.JSONRequest.ReadJSON(&request); e != nil {
+	if e := goods.Request.ReadJSON(&request); e != nil {
 		return &infra.JSONResponse{Error: e}
 	}
 

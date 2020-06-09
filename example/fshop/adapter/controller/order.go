@@ -4,8 +4,8 @@ import (
 	"strconv"
 
 	"github.com/8treenet/freedom"
-	"github.com/8treenet/freedom/example/fshop/application"
-	"github.com/8treenet/freedom/example/fshop/application/dto"
+	"github.com/8treenet/freedom/example/fshop/adapter/dto"
+	"github.com/8treenet/freedom/example/fshop/domain"
 	"github.com/8treenet/freedom/example/fshop/infra"
 )
 
@@ -16,15 +16,15 @@ func init() {
 }
 
 type Order struct {
-	Worker      freedom.Worker
-	JSONRequest *infra.JSONRequest //基础设施 用于处理客户端请求io的json数据和验证
-	OrderSrv    *application.Order //订单领域服务
+	Worker   freedom.Worker
+	Request  *infra.Request //基础设施 用于处理客户端请求io的json数据和验证
+	OrderSrv *domain.Order  //订单领域服务
 }
 
 // PutPay 支付订单, PUT: /order/pay route.
 func (o *Order) PutPay() freedom.Result {
 	var req dto.OrderPayReq
-	e := o.JSONRequest.ReadJSON(&req)
+	e := o.Request.ReadJSON(&req)
 	if e != nil {
 		return &infra.JSONResponse{Error: e}
 	}

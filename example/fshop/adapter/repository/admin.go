@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"github.com/8treenet/freedom/example/fshop/application/entity"
+	"github.com/8treenet/freedom/example/fshop/domain/entity"
 
 	"github.com/8treenet/freedom"
 )
@@ -23,7 +23,8 @@ type Admin struct {
 
 func (repo *Admin) Get(id int) (adminEntity *entity.Admin, e error) {
 	adminEntity = &entity.Admin{}
-	e = findUserByPrimary(repo, adminEntity, id)
+	adminEntity.Id = id
+	e = findUser(repo, adminEntity)
 	if e != nil {
 		return
 	}

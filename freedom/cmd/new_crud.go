@@ -17,7 +17,7 @@ import (
 var (
 	packageName = "object"
 	Conf        = "./server/conf/db.toml"
-	OutObj      = "./application/object"
+	OutObj      = "./domain/object"
 	OutFunc     = "./adapter/repository"
 	NewCRUDCmd  = &cobra.Command{
 		Use:   "new-crud",
@@ -45,7 +45,7 @@ var (
 			if err != nil {
 				return err
 			}
-			pkg, err := build.ImportDir(sysPath+"/application/object", build.IgnoreVendor)
+			pkg, err := build.ImportDir(sysPath+"/domain/object", build.IgnoreVendor)
 			if err != nil {
 				return err
 			}

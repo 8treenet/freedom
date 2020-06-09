@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"github.com/8treenet/freedom"
-	"github.com/8treenet/freedom/example/http2/application"
+	"github.com/8treenet/freedom/example/http2/domain"
 )
 
 func init() {
@@ -13,7 +13,7 @@ func init() {
 
 type ShopController struct {
 	Worker   freedom.Worker
-	Shopping application.ShoppingInterface
+	Shopping domain.ShoppingInterface
 }
 
 // Get handles the GET: /shop/:id route.

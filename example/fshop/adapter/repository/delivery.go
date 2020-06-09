@@ -4,8 +4,8 @@ import (
 	"time"
 
 	"github.com/8treenet/freedom"
-	"github.com/8treenet/freedom/example/fshop/application/entity"
-	"github.com/8treenet/freedom/example/fshop/application/object"
+	"github.com/8treenet/freedom/example/fshop/domain/entity"
+	"github.com/8treenet/freedom/example/fshop/domain/object"
 )
 
 func init() {

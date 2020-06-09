@@ -12,11 +12,13 @@ import (
 	"net/http"
 	"net/url"
 	"time"
+
+	"golang.org/x/sync/singleflight"
 )
 
 var (
 	DefaultHttpClient *http.Client
-	httpclientGroup   Group
+	httpclientGroup   singleflight.Group
 )
 
 func init() {

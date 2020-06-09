@@ -1,15 +1,15 @@
 package project
 
 func init() {
-	content["/application/default.go"] = servicesTemplate()
+	content["/domain/default.go"] = servicesTemplate()
 }
 
 func servicesInterfaceTemplate() string {
-	return `package application`
+	return `package domain`
 }
 
 func servicesTemplate() string {
-	return `package application
+	return `package domain
 
 	import (
 		"github.com/8treenet/freedom"

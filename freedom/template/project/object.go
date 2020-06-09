@@ -1,7 +1,7 @@
 package project
 
 func init() {
-	content["/application/object/object.go"] = objectsTemplate()
+	content["/domain/object/object.go"] = objectsTemplate()
 }
 
 func objectsTemplate() string {

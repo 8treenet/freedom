@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"github.com/8treenet/freedom"
-	"github.com/8treenet/freedom/example/infra-example/application"
+	"github.com/8treenet/freedom/example/infra-example/domain"
 	"github.com/8treenet/freedom/example/infra-example/infra"
 )
 
@@ -14,7 +14,8 @@ func init() {
 
 type ShopController struct {
 	Worker   freedom.Worker
-	OrderSev *application.OrderService
+	OrderSev *domain.OrderService
+	Request  *infra.Request
 }
 
 // GetBy handles the POST: /route 购买商品.
@@ -24,7 +25,7 @@ func (c *ShopController) Post() freedom.Result {
 		Num     int `json:"num"`     //购买数量
 		UserID  int `json:"userId"`  //用户id
 	}
-	if e := c.Worker.IrisContext().ReadJSON(&request); e != nil {
+	if e := c.Request.ReadJSON(&request); e != nil {
 		return &infra.JSONResponse{Error: e}
 	}
 

@@ -19,6 +19,7 @@ func main() {
 
 	app := freedom.NewApplication()
 	installDatabase(app)
+	installRedis(app)
 	installMiddleware(app)
 
 	//安装领域事件的基础设施

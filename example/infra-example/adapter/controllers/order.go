@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"github.com/8treenet/freedom"
-	"github.com/8treenet/freedom/example/infra-example/application"
+	"github.com/8treenet/freedom/example/infra-example/domain"
 	"github.com/8treenet/freedom/example/infra-example/infra"
 )
 
@@ -14,7 +14,7 @@ func init() {
 
 type OrderController struct {
 	Worker   freedom.Worker
-	OrderSev *application.OrderService
+	OrderSev *domain.OrderService
 }
 
 // GetBy handles the GET: /order/:id route 通过id获取订单.

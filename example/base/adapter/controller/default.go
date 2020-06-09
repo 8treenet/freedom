@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"github.com/8treenet/freedom/example/base/application"
+	"github.com/8treenet/freedom/example/base/domain"
 	"github.com/8treenet/freedom/example/base/infra"
 
 	"github.com/8treenet/freedom"
@@ -25,8 +25,9 @@ func init() {
 }
 
 type Default struct {
-	Sev    *application.Default
-	Worker freedom.Worker
+	Sev     *domain.Default
+	Worker  freedom.Worker
+	Request *infra.Request
 }
 
 // Get handles the GET: / route.
@@ -48,15 +49,14 @@ func (c *Default) PutHello() freedom.Result {
 
 // PostHello handles the POST: /hello route.
 func (c *Default) PostHello() freedom.Result {
-	/*
-		var postJsonData struct {
-			UserName     string validate:"required"
-			UserPassword string validate:"required"
-		}
-		if err := c.JSONRequest.ReadJSON(&postJsonData); err != nil {
-			return &infra.JSONResponse{Error: err}
-		}
-	*/
+	var postJsonData struct {
+		UserName     string `json:"userName" validate:"required"`
+		UserPassword string `json:"userPassword" validate:"required"`
+	}
+	if err := c.Request.ReadJSON(&postJsonData); err != nil {
+		return &infra.JSONResponse{Error: err}
+	}
+
 	return &infra.JSONResponse{Object: "postHello"}
 }
 
@@ -75,8 +75,23 @@ func (c *Default) CustomHello() freedom.Result {
 }
 
 // GetUserBy handles the GET: /user/{username:string} route.
-func (c *Default) GetUserBy(username string) string {
-	return username
+func (c *Default) GetUserBy(username string) freedom.Result {
+	var query struct {
+		Token string `url:"token" validate:"required"`
+		Id    int64  `url:"id" validate:"required"`
+	}
+	if err := c.Request.ReadQuery(&query); err != nil {
+		return &infra.JSONResponse{Error: err}
+	}
+	var data struct {
+		Name  string
+		Token string
+		Id    int64
+	}
+	data.Id = query.Id
+	data.Token = query.Token
+	data.Name = username
+	return &infra.JSONResponse{Object: data}
 }
 
 // GetAgeByUserBy handles the GET: /age/{age:int}/user/{user:string} route.

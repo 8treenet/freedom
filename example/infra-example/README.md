@@ -22,7 +22,7 @@ $ freedom new-crud
 ```go
 import (
 	"github.com/8treenet/freedom"
-	"github.com/8treenet/freedom/example/infra-example/domain/repositorys"
+	"github.com/8treenet/freedom/example/infra-example/domain/repository"
 	"github.com/8treenet/freedom/example/infra-example/objects"
 	"github.com/8treenet/freedom/infra/transaction"
 )
@@ -42,8 +42,8 @@ func init() {
 // OrderService .
 type OrderService struct {
 	Worker   freedom.Worker
-	GoodsRepo repositorys.GoodsInterface	//repositorys包声明的商品仓库接口
-	OrderRepo repositorys.OrderInterface	//repositorys包声明的订单仓库接口
+	GoodsRepo repository.GoodsInterface	//repositorys包声明的商品仓库接口
+	OrderRepo repository.OrderInterface	//repositorys包声明的订单仓库接口
 	Tx        transaction.Transaction 	    //transaction包下的 事务组件接口
 }
 

@@ -3,15 +3,16 @@
 
 #### 目录结构
 
-- application - 领域服务
+- domain - 领域模型
     - aggregate - 聚合
     - entity - 实体
     - object - 值对象
-    - dto - 传输对象
+    - *.go - 领域服务
 
 - adapter - 端口适配器
     - controller - 输入适配器
     - repository - 输出适配器
+    - dto - 传输对象
 
 - server - 服务端程序入口
     - conf - toml配置文件
@@ -193,7 +194,7 @@ func installRedis(app freedom.Application) {
 package controller
 
 import (
-	"github.com/8treenet/freedom/example/base/application"
+	"github.com/8treenet/freedom/example/base/domain"
 	"github.com/8treenet/freedom/example/base/infra"
 
 	"github.com/8treenet/freedom"
@@ -217,7 +218,7 @@ func init() {
 }
 
 type Default struct {
-	Sev    *application.Default //注入领域服务 Default
+	Sev    *domain.Default //注入领域服务 Default
 	Worker freedom.Worker //注入请求运行时 Worker
 }
 
@@ -241,15 +242,6 @@ func (c *Default) PutHello() freedom.Result {
 
 // PostHello handles the POST: /hello route.
 func (c *Default) PostHello() freedom.Result {
-	/*
-		var postJsonData struct {
-			UserName     string validate:"required"
-			UserPassword string validate:"required"
-		}
-		if err := c.JSONRequest.ReadJSON(&postJsonData); err != nil {
-			return &infra.JSONResponse{Error: err}
-		}
-	*/
 	return &infra.JSONResponse{Object: "postHello"}
 }
 
@@ -285,9 +277,9 @@ func (c *Default) GetAgeByUserBy(age int, user string) freedom.Result {
 }
 ```
 
-#### 领域服务 application/default.go
+#### 领域服务 domain/default.go
 ```go
-package application
+package domain
 
 import (
 	"github.com/8treenet/freedom"

@@ -3,8 +3,10 @@ package repository
 import (
 	"time"
 
-	"github.com/8treenet/freedom/example/fshop/application/entity"
-	"github.com/8treenet/freedom/example/fshop/application/object"
+	"github.com/8treenet/freedom/infra/store"
+
+	"github.com/8treenet/freedom/example/fshop/domain/entity"
+	"github.com/8treenet/freedom/example/fshop/domain/object"
 
 	"github.com/8treenet/freedom"
 )
@@ -22,18 +24,40 @@ var _ GoodsRepo = new(Goods)
 // Goods .
 type Goods struct {
 	freedom.Repository
+	Cache store.EntityCache //实体缓存组件
 }
 
+// BeginRequest
+func (repo *Goods) BeginRequest(worker freedom.Worker) {
+	repo.Repository.BeginRequest(worker)
+
+	//设置缓存的持久化数据源,旁路缓存模型，如果缓存未有数据，将回调该函数。
+	repo.Cache.SetSource(func(result freedom.Entity) error {
+		return findGoods(repo, result)
+	})
+	//缓存30秒, 不设置默认5分钟
+	repo.Cache.SetExpiration(30 * time.Second)
+	//设置缓存前缀
+	repo.Cache.SetPrefix("freedom")
+}
+
+// Get 通过id 获取商品实体.
 func (repo *Goods) Get(id int) (goodsEntity *entity.Goods, e error) {
 	goodsEntity = &entity.Goods{}
-	e = findGoodsByPrimary(repo, goodsEntity, id)
-	if e != nil {
-		return
-	}
-
+	goodsEntity.Id = id
 	//注入基础Entity 包含运行时和领域事件的producer
 	repo.InjectBaseEntity(goodsEntity)
-	return
+
+	//读取缓存
+	return goodsEntity, repo.Cache.GetEntity(goodsEntity)
+}
+
+// Save 持久化实体.
+func (repo *Goods) Save(entity *entity.Goods) error {
+	_, e := saveGoods(repo, &entity.Goods)
+	//清空缓存
+	repo.Cache.Delete(entity)
+	return e
 }
 
 func (repo *Goods) Finds(ids []int) (entitys []*entity.Goods, e error) {
@@ -60,11 +84,6 @@ func (repo *Goods) FindsByPage(page, pageSize int, tag string) (entitys []*entit
 	//注入基础Entity 包含运行时和领域事件的producer
 	repo.InjectBaseEntitys(entitys)
 	return
-}
-
-func (repo *Goods) Save(entity *entity.Goods) error {
-	_, e := saveGoods(repo, &entity.Goods)
-	return e
 }
 
 func (repo *Goods) New(name, tag string, price, stock int) (entityGoods *entity.Goods, e error) {

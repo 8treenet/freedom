@@ -15,11 +15,12 @@ import (
 	"time"
 
 	"golang.org/x/net/http2"
+	"golang.org/x/sync/singleflight"
 )
 
 var (
 	DefaultH2CClient *http.Client
-	h2cclientGroup   Group
+	h2cclientGroup   singleflight.Group
 )
 
 func init() {

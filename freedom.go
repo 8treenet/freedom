@@ -5,11 +5,11 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/8treenet/freedom/internal"
 	"github.com/kataras/iris/v12/core/host"
 	"github.com/kataras/iris/v12/hero"
 	"github.com/kataras/iris/v12/mvc"
 
-	"github.com/8treenet/freedom/general"
 	"github.com/BurntSushi/toml"
 	"github.com/go-redis/redis"
 	"github.com/jinzhu/gorm"
@@ -17,49 +17,49 @@ import (
 	iris "github.com/kataras/iris/v12"
 )
 
-var app *general.Application
+var app *internal.Application
 
 func init() {
-	app = general.NewApplication()
+	app = internal.NewApplication()
 }
 
 type (
 	// Worker .
-	Worker = general.Worker
+	Worker = internal.Worker
 
 	// Initiator .
-	Initiator = general.Initiator
+	Initiator = internal.Initiator
 
 	// Repository .
-	Repository = general.Repository
+	Repository = internal.Repository
 
 	// GORMRepository .
-	GORMRepository = general.GORMRepository
+	GORMRepository = internal.GORMRepository
 
 	// QueryBuilder .
-	QueryBuilder = general.QueryBuilder
+	QueryBuilder = internal.QueryBuilder
 
 	// Infra .
-	Infra = general.Infra
+	Infra = internal.Infra
 
 	// SingleBoot .
-	SingleBoot = general.SingleBoot
+	SingleBoot = internal.SingleBoot
 
 	Result = hero.Result
 
 	Context = iris.Context
 
-	Entity = general.Entity
+	Entity = internal.Entity
 
-	DomainEventInfra = general.DomainEventInfra
+	DomainEventInfra = internal.DomainEventInfra
 
-	UnitTest = general.UnitTest
+	UnitTest = internal.UnitTest
 
-	Starter = general.Starter
+	Starter = internal.Starter
 
-	Bus = general.Bus
+	Bus = internal.Bus
 
-	BusHandler = general.BusHandler
+	BusHandler = internal.BusHandler
 
 	Configuration    = iris.Configuration
 	BeforeActivation = mvc.BeforeActivation
@@ -71,12 +71,12 @@ func NewApplication() Application {
 }
 
 func NewUnitTest() UnitTest {
-	return new(general.UnitTestImpl)
+	return new(internal.UnitTestImpl)
 }
 
 // Prepare .
 func Prepare(f func(Initiator)) {
-	general.Prepare(f)
+	internal.Prepare(f)
 }
 
 // Logger .
@@ -85,7 +85,7 @@ func Logger() *golog.Logger {
 }
 
 // Prometheus .
-func Prometheus() *general.Prometheus {
+func Prometheus() *internal.Prometheus {
 	return app.Prometheus
 }
 
@@ -172,7 +172,7 @@ type Application interface {
 }
 
 func ToWorker(ctx Context) Worker {
-	if result, ok := ctx.Values().Get(general.WorkerKey).(Worker); ok {
+	if result, ok := ctx.Values().Get(internal.WorkerKey).(Worker); ok {
 		return result
 	}
 	return nil
@@ -180,4 +180,8 @@ func ToWorker(ctx Context) Worker {
 
 func DefaultConfiguration() Configuration {
 	return iris.DefaultConfiguration()
+}
+
+func HandleBusMiddleware(worker Worker) {
+	internal.HandleBusMiddleware(worker)
 }

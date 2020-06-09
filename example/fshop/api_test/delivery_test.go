@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/8treenet/freedom/example/fshop/application/dto"
+	"github.com/8treenet/freedom/example/fshop/adapter/dto"
 	"github.com/8treenet/freedom/infra/requests"
 )
 
@@ -14,7 +14,7 @@ func TestDelivery(t *testing.T) {
 	var req dto.DeliveryReq
 	req.AdminId = 1
 	req.TrackingNumber = fmt.Sprint(rand.Intn(999999999999999))
-	req.OrderNo = "1590849460"
+	req.OrderNo = "1592123380"
 
 	str, rep := requests.NewH2CRequest("http://127.0.0.1:8000/delivery").Post().SetJSONBody(req).ToString()
 	t.Log(str, rep)

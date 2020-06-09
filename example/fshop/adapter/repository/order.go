@@ -5,8 +5,9 @@ import (
 	"time"
 
 	"github.com/8treenet/freedom"
-	"github.com/8treenet/freedom/example/fshop/application/entity"
-	"github.com/8treenet/freedom/example/fshop/application/object"
+	"github.com/8treenet/freedom/example/fshop/domain/entity"
+	"github.com/8treenet/freedom/example/fshop/domain/object"
+	"github.com/8treenet/freedom/infra/store"
 )
 
 func init() {
@@ -22,6 +23,20 @@ var _ OrderRepo = new(Order)
 // Order .
 type Order struct {
 	freedom.Repository
+	Cache store.EntityCache //实体缓存组件
+}
+
+// BeginRequest
+func (repo *Order) BeginRequest(worker freedom.Worker) {
+	repo.Repository.BeginRequest(worker)
+	//设置缓存的持久化数据源
+	repo.Cache.SetSource(func(result freedom.Entity) error {
+		orderEntity := result.(*entity.Order)
+		if e := findOrder(repo, orderEntity); e != nil {
+			return e
+		}
+		return findOrderDetailList(repo, object.OrderDetail{OrderNo: orderEntity.OrderNo}, &orderEntity.Details)
+	})
 }
 
 // 新建订单实体
@@ -62,13 +77,14 @@ func (repo *Order) Save(orderEntity *entity.Order) (e error) {
 			return
 		}
 	}
+	repo.Cache.Delete(orderEntity)
 	return
 }
 
 // Find .
 func (repo *Order) Find(orderNo string, userId int) (orderEntity *entity.Order, e error) {
-	orderEntity = &entity.Order{}
-	e = findOrder(repo, object.Order{OrderNo: orderNo, UserId: userId}, orderEntity)
+	orderEntity = &entity.Order{Order: object.Order{OrderNo: orderNo, UserId: userId}}
+	e = findOrder(repo, orderEntity)
 	if e != nil {
 		return
 	}
@@ -107,18 +123,9 @@ func (repo *Order) Finds(userId int, page, pageSize int) (entitys []*entity.Orde
 
 // Get .
 func (repo *Order) Get(orderNo string) (orderEntity *entity.Order, e error) {
-	orderEntity = &entity.Order{}
-	e = findOrder(repo, object.Order{OrderNo: orderNo}, orderEntity)
-	if e != nil {
-		return
-	}
-
-	e = findOrderDetailList(repo, object.OrderDetail{OrderNo: orderEntity.OrderNo}, &orderEntity.Details)
-	if e != nil {
-		return
-	}
-
+	orderEntity = &entity.Order{Order: object.Order{OrderNo: orderNo}}
 	//注入基础Entity 包含运行时和领域事件的producer
 	repo.InjectBaseEntity(orderEntity)
-	return
+
+	return orderEntity, repo.Cache.GetEntity(orderEntity)
 }
