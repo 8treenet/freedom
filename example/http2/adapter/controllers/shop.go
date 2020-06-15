@@ -13,7 +13,7 @@ func init() {
 
 type ShopController struct {
 	Worker   freedom.Worker
-	Shopping domain.ShoppingInterface
+	Shopping *domain.ShopService
 }
 
 // Get handles the GET: /shop/:id route.
