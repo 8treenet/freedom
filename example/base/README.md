@@ -15,11 +15,11 @@
     - dto - 传输对象
 
 - server - 服务端程序入口
-    - conf - toml配置文件
+    - conf - 配置文件
     - main.go - 主函数
 
 - infra - 基础设施
-    - config - 配置组件
+    - *go - 基础扩展设施组件
 
 
 ---
@@ -143,10 +143,10 @@ func main() {
     installMiddleware(app)
 
     //创建http 监听
-    addrRunner := app.CreateRunner(config.Get().App.Other["listen_addr"].(string))
+    addrRunner := app.CreateRunner(conf.Get().App.Other["listen_addr"].(string))
     //创建http2.0 h2c 监听
-    addrRunner = app.CreateH2CRunner(config.Get().App.Other["listen_addr"].(string))
-    app.Run(addrRunner, *config.Get().App)
+    addrRunner = app.CreateH2CRunner(conf.Get().App.Other["listen_addr"].(string))
+    app.Run(addrRunner, *conf.Get().App)
 }
 
 func installMiddleware(app freedom.Application) {
@@ -155,14 +155,14 @@ func installMiddleware(app freedom.Application) {
     app.InstallMiddleware(middleware.NewTrace("x-request-id"))
     app.InstallMiddleware(middleware.NewRequestLogger("x-request-id", true))
 
-    requests.InstallPrometheus(config.Get().App.Other["service_name"].(string), freedom.Prometheus())
+    requests.InstallPrometheus(conf.Get().App.Other["service_name"].(string), freedom.Prometheus())
     app.InstallBusMiddleware(middleware.NewLimiter())
 }
 
 func installDatabase(app freedom.Application) {
     app.InstallGorm(func() (db *gorm.DB) {
         //安装db的回调函数
-        conf := config.Get().DB
+        conf := conf.Get().DB
         var e error
         db, e = gorm.Open("mysql", conf.Addr)
         if e != nil {
@@ -174,7 +174,7 @@ func installDatabase(app freedom.Application) {
 
 func installRedis(app freedom.Application) {
     app.InstallRedis(func() (client redis.Cmdable) {
-        cfg := config.Get().Redis
+        cfg := conf.Get().Redis
         opt := &redis.Options{
             Addr:               cfg.Addr,
         }

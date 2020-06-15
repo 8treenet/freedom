@@ -1,21 +1,21 @@
 package project
 
-import "fmt"
+import "strings"
 
 func init() {
-	content["/infra/config/config.go"] = confTemplate()
-	content["/infra/config/app.go"] = appConfTemplate()
-	content["/infra/config/db.go"] = dbConfTemplate()
-	content["/infra/config/redis.go"] = redisConfTemplate()
+	content["/server/conf/conf.go"] = confTemplate()
 }
 
 func confTemplate() string {
-	return `package config
+	result := `
+	package conf
 
 	import (
+		"runtime"
+
 		"github.com/8treenet/freedom"
 	)
-	
+
 	func init() {
 		cfg = &Configuration{
 			DB:    newDBConf(),
@@ -23,29 +23,44 @@ func confTemplate() string {
 			Redis: newRedisConf(),
 		}
 	}
-	
+
+	// Get .
+	func Get() *Configuration {
+		return cfg
+	}
+
 	var cfg *Configuration
-	
+
 	// Configuration .
 	type Configuration struct {
 		DB    *DBConf
 		App   *freedom.Configuration
 		Redis *RedisConf
 	}
-	
-	// Get .
-	func Get() *Configuration {
-		return cfg
-	}
-	`
-}
-func appConfTemplate() string {
-	return `package config
 
-	import (
-		"github.com/8treenet/freedom"
-	)
-	
+	// DBConf .
+	type DBConf struct {
+		Addr            string $$wavetoml:"addr"$$wave
+		MaxOpenConns    int    $$wavetoml:"max_open_conns"$$wave
+		MaxIdleConns    int    $$wavetoml:"max_idle_conns"$$wave
+		ConnMaxLifeTime int    $$wavetoml:"conn_max_life_time"$$wave
+	}
+
+	// RedisConf .
+	type RedisConf struct {
+		Addr               string $$wavetoml:"addr"$$wave
+		Password           string $$wavetoml:"password"$$wave
+		DB                 int    $$wavetoml:"db"$$wave
+		MaxRetries         int    $$wavetoml:"max_retries"$$wave
+		PoolSize           int    $$wavetoml:"pool_size"$$wave
+		ReadTimeout        int    $$wavetoml:"read_timeout"$$wave
+		WriteTimeout       int    $$wavetoml:"write_timeout"$$wave
+		IdleTimeout        int    $$wavetoml:"idle_timeout"$$wave
+		IdleCheckFrequency int    $$wavetoml:"idle_check_frequency"$$wave
+		MaxConnAge         int    $$wavetoml:"max_conn_age"$$wave
+		PoolTimeout        int    $$wavetoml:"pool_timeout"$$wave
+	}
+
 	func newAppConf() *freedom.Configuration {
 		result := freedom.DefaultConfiguration()
 		result.Other["listen_addr"] = ":8000"
@@ -53,44 +68,13 @@ func appConfTemplate() string {
 		freedom.Configure(&result, "app.toml", false)
 		return &result
 	}
-	`
-}
-
-func dbConfTemplate() string {
-	result := `package config
-
-	import "github.com/8treenet/freedom"
 
 	func newDBConf() *DBConf {
 		result := &DBConf{}
 		freedom.Configure(result, "db.toml", false)
 		return result
 	}
-	
-	// DBConf .
-	type DBConf struct {
-		Addr            string      %stoml:"addr"%s
-		MaxOpenConns    int         %stoml:"max_open_conns"%s
-		MaxIdleConns    int         %stoml:"max_idle_conns"%s
-		ConnMaxLifeTime int         %stoml:"conn_max_life_time"%s
-	}
-`
 
-	list := []interface{}{}
-	for index := 0; index < 8; index++ {
-		list = append(list, "`")
-	}
-	return fmt.Sprintf(result, list...)
-}
-
-func redisConfTemplate() string {
-	result := `package config
-
-	import (
-		"runtime"
-		"github.com/8treenet/freedom"
-	)
-	
 	func newRedisConf() *RedisConf {
 		result := &RedisConf{
 			MaxRetries:         0,
@@ -102,26 +86,8 @@ func redisConfTemplate() string {
 		}
 		freedom.Configure(result, "redis.toml", true)
 		return result
-	}
-	
-	// RedisConf .
-	type RedisConf struct {
-		Addr               string %stoml:"addr"%s
-		Password           string %stoml:"password"%s
-		DB                 int    %stoml:"db"%s
-		MaxRetries         int    %stoml:"max_retries"%s
-		PoolSize           int    %stoml:"pool_size"%s
-		ReadTimeout        int    %stoml:"read_timeout"%s
-		WriteTimeout       int    %stoml:"write_timeout"%s
-		IdleTimeout        int    %stoml:"idle_timeout"%s
-		IdleCheckFrequency int    %stoml:"idle_check_frequency"%s
-		MaxConnAge         int    %stoml:"max_conn_age"%s
-		PoolTimeout        int    %stoml:"pool_timeout"%s
-	}
-	`
-	list := []interface{}{}
-	for index := 0; index < 22; index++ {
-		list = append(list, "`")
-	}
-	return fmt.Sprintf(result, list...)
+	}	`
+
+	result = strings.ReplaceAll(result, "$$wave", "`")
+	return result
 }

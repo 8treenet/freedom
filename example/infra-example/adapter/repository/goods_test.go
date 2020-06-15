@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/8treenet/freedom"
-	"github.com/8treenet/freedom/example/infra-example/infra/config"
+	"github.com/8treenet/freedom/example/infra-example/server/conf"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
@@ -15,7 +15,7 @@ func TestGoodsRepository_Get(t *testing.T) {
 	unitTest := freedom.NewUnitTest()
 	unitTest.InstallGorm(func() (db *gorm.DB) {
 		//这是连接数据库方式，mock方式参见TestGoodsService_MockGet
-		conf := config.Get().DB
+		conf := conf.Get().DB
 		var e error
 		db, e = gorm.Open("mysql", conf.Addr)
 		if e != nil {

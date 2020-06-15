@@ -6,7 +6,7 @@ import (
 	"github.com/8treenet/extjson"
 	"github.com/8treenet/freedom"
 	_ "github.com/8treenet/freedom/example/fshop/adapter/controller"
-	"github.com/8treenet/freedom/example/fshop/infra/config"
+	"github.com/8treenet/freedom/example/fshop/server/conf"
 	"github.com/8treenet/freedom/infra/kafka" //需要开启 server/conf/infra/kafka.toml open = true
 	"github.com/8treenet/freedom/infra/requests"
 	"github.com/8treenet/freedom/middleware"
@@ -24,8 +24,8 @@ func main() {
 
 	//安装领域事件的基础设施
 	app.InstallDomainEventInfra(kafka.GetDomainEventInfra())
-	addrRunner := app.CreateH2CRunner(config.Get().App.Other["listen_addr"].(string))
-	app.Run(addrRunner, *config.Get().App)
+	addrRunner := app.CreateH2CRunner(conf.Get().App.Other["listen_addr"].(string))
+	app.Run(addrRunner, *conf.Get().App)
 }
 
 func installMiddleware(app freedom.Application) {
@@ -34,7 +34,7 @@ func installMiddleware(app freedom.Application) {
 	app.InstallMiddleware(middleware.NewRequestLogger("x-request-id", true))
 
 	app.InstallBusMiddleware(middleware.NewLimiter())
-	requests.InstallPrometheus(config.Get().App.Other["service_name"].(string), freedom.Prometheus())
+	requests.InstallPrometheus(conf.Get().App.Other["service_name"].(string), freedom.Prometheus())
 
 	//安装序列化和反序列化
 	extjson.SetDefaultOption(extjson.ExtJSONEntityOption{
@@ -47,7 +47,7 @@ func installMiddleware(app freedom.Application) {
 
 func installDatabase(app freedom.Application) {
 	app.InstallGorm(func() (db *gorm.DB) {
-		conf := config.Get().DB
+		conf := conf.Get().DB
 		var e error
 		db, e = gorm.Open("mysql", conf.Addr)
 		if e != nil {
@@ -64,7 +64,7 @@ func installDatabase(app freedom.Application) {
 
 func installRedis(app freedom.Application) {
 	app.InstallRedis(func() (client redis.Cmdable) {
-		cfg := config.Get().Redis
+		cfg := conf.Get().Redis
 		opt := &redis.Options{
 			Addr:               cfg.Addr,
 			Password:           cfg.Password,

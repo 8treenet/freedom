@@ -104,7 +104,7 @@ group_id = "freedom"
 func main() {
 	//获取领域事件的kafka基础设施并安装
 	app.InstallDomainEventInfra(kafka.GetDomainEventInfra())
-	app.Run(addrRunner, *config.Get().App)
+	app.Run(addrRunner, *conf.Get().App)
 }
 ```
 

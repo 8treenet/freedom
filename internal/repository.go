@@ -69,17 +69,11 @@ func (repo *Repository) newReorder(sort, field string, args ...string) *Reorder 
 
 // Redis .
 func (repo *Repository) Redis() redis.Cmdable {
-	if globalApp.Cache.client == nil {
-		panic("Redis not installed")
-	}
 	return globalApp.Cache.client
 }
 
-// Request .
-type Request requests.Request
-
 // NewHttpRequest, transferBus : Whether to pass the context, turned on by default. Typically used for tracking internal services.
-func (repo *Repository) NewHttpRequest(url string, transferBus ...bool) Request {
+func (repo *Repository) NewHttpRequest(url string, transferBus ...bool) requests.Request {
 	req := requests.NewHttpRequest(url)
 	if len(transferBus) > 0 && !transferBus[0] {
 		return req
@@ -89,7 +83,7 @@ func (repo *Repository) NewHttpRequest(url string, transferBus ...bool) Request 
 }
 
 // NewH2CRequest, transferBus : Whether to pass the context, turned on by default. Typically used for tracking internal services.
-func (repo *Repository) NewH2CRequest(url string, transferBus ...bool) Request {
+func (repo *Repository) NewH2CRequest(url string, transferBus ...bool) requests.Request {
 	req := requests.NewH2CRequest(url)
 	if len(transferBus) > 0 && !transferBus[0] {
 		return req
@@ -158,7 +152,7 @@ func repositoryAPIRun(irisConf iris.Configuration) {
 	requests.NewH2cClient(time.Duration(sec) * time.Second)
 }
 
-// GetRuntime .
+// GetWorker .
 func (repo *Repository) GetWorker() Worker {
 	return repo.Worker
 }

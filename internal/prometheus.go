@@ -178,6 +178,10 @@ func newPrometheusHandle(p *Prometheus) func(context.Context) {
 }
 
 func (p *Prometheus) OrmWithLabelValues(model, method string, e error, starTime time.Time) {
+	if p.listen == "" {
+		return
+	}
+
 	result := "ok"
 	if e != nil {
 		result = "error"
@@ -196,6 +200,10 @@ func (p *Prometheus) OrmWithLabelValues(model, method string, e error, starTime 
 // }
 
 func (p *Prometheus) KafkaProducerWithLabelValues(topic string, e error, starTime time.Time) {
+	if p.listen == "" {
+		return
+	}
+
 	err := ""
 	if e != nil {
 		err = e.Error()

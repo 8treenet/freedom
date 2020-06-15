@@ -1,6 +1,8 @@
 package internal
 
 import (
+	"reflect"
+
 	"github.com/8treenet/freedom/infra/requests"
 	"github.com/go-redis/redis"
 	"github.com/jinzhu/gorm"
@@ -27,29 +29,54 @@ func (c *Infra) Redis() redis.Cmdable {
 }
 
 // GetOther .
-func (repo *Infra) GetOther(obj interface{}) {
+func (infra *Infra) Other(obj interface{}) {
 	globalApp.other.get(obj)
 	return
 }
 
 // NewHttpRequest, transferBus : Whether to pass the context, turned on by default. Typically used for tracking internal services.
-func (c *Infra) NewHttpRequest(url string, transferBus ...bool) Request {
+func (infra *Infra) NewHttpRequest(url string, transferBus ...bool) requests.Request {
 	req := requests.NewHttpRequest(url)
 	if len(transferBus) > 0 && !transferBus[0] {
 		return req
 	}
-
-	req.SetHeader(c.Worker.Bus().Header)
+	req.SetHeader(infra.Worker.Bus().Header)
 	return req
 }
 
 // NewH2CRequest, transferBus : Whether to pass the context, turned on by default. Typically used for tracking internal services.
-func (c *Infra) NewH2CRequest(url string, transferBus ...bool) Request {
+func (infra *Infra) NewH2CRequest(url string, transferBus ...bool) requests.Request {
 	req := requests.NewH2CRequest(url)
 	if len(transferBus) > 0 && !transferBus[0] {
 		return req
 	}
-
-	req.SetHeader(c.Worker.Bus().Header)
+	req.SetHeader(infra.Worker.Bus().Header)
 	return req
+}
+
+// InjectBaseEntity .
+func (infra *Infra) InjectBaseEntity(entity Entity) {
+	injectBaseEntity(infra.Worker, entity)
+	return
+}
+
+// InjectBaseEntity .
+func (infra *Infra) InjectBaseEntitys(entitys interface{}) {
+	entitysValue := reflect.ValueOf(entitys)
+	if entitysValue.Kind() != reflect.Slice {
+		panic("It's not a slice")
+	}
+	for i := 0; i < entitysValue.Len(); i++ {
+		iface := entitysValue.Index(i).Interface()
+		if _, ok := iface.(Entity); !ok {
+			panic("This is not an entity")
+		}
+		injectBaseEntity(infra.Worker, iface)
+	}
+	return
+}
+
+// GetWorker .
+func (infra *Infra) GetWorker() Worker {
+	return infra.Worker
 }

@@ -18,8 +18,8 @@ app := freedom.NewApplication()
 installLogrus(app)
 
 //创建 http2.0 H2cRunner
-h2caddrRunner := app.CreateH2CRunner(config.Get().App.Other["listen_addr"].(string))
-app.Run(h2caddrRunner, *config.Get().App)
+h2caddrRunner := app.CreateH2CRunner(conf.Get().App.Other["listen_addr"].(string))
+app.Run(h2caddrRunner, *conf.Get().App)
 
 func installLogrus(app freedom.Application) {
 	logrus.SetLevel(logrus.InfoLevel)
@@ -40,8 +40,8 @@ func installMiddleware(app freedom.Application) {
 	
 
 	//http client安装普罗米修斯监控
-	requests.InstallPrometheus(config.Get().App.Other["service_name"].(string), freedom.Prometheus())
-	app.InstallBusMiddleware(newBus(config.Get().App.Other["service_name"].(string)))
+	requests.InstallPrometheus(conf.Get().App.Other["service_name"].(string), freedom.Prometheus())
+	app.InstallBusMiddleware(newBus(conf.Get().App.Other["service_name"].(string)))
 }
 
 // newBus 自定义总线中间件示例.

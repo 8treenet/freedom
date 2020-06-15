@@ -82,7 +82,7 @@ func TestGoodsService_Get(t *testing.T) {
 	unitTest := freedom.NewUnitTest()
 	unitTest.InstallGorm(func() (db *gorm.DB) {
 		//这是连接数据库方式，mock方式参见goods_test.go
-		conf := config.Get().DB
+		conf := conf.Get().DB
 		db, _ = gorm.Open("mysql", conf.Addr)
 		return
 	})

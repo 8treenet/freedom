@@ -74,5 +74,4 @@ func mkdirAll(projectPath string) {
 	os.MkdirAll(projectPath+"/domain/entity", os.ModePerm)
 	os.MkdirAll(projectPath+"/adapter/dto", os.ModePerm)
 	os.MkdirAll(projectPath+"/infra", os.ModePerm)
-	os.MkdirAll(projectPath+"/infra/config", os.ModePerm)
 }
