@@ -4,15 +4,14 @@ import (
 	"errors"
 	"strconv"
 
-	"github.com/8treenet/freedom/example/fshop/domain/object"
-
 	"github.com/8treenet/freedom"
+	"github.com/8treenet/freedom/example/fshop/adapter/po"
 )
 
 // 用户实体
 type User struct {
 	freedom.Entity
-	object.User
+	po.User
 }
 
 // Identity 唯一

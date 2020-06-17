@@ -4,8 +4,8 @@ import (
 	"time"
 
 	"github.com/8treenet/freedom/example/fshop/adapter/dto"
+	"github.com/8treenet/freedom/example/fshop/adapter/po"
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
-	"github.com/8treenet/freedom/example/fshop/domain/object"
 
 	"github.com/8treenet/freedom"
 )
@@ -39,7 +39,7 @@ func (repo *User) Get(id int) (userEntity *entity.User, e error) {
 }
 
 func (repo *User) FindByName(userName string) (userEntity *entity.User, e error) {
-	userEntity = &entity.User{User: object.User{Name: userName}}
+	userEntity = &entity.User{User: po.User{Name: userName}}
 	e = findUser(repo, userEntity)
 	if e != nil {
 		return
@@ -55,7 +55,7 @@ func (repo *User) Save(entity *entity.User) error {
 }
 
 func (repo *User) New(userDto dto.RegisterUserReq, money int) (entityUser *entity.User, e error) {
-	user := object.User{Name: userDto.Name, Money: money, Password: userDto.Password, Created: time.Now(), Updated: time.Now()}
+	user := po.User{Name: userDto.Name, Money: money, Password: userDto.Password, Created: time.Now(), Updated: time.Now()}
 
 	_, e = createUser(repo, &user)
 	if e != nil {

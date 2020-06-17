@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/8treenet/freedom"
+	"github.com/8treenet/freedom/example/fshop/adapter/po"
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
-	"github.com/8treenet/freedom/example/fshop/domain/object"
 	"github.com/8treenet/freedom/infra/store"
 )
 
@@ -35,14 +35,14 @@ func (repo *Order) BeginRequest(worker freedom.Worker) {
 		if e := findOrder(repo, orderEntity); e != nil {
 			return e
 		}
-		return findOrderDetailList(repo, object.OrderDetail{OrderNo: orderEntity.OrderNo}, &orderEntity.Details)
+		return findOrderDetailList(repo, po.OrderDetail{OrderNo: orderEntity.OrderNo}, &orderEntity.Details)
 	})
 }
 
 // 新建订单实体
 func (repo *Order) New() (orderEntity *entity.Order, e error) {
 	orderNo := fmt.Sprint(time.Now().Unix())
-	orderEntity = &entity.Order{Order: object.Order{OrderNo: orderNo, Status: "NON_PAYMENT", Created: time.Now(), Updated: time.Now()}}
+	orderEntity = &entity.Order{Order: po.Order{OrderNo: orderNo, Status: "NON_PAYMENT", Created: time.Now(), Updated: time.Now()}}
 
 	//注入基础Entity 包含运行时和领域事件的producer
 	repo.InjectBaseEntity(orderEntity)
@@ -83,13 +83,13 @@ func (repo *Order) Save(orderEntity *entity.Order) (e error) {
 
 // Find .
 func (repo *Order) Find(orderNo string, userId int) (orderEntity *entity.Order, e error) {
-	orderEntity = &entity.Order{Order: object.Order{OrderNo: orderNo, UserId: userId}}
+	orderEntity = &entity.Order{Order: po.Order{OrderNo: orderNo, UserId: userId}}
 	e = findOrder(repo, orderEntity)
 	if e != nil {
 		return
 	}
 
-	e = findOrderDetailList(repo, object.OrderDetail{OrderNo: orderEntity.OrderNo}, &orderEntity.Details)
+	e = findOrderDetailList(repo, po.OrderDetail{OrderNo: orderEntity.OrderNo}, &orderEntity.Details)
 	if e != nil {
 		return
 	}
@@ -103,13 +103,13 @@ func (repo *Order) Find(orderNo string, userId int) (orderEntity *entity.Order, 
 func (repo *Order) Finds(userId int, page, pageSize int) (entitys []*entity.Order, totalPage int, e error) {
 	pager := repo.NewORMDescBuilder("id").NewPageBuilder(page, pageSize)
 
-	e = findOrderList(repo, object.Order{UserId: userId}, &entitys, pager)
+	e = findOrderList(repo, po.Order{UserId: userId}, &entitys, pager)
 	if e != nil {
 		return
 	}
 
 	for i := 0; i < len(entitys); i++ {
-		e = findOrderDetailList(repo, object.OrderDetail{OrderNo: entitys[i].OrderNo}, &entitys[i].Details)
+		e = findOrderDetailList(repo, po.OrderDetail{OrderNo: entitys[i].OrderNo}, &entitys[i].Details)
 		if e != nil {
 			return
 		}
@@ -123,7 +123,7 @@ func (repo *Order) Finds(userId int, page, pageSize int) (entitys []*entity.Orde
 
 // Get .
 func (repo *Order) Get(orderNo string) (orderEntity *entity.Order, e error) {
-	orderEntity = &entity.Order{Order: object.Order{OrderNo: orderNo}}
+	orderEntity = &entity.Order{Order: po.Order{OrderNo: orderNo}}
 	//注入基础Entity 包含运行时和领域事件的producer
 	repo.InjectBaseEntity(orderEntity)
 

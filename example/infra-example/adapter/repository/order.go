@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/8treenet/freedom"
-	"github.com/8treenet/freedom/example/infra-example/domain/object"
+	"github.com/8treenet/freedom/example/infra-example/adapter/po"
 )
 
 func init() {
@@ -20,20 +20,20 @@ type OrderRepository struct {
 	freedom.Repository
 }
 
-func (repo *OrderRepository) Get(id, userID int) (result object.Order, e error) {
+func (repo *OrderRepository) Get(id, userID int) (result po.Order, e error) {
 	result.Id = id
 	result.UserId = userID
 	e = findOrder(repo, &result)
 	return
 }
 
-func (repo *OrderRepository) GetAll(userID int) (result []object.Order, e error) {
-	e = findOrderList(repo, object.Order{UserId: userID}, &result)
+func (repo *OrderRepository) GetAll(userID int) (result []po.Order, e error) {
+	e = findOrderList(repo, po.Order{UserId: userID}, &result)
 	return
 }
 
 func (repo *OrderRepository) Create(goodsID, num, userID int) error {
-	_, e := createOrder(repo, &object.Order{
+	_, e := createOrder(repo, &po.Order{
 		UserId:  userID,
 		GoodsId: goodsID,
 		Num:     num,

@@ -26,12 +26,13 @@ $ go get github.com/8treenet/freedom/freedom
 $ freedom new-project [project-name]
 ```
 
-## 生成crud 值对象
+## 生成po 持久化对象
+####
 ```sh
 # 编辑 [project-name]/cmd/conf/db.toml 填入数据库地址
-# 可指定配置地址和输出目录 freedom new-crud -h 查看更多
+# 可指定配置地址和输出目录 freedom new-po -h 查看更多
 $ cd [project-name]
-$ freedom new-crud
+$ freedom new-po
 ```
 
 ## Example

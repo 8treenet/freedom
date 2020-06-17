@@ -4,9 +4,8 @@ import (
 	"errors"
 	"strconv"
 
-	"github.com/8treenet/freedom/example/fshop/domain/object"
-
 	"github.com/8treenet/freedom"
+	"github.com/8treenet/freedom/example/fshop/adapter/po"
 )
 
 const (
@@ -20,7 +19,7 @@ const (
 // 商品实体
 type Goods struct {
 	freedom.Entity
-	object.Goods
+	po.Goods
 }
 
 // Identity 唯一

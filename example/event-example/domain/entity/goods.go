@@ -4,12 +4,12 @@ import (
 	"strconv"
 
 	"github.com/8treenet/freedom"
-	"github.com/8treenet/freedom/example/event-example/domain/objects"
+	"github.com/8treenet/freedom/example/event-example/adapter/dto"
 )
 
 type Goods struct {
 	freedom.Entity
-	goodsObj objects.Goods
+	goodsObj dto.Goods
 }
 
 /*

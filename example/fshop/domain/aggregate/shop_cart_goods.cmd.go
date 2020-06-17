@@ -4,9 +4,9 @@ import (
 	"errors"
 	"time"
 
+	"github.com/8treenet/freedom/example/fshop/adapter/po"
 	"github.com/8treenet/freedom/example/fshop/adapter/repository"
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
-	"github.com/8treenet/freedom/example/fshop/domain/object"
 	"github.com/8treenet/freedom/infra/transaction"
 )
 
@@ -84,7 +84,7 @@ func (cmd *ShopCartGoodsCmd) Shop() error {
 		totalPrice += goodsEntity.Price * cmd.allCartEntity[i].Num
 
 		//增加订单的商品详情
-		cmd.AddOrderDetal(&object.OrderDetail{OrderNo: cmd.OrderNo, GoodsId: goodsEntity.Id, GoodsName: goodsEntity.Name, Num: cmd.allCartEntity[i].Num, Created: time.Now(), Updated: time.Now()})
+		cmd.AddOrderDetal(&po.OrderDetail{OrderNo: cmd.OrderNo, GoodsId: goodsEntity.Id, GoodsName: goodsEntity.Name, Num: cmd.allCartEntity[i].Num, Created: time.Now(), Updated: time.Now()})
 	}
 
 	//设置订单总价格

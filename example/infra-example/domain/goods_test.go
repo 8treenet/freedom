@@ -3,8 +3,9 @@ package domain
 import (
 	"testing"
 
+	"github.com/8treenet/freedom/example/infra-example/adapter/po"
+
 	"github.com/8treenet/freedom"
-	"github.com/8treenet/freedom/example/infra-example/domain/object"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
@@ -54,7 +55,7 @@ func TestGoodsService_MockGet(t *testing.T) {
 type MockGoodsRepository struct {
 }
 
-func (repo *MockGoodsRepository) Get(id int) (result object.Goods, e error) {
+func (repo *MockGoodsRepository) Get(id int) (result po.Goods, e error) {
 	result.Id = 123
 	result.Name = "mock商品名称"
 	result.Price = 100
@@ -63,5 +64,5 @@ func (repo *MockGoodsRepository) Get(id int) (result object.Goods, e error) {
 	return
 }
 
-func (repo *MockGoodsRepository) GetAll() (goods []object.Goods, e error) { return }
-func (repo *MockGoodsRepository) Save(*object.Goods) error                { return nil }
+func (repo *MockGoodsRepository) GetAll() (goods []po.Goods, e error) { return }
+func (repo *MockGoodsRepository) Save(*po.Goods) error                { return nil }

@@ -4,9 +4,9 @@ import (
 	"errors"
 	"time"
 
+	"github.com/8treenet/freedom/example/fshop/adapter/po"
 	"github.com/8treenet/freedom/example/fshop/adapter/repository"
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
-	"github.com/8treenet/freedom/example/fshop/domain/object"
 	"github.com/8treenet/freedom/infra/transaction"
 )
 
@@ -70,7 +70,7 @@ func (cmd *ShopGoodsCmd) Shop(goodsNum int) error {
 	//设置订单的用户
 	cmd.SetUserId(cmd.userEntity.Id)
 	//增加订单的商品详情
-	cmd.AddOrderDetal(&object.OrderDetail{OrderNo: cmd.OrderNo, GoodsId: cmd.goodsEntity.Id, GoodsName: cmd.goodsEntity.Name, Num: goodsNum, Created: time.Now(), Updated: time.Now()})
+	cmd.AddOrderDetal(&po.OrderDetail{OrderNo: cmd.OrderNo, GoodsId: cmd.goodsEntity.Id, GoodsName: cmd.goodsEntity.Name, Num: goodsNum, Created: time.Now(), Updated: time.Now()})
 
 	//事务执行 创建 订单表、订单详情表，修改商品表的库存
 	e := cmd.tx.Execute(func() error {

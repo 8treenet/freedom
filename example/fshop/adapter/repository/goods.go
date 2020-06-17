@@ -5,8 +5,8 @@ import (
 
 	"github.com/8treenet/freedom/infra/store"
 
+	"github.com/8treenet/freedom/example/fshop/adapter/po"
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
-	"github.com/8treenet/freedom/example/fshop/domain/object"
 
 	"github.com/8treenet/freedom"
 )
@@ -77,7 +77,7 @@ func (repo *Goods) Finds(ids []int) (entitys []*entity.Goods, e error) {
 
 func (repo *Goods) FindsByPage(page, pageSize int, tag string) (entitys []*entity.Goods, e error) {
 	build := repo.NewORMDescBuilder("id").NewPageBuilder(page, pageSize)
-	e = findGoodsList(repo, object.Goods{Tag: tag}, &entitys, build)
+	e = findGoodsList(repo, po.Goods{Tag: tag}, &entitys, build)
 	if e != nil {
 		return
 	}
@@ -87,7 +87,7 @@ func (repo *Goods) FindsByPage(page, pageSize int, tag string) (entitys []*entit
 }
 
 func (repo *Goods) New(name, tag string, price, stock int) (entityGoods *entity.Goods, e error) {
-	goods := object.Goods{Name: name, Price: price, Stock: stock, Tag: tag, Created: time.Now(), Updated: time.Now()}
+	goods := po.Goods{Name: name, Price: price, Stock: stock, Tag: tag, Created: time.Now(), Updated: time.Now()}
 
 	_, e = createGoods(repo, &goods)
 	if e != nil {

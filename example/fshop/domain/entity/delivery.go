@@ -3,14 +3,13 @@ package entity
 import (
 	"strconv"
 
-	"github.com/8treenet/freedom/example/fshop/domain/object"
-
 	"github.com/8treenet/freedom"
+	"github.com/8treenet/freedom/example/fshop/adapter/po"
 )
 
 type Delivery struct {
 	freedom.Entity
-	object.Delivery
+	po.Delivery
 }
 
 // Identity 唯一

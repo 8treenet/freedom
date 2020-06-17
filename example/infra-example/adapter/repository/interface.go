@@ -2,17 +2,17 @@
 package repository
 
 import (
-	"github.com/8treenet/freedom/example/infra-example/domain/object"
+	"github.com/8treenet/freedom/example/infra-example/adapter/po"
 )
 
 type GoodsInterface interface {
-	Get(id int) (object.Goods, error)
-	GetAll() ([]object.Goods, error)
-	Save(*object.Goods) error
+	Get(id int) (po.Goods, error)
+	GetAll() ([]po.Goods, error)
+	Save(*po.Goods) error
 }
 
 type OrderInterface interface {
-	Get(id int, userID int) (object.Order, error)
-	GetAll(userID int) ([]object.Order, error)
+	Get(id int, userID int) (po.Order, error)
+	GetAll(userID int) ([]po.Order, error)
 	Create(goodsID, num, userID int) error
 }

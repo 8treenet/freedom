@@ -69,9 +69,9 @@ func mkdirAll(projectPath string) {
 	os.MkdirAll(projectPath+"/adapter/controller", os.ModePerm)
 	os.MkdirAll(projectPath+"/adapter/repository", os.ModePerm)
 	os.MkdirAll(projectPath+"/domain", os.ModePerm)
-	os.MkdirAll(projectPath+"/domain/object", os.ModePerm)
 	os.MkdirAll(projectPath+"/domain/aggregate", os.ModePerm)
 	os.MkdirAll(projectPath+"/domain/entity", os.ModePerm)
 	os.MkdirAll(projectPath+"/adapter/dto", os.ModePerm)
+	os.MkdirAll(projectPath+"/adapter/po", os.ModePerm)
 	os.MkdirAll(projectPath+"/infra", os.ModePerm)
 }

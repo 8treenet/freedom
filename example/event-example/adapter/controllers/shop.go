@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/8treenet/freedom"
-	"github.com/8treenet/freedom/example/event-example/domain/objects"
+	"github.com/8treenet/freedom/example/event-example/adapter/dto"
 	"github.com/8treenet/freedom/infra/kafka"
 )
 
@@ -21,7 +21,7 @@ type ShopController struct {
 
 // Get handles the GET: /shop/:id route.
 func (s *ShopController) GetBy(id int) string {
-	data, _ := json.Marshal(objects.Goods{
+	data, _ := json.Marshal(dto.Goods{
 		ID:     id,
 		Amount: 10,
 	})

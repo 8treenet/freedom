@@ -3,15 +3,14 @@ package entity
 import (
 	"strconv"
 
-	"github.com/8treenet/freedom/example/fshop/domain/object"
-
 	"github.com/8treenet/freedom"
+	"github.com/8treenet/freedom/example/fshop/adapter/po"
 )
 
 // 管理员实体
 type Admin struct {
 	freedom.Entity
-	object.Admin
+	po.Admin
 }
 
 // Identity 唯一

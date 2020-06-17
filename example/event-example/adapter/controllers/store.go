@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"github.com/8treenet/freedom"
-	"github.com/8treenet/freedom/example/event-example/domain/objects"
+	"github.com/8treenet/freedom/example/event-example/adapter/dto"
 )
 
 const (
@@ -34,7 +34,7 @@ type StoreController struct {
 // PostSellGoodsBy 事件方法为 Post开头, 参数是事件id
 func (s *StoreController) PostSellGoodsBy(eventID string) error {
 	//rawData, err := ioutil.ReadAll(s.Worker.Ctx().Request().Body)
-	var goods objects.Goods
+	var goods dto.Goods
 	s.Worker.IrisContext().ReadJSON(&goods)
 
 	action := s.Worker.IrisContext().GetHeader("x-action")

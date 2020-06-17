@@ -1,6 +1,6 @@
-package objects
+package dto
 
-type GoodsModel struct {
+type Goods struct {
 	Name  string `json:"name"`
 	Price int    `json:"price"`
 }

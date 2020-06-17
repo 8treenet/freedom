@@ -3,15 +3,14 @@ package entity
 import (
 	"strconv"
 
-	"github.com/8treenet/freedom/example/fshop/domain/object"
-
 	"github.com/8treenet/freedom"
+	"github.com/8treenet/freedom/example/fshop/adapter/po"
 )
 
 // 购物车项实体
 type Cart struct {
 	freedom.Entity
-	object.Cart
+	po.Cart
 }
 
 // Identity 唯一

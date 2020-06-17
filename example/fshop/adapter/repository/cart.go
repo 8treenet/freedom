@@ -3,8 +3,8 @@ package repository
 import (
 	"time"
 
+	"github.com/8treenet/freedom/example/fshop/adapter/po"
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
-	"github.com/8treenet/freedom/example/fshop/domain/object"
 
 	"github.com/8treenet/freedom"
 )
@@ -26,13 +26,13 @@ type Cart struct {
 
 // FindAll 获取用户购物车实体
 func (repo *Cart) FindAll(userId int) (entitys []*entity.Cart, e error) {
-	e = findCartList(repo, object.Cart{UserId: userId}, &entitys)
+	e = findCartList(repo, po.Cart{UserId: userId}, &entitys)
 	return
 }
 
 // FindByGoodsId 获取用户某商品的购物车
 func (repo *Cart) FindByGoodsId(userId, goodsId int) (cartEntity *entity.Cart, e error) {
-	cartEntity = &entity.Cart{Cart: object.Cart{UserId: userId, GoodsId: goodsId}}
+	cartEntity = &entity.Cart{Cart: po.Cart{UserId: userId, GoodsId: goodsId}}
 	e = findCart(repo, cartEntity)
 	if e != nil {
 		return
@@ -49,7 +49,7 @@ func (repo *Cart) Save(entity *entity.Cart) error {
 
 // New 新增购物车
 func (repo *Cart) New(userId, goodsId, num int) (cartEntity *entity.Cart, e error) {
-	cart := object.Cart{UserId: userId, GoodsId: goodsId, Num: num, Created: time.Now(), Updated: time.Now()}
+	cart := po.Cart{UserId: userId, GoodsId: goodsId, Num: num, Created: time.Now(), Updated: time.Now()}
 
 	_, e = createCart(repo, &cart)
 	if e != nil {
@@ -62,6 +62,6 @@ func (repo *Cart) New(userId, goodsId, num int) (cartEntity *entity.Cart, e erro
 
 // DeleteAll 删除全部购物车
 func (repo *Cart) DeleteAll(userId int) (e error) {
-	e = repo.DB().Where(object.Cart{UserId: userId}).Delete(object.Cart{}).Error
+	e = repo.DB().Where(po.Cart{UserId: userId}).Delete(po.Cart{}).Error
 	return
 }

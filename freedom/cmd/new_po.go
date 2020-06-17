@@ -15,15 +15,17 @@ import (
 )
 
 var (
-	packageName = "object"
+	packageName = "po"
 	Conf        = "./server/conf/db.toml"
-	OutObj      = "./domain/object"
+	OutObj      = "./adapter/po"
 	OutFunc     = "./adapter/repository"
 	NewCRUDCmd  = &cobra.Command{
-		Use:   "new-crud",
+		Use:   "new-po",
 		Short: "Create the model code for the CRUD.",
 		Long:  `Create the model code for the CRUD, You can view subcommands and customize builds`,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			os.MkdirAll(OutObj, os.ModePerm)
+			os.MkdirAll(OutFunc, os.ModePerm)
 			tl := crud.CrudTemplate()
 			funTempl := crud.FunTemplate()
 			s2 := crud.NewTable2Struct()
@@ -36,25 +38,13 @@ var (
 				return err
 			}
 			generateBuffer := new(bytes.Buffer)
-			tmpl, err := template.New("").Parse(crud.FunTemplatePackage())
+			generateTmpl, err := template.New("").Parse(crud.FunTemplatePackage())
 			if err != nil {
 				return err
 			}
 
 			sysPath, err := os.Getwd()
-			if err != nil {
-				return err
-			}
-			pkg, err := build.ImportDir(sysPath+"/domain/object", build.IgnoreVendor)
-			if err != nil {
-				return err
-			}
-			pdata := map[string]interface{}{
-				"PackagePath": pkg.ImportPath,
-			}
-			if err = tmpl.Execute(generateBuffer, pdata); err != nil {
-				return err
-			}
+			generateBuild := false
 
 			for index := 0; index < len(list); index++ {
 				pdata := map[string]interface{}{
@@ -87,6 +77,20 @@ var (
 				}
 				if err = tmpl.Execute(pf, pdata); err != nil {
 					return err
+				}
+
+				if !generateBuild {
+					generatePkg, err := build.ImportDir(sysPath+"/adapter/po", build.IgnoreVendor)
+					if err != nil {
+						return err
+					}
+					generatePdata := map[string]interface{}{
+						"PackagePath": generatePkg.ImportPath,
+					}
+					if err = generateTmpl.Execute(generateBuffer, generatePdata); err != nil {
+						return err
+					}
+					generateBuild = true
 				}
 
 				tmpl, err = template.New("").Parse(funTempl)

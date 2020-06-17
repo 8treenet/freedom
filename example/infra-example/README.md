@@ -13,8 +13,8 @@
 ```sh
 #前置1. 导入./freedom.sql 到数据库
 #前置2. 编辑./server/conf/db.toml
-#创建表模型 freedom new-crud
-$ freedom new-crud
+#创建表模型 freedom new-po
+$ freedom new-po
 ```
 
 #### 事务组件
