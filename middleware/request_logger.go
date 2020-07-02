@@ -29,11 +29,11 @@ func NewRequestLogger(traceIDName string, body bool) func(context.Context) {
 }
 
 type requestLoggerMiddleware struct {
-	config      Config
+	config      loggerConfig
 	traceIDName string
 }
 
-func NewRequest(cfg ...Config) context.Handler {
+func NewRequest(cfg ...loggerConfig) context.Handler {
 	c := DefaultConfig()
 	if len(cfg) > 0 {
 		c = cfg[0]

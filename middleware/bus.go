@@ -6,8 +6,8 @@ import (
 	"github.com/8treenet/freedom"
 )
 
-// NewLimiter .
-func NewLimiter() func(freedom.Worker) {
+// NewBusFilter .
+func NewBusFilter() func(freedom.Worker) {
 	return func(run freedom.Worker) {
 		bus := run.Bus()
 		for key := range bus.Header {

@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"math/rand"
 	"time"
 
 	stdContext "context"
@@ -21,6 +22,7 @@ type Worker interface {
 	StartTime() time.Time
 	DeferRecycle()
 	IsDeferRecycle() bool
+	Rand() *rand.Rand
 }
 
 func newWorkerHandle() context.Handler {
@@ -61,6 +63,7 @@ type worker struct {
 	time         time.Time
 	values       memstore.Store
 	deferRecycle bool
+	randInstance *rand.Rand
 }
 
 // Ctx .
@@ -114,4 +117,12 @@ func (rt *worker) DeferRecycle() {
 // IsDeferRecycle .
 func (rt *worker) IsDeferRecycle() bool {
 	return rt.deferRecycle
+}
+
+// Rand .
+func (rt *worker) Rand() *rand.Rand {
+	if rt.randInstance == nil {
+		rt.randInstance = rand.New(rand.NewSource(time.Now().UnixNano()))
+	}
+	return rt.randInstance
 }

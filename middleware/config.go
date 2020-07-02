@@ -6,13 +6,13 @@ import (
 	"github.com/kataras/iris/v12/context"
 )
 
-// The SkipperFunc signature, used to serve the main request without logs.
+// The skipperFunc signature, used to serve the main request without logs.
 // See `Configuration` too.
-type SkipperFunc func(ctx context.Context) bool
+type skipperFunc func(ctx context.Context) bool
 
-// Config contains the options for the logger middleware
+// loggerConfig contains the options for the logger middleware
 // can be optionally be passed to the `New`.
-type Config struct {
+type loggerConfig struct {
 	// Status displays status code (bool).
 	//
 	// Defaults to true.
@@ -74,10 +74,10 @@ type Config struct {
 	LogFuncCtx func(ctx context.Context, latency time.Duration)
 	// Skippers used to skip the logging i.e by `ctx.Path()` and serve
 	// the next/main handler immediately.
-	Skippers []SkipperFunc
+	Skippers []skipperFunc
 	// the Skippers as one function in order to reduce the time needed to
 	// combine them at serve time.
-	skip SkipperFunc
+	skip skipperFunc
 
 	TraceName string
 }
@@ -86,8 +86,8 @@ type Config struct {
 // that have all boolean fields to true except `Columns`,
 // all strings are empty,
 // LogFunc and Skippers to nil as well.
-func DefaultConfig() Config {
-	return Config{
+func DefaultConfig() loggerConfig {
+	return loggerConfig{
 		Status:     true,
 		IP:         true,
 		Method:     true,
@@ -102,12 +102,12 @@ func DefaultConfig() Config {
 }
 
 // AddSkipper adds a skipper to the configuration.
-func (c *Config) AddSkipper(sk SkipperFunc) {
+func (c *loggerConfig) AddSkipper(sk skipperFunc) {
 	c.Skippers = append(c.Skippers, sk)
 	c.buildSkipper()
 }
 
-func (c *Config) buildSkipper() {
+func (c *loggerConfig) buildSkipper() {
 	if len(c.Skippers) == 0 {
 		return
 	}

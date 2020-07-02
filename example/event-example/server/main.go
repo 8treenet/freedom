@@ -37,6 +37,6 @@ func installMiddleware(app freedom.Application) {
 	app.InstallMiddleware(middleware.NewTrace("x-request-id"))
 	app.InstallMiddleware(middleware.NewRequestLogger("x-request-id", true))
 
-	app.InstallBusMiddleware(middleware.NewLimiter())
+	app.InstallBusMiddleware(middleware.NewBusFilter())
 	requests.InstallPrometheus(conf.Get().App.Other["service_name"].(string), freedom.Prometheus())
 }
