@@ -6,13 +6,13 @@
 - domain - 领域模型
     - aggregate - 聚合
     - entity - 实体
+    - dto - 传输对象
+    - po - 持久化对象
     - *.go - 领域服务
 
 - adapter - 端口适配器
     - controller - 输入适配器
     - repository - 输出适配器
-    - dto - 传输对象
-    - po - 持久化对象
 
 - server - 服务端程序入口
     - conf - 配置文件

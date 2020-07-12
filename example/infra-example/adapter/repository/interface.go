@@ -2,7 +2,7 @@
 package repository
 
 import (
-	"github.com/8treenet/freedom/example/infra-example/adapter/po"
+	"github.com/8treenet/freedom/example/infra-example/domain/po"
 )
 
 type GoodsInterface interface {

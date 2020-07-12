@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/8treenet/freedom"
-	"github.com/8treenet/freedom/example/infra-example/adapter/po"
+	"github.com/8treenet/freedom/example/infra-example/domain/po"
 )
 
 func init() {

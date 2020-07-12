@@ -5,8 +5,8 @@ import (
 
 	"github.com/8treenet/freedom/infra/store"
 
-	"github.com/8treenet/freedom/example/fshop/adapter/po"
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
+	"github.com/8treenet/freedom/example/fshop/domain/po"
 
 	"github.com/8treenet/freedom"
 )

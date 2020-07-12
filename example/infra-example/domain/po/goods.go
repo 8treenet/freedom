@@ -2,9 +2,8 @@
 package po
 
 import (
-	"time"
-
 	"github.com/jinzhu/gorm"
+	"time"
 )
 
 type Goods struct {
@@ -13,7 +12,6 @@ type Goods struct {
 	Name    string    `gorm:"column:name"`  // 商品名称
 	Price   int       `gorm:"column:price"` // 价格
 	Stock   int       `gorm:"column:stock"` // 库存
-	Tag     string    `gorm:"column:tag"`   // 标签
 	Created time.Time `gorm:"column:created"`
 	Updated time.Time `gorm:"column:updated"`
 }
@@ -60,15 +58,6 @@ func (obj *Goods) SetStock(stock int) {
 	}
 	obj.Stock = stock
 	obj.changes["stock"] = stock
-}
-
-// SetTag .
-func (obj *Goods) SetTag(tag string) {
-	if obj.changes == nil {
-		obj.changes = make(map[string]interface{})
-	}
-	obj.Tag = tag
-	obj.changes["tag"] = tag
 }
 
 // SetCreated .

@@ -2,7 +2,7 @@ package entity
 
 import (
 	"github.com/8treenet/freedom"
-	"github.com/8treenet/freedom/example/fshop/adapter/po"
+	"github.com/8treenet/freedom/example/fshop/domain/po"
 )
 
 const (

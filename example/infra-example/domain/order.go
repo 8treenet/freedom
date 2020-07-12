@@ -2,8 +2,8 @@ package domain
 
 import (
 	"github.com/8treenet/freedom"
-	"github.com/8treenet/freedom/example/infra-example/adapter/dto"
 	"github.com/8treenet/freedom/example/infra-example/adapter/repository"
+	"github.com/8treenet/freedom/example/infra-example/domain/dto"
 	"github.com/8treenet/freedom/infra/transaction"
 )
 

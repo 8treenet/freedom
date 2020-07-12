@@ -1,8 +1,8 @@
 package domain
 
 import (
-	"github.com/8treenet/freedom/example/fshop/adapter/dto"
 	"github.com/8treenet/freedom/example/fshop/adapter/repository"
+	"github.com/8treenet/freedom/example/fshop/domain/dto"
 
 	"github.com/8treenet/freedom"
 )

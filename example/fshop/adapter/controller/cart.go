@@ -5,7 +5,7 @@ import (
 	"github.com/8treenet/freedom/example/fshop/infra"
 
 	"github.com/8treenet/freedom"
-	"github.com/8treenet/freedom/example/fshop/adapter/dto"
+	"github.com/8treenet/freedom/example/fshop/domain/dto"
 )
 
 func init() {

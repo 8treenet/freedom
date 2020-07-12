@@ -4,7 +4,7 @@ import (
 	"strconv"
 
 	"github.com/8treenet/freedom"
-	"github.com/8treenet/freedom/example/event-example/adapter/dto"
+	"github.com/8treenet/freedom/example/event-example/domain/dto"
 )
 
 type Goods struct {

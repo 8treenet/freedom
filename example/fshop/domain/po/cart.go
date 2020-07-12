@@ -2,27 +2,26 @@
 package po
 
 import (
-	"time"
-
 	"github.com/jinzhu/gorm"
+	"time"
 )
 
-type Order struct {
+type Cart struct {
 	changes map[string]interface{}
 	Id      int       `gorm:"primary_key;column:id"`
-	UserId  int       `gorm:"column:user_id"`  // 用户id
+	UserId  int       `gorm:"column:user_id"`  // 用户ID
 	GoodsId int       `gorm:"column:goods_id"` // 商品id
 	Num     int       `gorm:"column:num"`      // 数量
 	Created time.Time `gorm:"column:created"`
 	Updated time.Time `gorm:"column:updated"`
 }
 
-func (obj *Order) TableName() string {
-	return "order"
+func (obj *Cart) TableName() string {
+	return "cart"
 }
 
 // TakeChanges .
-func (obj *Order) TakeChanges() map[string]interface{} {
+func (obj *Cart) TakeChanges() map[string]interface{} {
 	if obj.changes == nil {
 		return nil
 	}
@@ -35,7 +34,7 @@ func (obj *Order) TakeChanges() map[string]interface{} {
 }
 
 // SetUserId .
-func (obj *Order) SetUserId(userId int) {
+func (obj *Cart) SetUserId(userId int) {
 	if obj.changes == nil {
 		obj.changes = make(map[string]interface{})
 	}
@@ -44,7 +43,7 @@ func (obj *Order) SetUserId(userId int) {
 }
 
 // SetGoodsId .
-func (obj *Order) SetGoodsId(goodsId int) {
+func (obj *Cart) SetGoodsId(goodsId int) {
 	if obj.changes == nil {
 		obj.changes = make(map[string]interface{})
 	}
@@ -53,7 +52,7 @@ func (obj *Order) SetGoodsId(goodsId int) {
 }
 
 // SetNum .
-func (obj *Order) SetNum(num int) {
+func (obj *Cart) SetNum(num int) {
 	if obj.changes == nil {
 		obj.changes = make(map[string]interface{})
 	}
@@ -62,7 +61,7 @@ func (obj *Order) SetNum(num int) {
 }
 
 // SetCreated .
-func (obj *Order) SetCreated(created time.Time) {
+func (obj *Cart) SetCreated(created time.Time) {
 	if obj.changes == nil {
 		obj.changes = make(map[string]interface{})
 	}
@@ -71,7 +70,7 @@ func (obj *Order) SetCreated(created time.Time) {
 }
 
 // SetUpdated .
-func (obj *Order) SetUpdated(updated time.Time) {
+func (obj *Cart) SetUpdated(updated time.Time) {
 	if obj.changes == nil {
 		obj.changes = make(map[string]interface{})
 	}
@@ -80,7 +79,7 @@ func (obj *Order) SetUpdated(updated time.Time) {
 }
 
 // AddUserId .
-func (obj *Order) AddUserId(userId int) {
+func (obj *Cart) AddUserId(userId int) {
 	if obj.changes == nil {
 		obj.changes = make(map[string]interface{})
 	}
@@ -89,7 +88,7 @@ func (obj *Order) AddUserId(userId int) {
 }
 
 // AddGoodsId .
-func (obj *Order) AddGoodsId(goodsId int) {
+func (obj *Cart) AddGoodsId(goodsId int) {
 	if obj.changes == nil {
 		obj.changes = make(map[string]interface{})
 	}
@@ -98,7 +97,7 @@ func (obj *Order) AddGoodsId(goodsId int) {
 }
 
 // AddNum .
-func (obj *Order) AddNum(num int) {
+func (obj *Cart) AddNum(num int) {
 	if obj.changes == nil {
 		obj.changes = make(map[string]interface{})
 	}

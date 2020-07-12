@@ -4,7 +4,7 @@ import (
 	"strconv"
 
 	"github.com/8treenet/freedom"
-	"github.com/8treenet/freedom/example/http2/adapter/dto"
+	"github.com/8treenet/freedom/example/http2/domain/dto"
 )
 
 func init() {

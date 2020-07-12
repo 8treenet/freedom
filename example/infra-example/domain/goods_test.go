@@ -3,7 +3,7 @@ package domain
 import (
 	"testing"
 
-	"github.com/8treenet/freedom/example/infra-example/adapter/po"
+	"github.com/8treenet/freedom/example/infra-example/domain/po"
 
 	"github.com/8treenet/freedom"
 	"github.com/jinzhu/gorm"

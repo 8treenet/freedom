@@ -17,7 +17,7 @@ import (
 var (
 	packageName = "po"
 	Conf        = "./server/conf/db.toml"
-	OutObj      = "./adapter/po"
+	OutObj      = "./domain/po"
 	OutFunc     = "./adapter/repository"
 	NewCRUDCmd  = &cobra.Command{
 		Use:   "new-po",
@@ -80,7 +80,7 @@ var (
 				}
 
 				if !generateBuild {
-					generatePkg, err := build.ImportDir(sysPath+"/adapter/po", build.IgnoreVendor)
+					generatePkg, err := build.ImportDir(sysPath+"/domain/po", build.IgnoreVendor)
 					if err != nil {
 						return err
 					}

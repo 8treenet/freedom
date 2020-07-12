@@ -2,16 +2,15 @@
 package po
 
 import (
-	"time"
-
 	"github.com/jinzhu/gorm"
+	"time"
 )
 
 type Delivery struct {
 	changes        map[string]interface{}
 	Id             int       `gorm:"primary_key;column:id"`
-	AdminId        int       `gorm:"column:admin_id"` // 管理员id
-	OrderNo        string    `gorm:"column:order_no"`
+	AdminId        int       `gorm:"column:admin_id"`        // 管理员id
+	OrderId        int       `gorm:"column:order_id"`        // 订单id
 	TrackingNumber string    `gorm:"column:tracking_number"` // 快递单号
 	Created        time.Time `gorm:"column:created"`
 	Updated        time.Time `gorm:"column:updated"`
@@ -43,13 +42,13 @@ func (obj *Delivery) SetAdminId(adminId int) {
 	obj.changes["admin_id"] = adminId
 }
 
-// SetOrderNo .
-func (obj *Delivery) SetOrderNo(orderNo string) {
+// SetOrderId .
+func (obj *Delivery) SetOrderId(orderId int) {
 	if obj.changes == nil {
 		obj.changes = make(map[string]interface{})
 	}
-	obj.OrderNo = orderNo
-	obj.changes["order_no"] = orderNo
+	obj.OrderId = orderId
+	obj.changes["order_id"] = orderId
 }
 
 // SetTrackingNumber .
@@ -86,4 +85,13 @@ func (obj *Delivery) AddAdminId(adminId int) {
 	}
 	obj.AdminId += adminId
 	obj.changes["admin_id"] = gorm.Expr("admin_id + ?", adminId)
+}
+
+// AddOrderId .
+func (obj *Delivery) AddOrderId(orderId int) {
+	if obj.changes == nil {
+		obj.changes = make(map[string]interface{})
+	}
+	obj.OrderId += orderId
+	obj.changes["order_id"] = gorm.Expr("order_id + ?", orderId)
 }

@@ -2,9 +2,8 @@
 package po
 
 import (
-	"time"
-
 	"github.com/jinzhu/gorm"
+	"time"
 )
 
 type Cart struct {

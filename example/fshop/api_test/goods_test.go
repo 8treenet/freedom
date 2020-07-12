@@ -3,7 +3,7 @@ package api_test
 import (
 	"testing"
 
-	"github.com/8treenet/freedom/example/fshop/adapter/dto"
+	"github.com/8treenet/freedom/example/fshop/domain/dto"
 	"github.com/8treenet/freedom/infra/requests"
 )
 
