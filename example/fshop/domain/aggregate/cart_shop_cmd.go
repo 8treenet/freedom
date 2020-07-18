@@ -10,21 +10,9 @@ import (
 	"github.com/8treenet/freedom/infra/transaction"
 )
 
-// NewShopCartGoodsCmd 创建购物车购买商品聚合根，传入相关仓库的接口
-func NewShopCartGoodsCmd(userRepo repository.UserRepo, orderRepo repository.OrderRepo, goodsRepo repository.GoodsRepo, cartRepo repository.CartRepo, tx transaction.Transaction) *ShopCartGoodsCmd {
-	return &ShopCartGoodsCmd{
-		userRepo:  userRepo,
-		orderRepo: orderRepo,
-		goodsRepo: goodsRepo,
-		cartRepo:  cartRepo,
-		tx:        tx,
-	}
-}
-
 // 购买商品聚合根
-type ShopCartGoodsCmd struct {
+type CartShopCmd struct {
 	entity.Order
-	userRepo  repository.UserRepo
 	orderRepo repository.OrderRepo
 	goodsRepo repository.GoodsRepo
 	cartRepo  repository.CartRepo
@@ -35,41 +23,14 @@ type ShopCartGoodsCmd struct {
 	goodsEntityMap map[int]*entity.Goods
 }
 
-// LoadEntity 加载依赖实体
-func (cmd *ShopCartGoodsCmd) LoadEntity(userId int) error {
-	user, e := cmd.userRepo.Get(userId)
-	if e != nil {
-		cmd.GetWorker().Logger().Error(e, "userId", userId)
-		//用户不存在
-		return e
-	}
-	cmd.userEntity = *user
-
-	cmd.allCartEntity, e = cmd.cartRepo.FindAll(cmd.userEntity.Id)
-	if e != nil {
-		return e
-	}
-
-	cmd.goodsEntityMap = make(map[int]*entity.Goods)
-	for i := 0; i < len(cmd.allCartEntity); i++ {
-		goodsEntity, e := cmd.goodsRepo.Get(cmd.allCartEntity[i].GoodsId)
-		if e != nil {
-			return e
-		}
-		cmd.goodsEntityMap[goodsEntity.Id] = goodsEntity
-	}
-
+// Shop 购买
+func (cmd *CartShopCmd) Shop() error {
 	if order, e := cmd.orderRepo.New(); e != nil {
 		return e
 	} else {
 		cmd.Order = *order
 	}
 
-	return nil
-}
-
-// Shop 购买
-func (cmd *ShopCartGoodsCmd) Shop() error {
 	var totalPrice int
 
 	for i := 0; i < len(cmd.allCartEntity); i++ {

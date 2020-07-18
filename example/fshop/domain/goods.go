@@ -5,7 +5,6 @@ import (
 	"github.com/8treenet/freedom/example/fshop/domain/aggregate"
 	"github.com/8treenet/freedom/example/fshop/domain/dto"
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
-	"github.com/8treenet/freedom/infra/transaction"
 
 	"github.com/8treenet/freedom"
 )
@@ -24,12 +23,9 @@ func init() {
 
 // Goods 商品领域服务.
 type Goods struct {
-	Worker    freedom.Worker       //运行时，一个请求绑定一个运行时
-	GoodsRepo repository.GoodsRepo //商品仓库
-	OrderRepo repository.OrderRepo //订单仓库
-	UserRepo  repository.UserRepo  //用户仓库
-
-	Transaction transaction.Transaction //事务组件
+	Worker      freedom.Worker         //运行时，一个请求绑定一个运行时
+	GoodsRepo   repository.GoodsRepo   //依赖倒置商品资源库
+	ShopFactory *aggregate.ShopFactory //依赖注入购买聚合根工厂
 }
 
 // New 创建商品
@@ -61,9 +57,11 @@ func (g *Goods) Items(page, pagesize int, tag string) (items []dto.GoodsItemRes,
 func (g *Goods) AddStock(goodsId, num int) (e error) {
 	entity, e := g.GoodsRepo.Get(goodsId)
 	if e != nil {
+		g.Worker.Logger().Error("商品库存失败")
 		return
 	}
 
+	g.Worker.Logger().Info("增加库存")
 	entity.AddStock(num)
 	return g.GoodsRepo.Save(entity)
 }
@@ -84,20 +82,12 @@ func (g *Goods) MarkedTag(goodsId int, tag string) (e error) {
 
 // Shop 购买商品
 func (g *Goods) Shop(goodsId, goodsNum, userId int) (e error) {
-	defer func() {
-		if e != nil {
-			g.Worker.Logger().Error("shop失败", e)
-		} else {
-			g.Worker.Logger().Info("shop 成功", goodsId, goodsNum, userId)
-		}
-	}()
-
-	// cqrs 创建购买商品聚合根命令
-	cmd := aggregate.NewShopGoodsCmd(g.UserRepo, g.OrderRepo, g.GoodsRepo, g.Transaction)
-	if e = cmd.LoadEntity(userId, goodsId); e != nil {
-		return e
+	//使用抽象工厂 创建商品类型
+	shopType := g.ShopFactory.NewGoodsShopType(goodsId, goodsNum)
+	//使用抽象工厂 创建抽象聚合根
+	cmd, e := g.ShopFactory.NewShopCmd(userId, shopType)
+	if e != nil {
+		return
 	}
-
-	e = cmd.Shop(goodsNum)
-	return
+	return cmd.Shop()
 }

@@ -8,39 +8,13 @@ import (
 	"github.com/8treenet/freedom/infra/transaction"
 )
 
-// NewDeliveryCmd 订单发货聚合根，传入相关仓库的接口
-func NewDeliveryCmd(adminRepo repository.AdminRepo, orderRepo repository.OrderRepo, deliveryRepo repository.DeliveryRepo, tx transaction.Transaction) *DeliveryCmd {
-	return &DeliveryCmd{
-		orderRepo:    orderRepo,
-		adminRepo:    adminRepo,
-		deliveryRepo: deliveryRepo,
-		tx:           tx,
-	}
-}
-
 // 订单发货聚合根
 type DeliveryCmd struct {
 	entity.Order
 	adminEntity  *entity.Admin
 	orderRepo    repository.OrderRepo
-	adminRepo    repository.AdminRepo
 	deliveryRepo repository.DeliveryRepo
 	tx           transaction.Transaction
-}
-
-// LoadEntity 加载依赖实体
-func (cmd *DeliveryCmd) LoadEntity(orderNo string, adminId int) error {
-	orderEntity, err := cmd.orderRepo.Get(orderNo)
-	if err != nil {
-		return err
-	}
-	cmd.Order = *orderEntity
-
-	cmd.adminEntity, err = cmd.adminRepo.Get(adminId)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 // Run .

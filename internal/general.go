@@ -15,6 +15,7 @@ type Initiator interface {
 	BindService(f interface{})
 	InjectController(f interface{})
 	BindRepository(f interface{})
+	BindFactory(f interface{})
 	GetService(ctx iris.Context, service interface{})
 	//BindInfra 如果是单例 com是对象， 如果是多例，com是函数
 	BindInfra(single bool, com interface{})

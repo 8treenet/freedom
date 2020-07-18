@@ -4,7 +4,6 @@ import (
 	"github.com/8treenet/freedom/example/fshop/adapter/repository"
 	"github.com/8treenet/freedom/example/fshop/domain/aggregate"
 	"github.com/8treenet/freedom/example/fshop/domain/dto"
-	"github.com/8treenet/freedom/infra/transaction"
 
 	"github.com/8treenet/freedom"
 )
@@ -24,21 +23,16 @@ func init() {
 // Order 订单领域服务.
 type Order struct {
 	Worker       freedom.Worker          //运行时，一个请求绑定一个运行时
-	UserRepo     repository.UserRepo     //用户仓库
-	OrderRepo    repository.OrderRepo    //订单仓库
-	AdminRepo    repository.AdminRepo    //管理仓库
-	DeliveryRepo repository.DeliveryRepo //发货仓库
-	Transaction  transaction.Transaction //事务组件
+	OrderRepo    repository.OrderRepo    //依赖倒置订单资源库
+	OrderFactory *aggregate.OrderFactory //依赖注入订单工厂
 }
 
 // Pay 订单支付 .
 func (o *Order) Pay(orderNo string, userId int) (e error) {
-	cmd := aggregate.NewOrderPayCmd(o.UserRepo, o.OrderRepo, o.Transaction)
-	e = cmd.LoadEntity(orderNo, userId)
+	cmd, e := o.OrderFactory.NewOrderPayCmd(orderNo, userId)
 	if e != nil {
 		return
 	}
-
 	return cmd.Pay()
 }
 
@@ -74,14 +68,11 @@ func (o *Order) Items(userId int, page, pageSize int) (result []dto.OrderItemRes
 
 // Delivery 管理员发货服务
 func (o *Order) Delivery(req dto.DeliveryReq) (e error) {
-	//创建发货聚合根
-	cmd := aggregate.NewDeliveryCmd(o.AdminRepo, o.OrderRepo, o.DeliveryRepo, o.Transaction)
-	if e = cmd.LoadEntity(req.OrderNo, req.AdminId); e != nil {
-		//加载实体失败
-		o.Worker.Logger().Error(e)
-		return
+	//创建订单发货聚合根
+	cmd, e := o.OrderFactory.NewOrderDeliveryCmd(req.OrderNo, req.AdminId)
+	if e != nil {
+		return e
 	}
-
 	//传入快递单号执行命令
 	return cmd.Run(req.TrackingNumber)
 }

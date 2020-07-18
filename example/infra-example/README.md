@@ -42,8 +42,8 @@ func init() {
 // OrderService .
 type OrderService struct {
 	Worker   freedom.Worker
-	GoodsRepo repository.GoodsInterface	//repositorys包声明的商品仓库接口
-	OrderRepo repository.OrderInterface	//repositorys包声明的订单仓库接口
+	GoodsRepo repository.GoodsInterface	//repositorys包声明的商品资源库接口
+	OrderRepo repository.OrderInterface	//repositorys包声明的订单资源库接口
 	Tx        transaction.Transaction 	    //transaction包下的 事务组件接口
 }
 

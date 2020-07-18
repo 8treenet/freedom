@@ -7,42 +7,11 @@ import (
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
 )
 
-// NewCartAddCmd 创建添加购物车聚合根，传入相关仓库的接口
-func NewCartAddCmd(userRepo repository.UserRepo, cartRepo repository.CartRepo, goodsRepo repository.GoodsRepo) *CartAddCmd {
-	return &CartAddCmd{
-		userRepo:  userRepo,
-		cartRepo:  cartRepo,
-		goodsRepo: goodsRepo,
-	}
-}
-
 // 添加购物车聚合根
 type CartAddCmd struct {
 	entity.User
-	goods     entity.Goods
-	userRepo  repository.UserRepo
-	cartRepo  repository.CartRepo
-	goodsRepo repository.GoodsRepo
-}
-
-// LoadEntity 加载依赖实体
-func (cmd *CartAddCmd) LoadEntity(goodsId, userId int) error {
-	user, e := cmd.userRepo.Get(userId)
-	if e != nil {
-		cmd.GetWorker().Logger().Error(e, "userId", userId)
-		//用户不存在
-		return e
-	}
-	cmd.User = *user
-
-	goods, e := cmd.goodsRepo.Get(goodsId)
-	if e != nil {
-		//商品不存在
-		cmd.GetWorker().Logger().Error(e, "userId", userId, "goodsId", goodsId)
-		return e
-	}
-	cmd.goods = *goods
-	return nil
+	goods    entity.Goods
+	cartRepo repository.CartRepo
 }
 
 func (cmd *CartAddCmd) Run(goodsNum int) error {

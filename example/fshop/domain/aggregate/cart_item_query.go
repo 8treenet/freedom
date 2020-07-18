@@ -1,54 +1,14 @@
 package aggregate
 
 import (
-	"github.com/8treenet/freedom/example/fshop/adapter/repository"
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
 )
-
-// CartItemQuery 购物车项查询聚合根，传入相关仓库的接口
-func NewCartItemQuery(userRepo repository.UserRepo, cartRepo repository.CartRepo, goodsRepo repository.GoodsRepo) *CartItemQuery {
-	return &CartItemQuery{
-		userRepo:  userRepo,
-		cartRepo:  cartRepo,
-		goodsRepo: goodsRepo,
-	}
-}
 
 // 购物车项查询聚合根
 type CartItemQuery struct {
 	entity.User
-	userRepo  repository.UserRepo
-	cartRepo  repository.CartRepo
-	goodsRepo repository.GoodsRepo
-	allCart   []*entity.Cart
-	goodsMap  map[int]*entity.Goods
-}
-
-// LoadEntity 加载依赖实体
-func (query *CartItemQuery) LoadEntity(userId int) error {
-	user, e := query.userRepo.Get(userId)
-	if e != nil {
-		query.GetWorker().Logger().Error(e, "userId", userId)
-		//用户不存在
-		return e
-	}
-
-	query.User = *user
-	query.goodsMap = make(map[int]*entity.Goods)
-	return nil
-}
-
-// QueryAllItem 查询购物车内全部商品
-func (query *CartItemQuery) QueryAllItem() (e error) {
-	query.allCart, e = query.cartRepo.FindAll(query.User.Id)
-	for i := 0; i < len(query.allCart); i++ {
-		goodsEntity, e := query.goodsRepo.Get(query.allCart[i].GoodsId)
-		if e != nil {
-			return e
-		}
-		query.goodsMap[goodsEntity.Id] = goodsEntity
-	}
-	return
+	allCart  []*entity.Cart
+	goodsMap map[int]*entity.Goods
 }
 
 // VisitAllItem 读取全部商品

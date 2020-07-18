@@ -1,22 +1,24 @@
 package internal
 
-import (
-	"reflect"
-)
+import "reflect"
 
-func newRepoPool() *RepositoryPool {
-	result := new(RepositoryPool)
+func newFactoryPool() *FactoryPool {
+	result := new(FactoryPool)
 	result.creater = make(map[reflect.Type]interface{})
 	return result
 }
 
-// RepositoryPool .
-type RepositoryPool struct {
+// FactoryPool .
+type FactoryPool struct {
 	creater map[reflect.Type]interface{}
 }
 
+func (pool *FactoryPool) bind(outType reflect.Type, f interface{}) {
+	pool.creater[outType] = f
+}
+
 // get .
-func (pool *RepositoryPool) get(t reflect.Type) (ok bool, result reflect.Value) {
+func (pool *FactoryPool) get(t reflect.Type) (ok bool, result reflect.Value) {
 	fun, ok := pool.creater[t]
 	if !ok {
 		return false, reflect.ValueOf(nil)
@@ -24,24 +26,27 @@ func (pool *RepositoryPool) get(t reflect.Type) (ok bool, result reflect.Value) 
 
 	values := reflect.ValueOf(fun).Call([]reflect.Value{})
 	if len(values) == 0 {
-		panic("BindRepository func return to empty")
+		panic("BindFactory func return to empty")
 	}
 
 	return true, values[0]
 }
 
-func (pool *RepositoryPool) bind(outType reflect.Type, f interface{}) {
-	pool.creater[outType] = f
+func (pool *FactoryPool) exist(t reflect.Type) bool {
+	_, ok := pool.creater[t]
+	return ok
 }
 
-func (pool *RepositoryPool) allType() (list []reflect.Type) {
+// allType .
+func (pool *FactoryPool) allType() (list []reflect.Type) {
 	for t := range pool.creater {
 		list = append(list, t)
 	}
 	return
 }
 
-func (pool *RepositoryPool) diRepo(entity interface{}) {
+// diFactory .
+func (pool *FactoryPool) diFactory(entity interface{}) {
 	allFields(entity, func(value reflect.Value) {
 		//如果是指针的成员变量
 		if value.Kind() == reflect.Ptr && value.IsZero() {
@@ -52,9 +57,11 @@ func (pool *RepositoryPool) diRepo(entity interface{}) {
 			if !value.CanSet() {
 				globalApp.IrisApp.Logger().Fatal("The member variable must be publicly visible, Its type is " + value.Type().String())
 			}
-			//创建实例并且注入基础设施组件
+			//创建实例并且注入基础设施组件和资源库
 			value.Set(newfield)
-			globalApp.comPool.diInfra(newfield.Interface())
+			factoryObj := newfield.Interface()
+			globalApp.comPool.diInfra(factoryObj)
+			globalApp.rpool.diRepo(factoryObj)
 		}
 
 		//如果是接口的成员变量
@@ -71,9 +78,10 @@ func (pool *RepositoryPool) diRepo(entity interface{}) {
 				if !value.CanSet() {
 					globalApp.IrisApp.Logger().Fatal("The member variable must be publicly visible, Its type is " + value.Type().String())
 				}
-				//创建实例并且注入基础设施组件
-				value.Set(newfield)
-				globalApp.comPool.diInfra(newfield.Interface())
+				//创建实例并且注入基础设施组件和资源库
+				factoryObj := newfield.Interface()
+				globalApp.comPool.diInfra(factoryObj)
+				globalApp.rpool.diRepo(factoryObj)
 				return
 			}
 		}

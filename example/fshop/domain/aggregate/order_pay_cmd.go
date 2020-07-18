@@ -9,37 +9,14 @@ import (
 	"github.com/8treenet/freedom/infra/transaction"
 )
 
-// NewOrderPayCmd 订单支付聚合根，传入相关仓库的接口
-func NewOrderPayCmd(userRepo repository.UserRepo, orderRepo repository.OrderRepo, tx transaction.Transaction) *OrderPayCmd {
-	return &OrderPayCmd{
-		userRepo:  userRepo,
-		orderRepo: orderRepo,
-		tx:        tx,
-	}
-}
-
 // 支付订单聚合根
 type OrderPayCmd struct {
 	entity.Order
-	userRepo   repository.UserRepo
-	orderRepo  repository.OrderRepo
-	tx         transaction.Transaction
 	userEntity *entity.User
-}
 
-// LoadEntity 加载依赖实体
-func (cmd *OrderPayCmd) LoadEntity(orderNo string, userId int) error {
-	orderEntity, err := cmd.orderRepo.Find(orderNo, userId)
-	if err != nil {
-		return err
-	}
-	cmd.Order = *orderEntity
-
-	cmd.userEntity, err = cmd.userRepo.Get(cmd.UserId)
-	if err != nil {
-		return err
-	}
-	return nil
+	userRepo  repository.UserRepo
+	orderRepo repository.OrderRepo
+	tx        transaction.Transaction
 }
 
 // Pay 支付.
