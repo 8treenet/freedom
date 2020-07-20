@@ -25,7 +25,7 @@ type ServicePool struct {
 // get .
 func (pool *ServicePool) get(rt *worker, service interface{}) {
 	svalue := reflect.ValueOf(service)
-	ptr := svalue.Elem() // 1级
+	ptr := svalue.Elem() // Level 1
 
 	var newService interface{}
 	newService = pool.malloc(ptr.Type())

@@ -21,7 +21,7 @@ func NewMap(dst interface{}) error {
 	return nil
 }
 
-//InSlice 是否在数组内
+//InSlice .
 func InSlice(array interface{}, item interface{}) bool {
 	values := reflect.ValueOf(array)
 	if values.Kind() != reflect.Slice {
@@ -43,7 +43,7 @@ func InSlice(array interface{}, item interface{}) bool {
 	return false
 }
 
-//NewSlice 创建数组
+//NewSlice .
 func NewSlice(dsc interface{}, len int) error {
 	dstv := reflect.ValueOf(dsc)
 	if dstv.Elem().Kind() != reflect.Slice {
@@ -55,7 +55,7 @@ func NewSlice(dsc interface{}, len int) error {
 	return nil
 }
 
-//SliceDelete 删除数组指定下标元素
+//SliceDelete delete the specified subscript element of the array
 func SliceDelete(arr interface{}, indexArr ...int) error {
 	dstv := reflect.ValueOf(arr)
 	if dstv.Elem().Kind() != reflect.Slice {
@@ -440,7 +440,7 @@ func structFields(dest interface{}, call func(reflect.StructField, reflect.Value
 	}
 }
 
-// objectFields 如果有空指针成员变量，会创建对象
+// objectFields . if the member variable is nil, then create the object.
 func objectFields(dest interface{}, call func(reflect.StructField, reflect.Value)) {
 	destVal := indirect(reflect.ValueOf(dest))
 	destType := indirectType(destVal.Type())
