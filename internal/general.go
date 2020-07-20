@@ -16,10 +16,10 @@ type Initiator interface {
 	InjectController(f interface{})
 	BindRepository(f interface{})
 	GetService(ctx iris.Context, service interface{})
-	//BindInfra 如果是单例 com是对象， 如果是多例，com是函数
+	// BindInfra if is a singleton, com is an object. if is multiton, com is a function
 	BindInfra(single bool, com interface{})
 	GetInfra(ctx iris.Context, com interface{})
-	//监听事件
+	// Listen Event
 	ListenEvent(eventName string, objectMethod string, appointInfra ...interface{})
 	Start(f func(starter Starter))
 	Iris() *iris.Application
@@ -28,9 +28,9 @@ type Initiator interface {
 // Starter .
 type Starter interface {
 	Iris() *iris.Application
-	//异步缓存预热
+	// Asynchronous cache warm-up
 	AsyncCachePreheat(f func(repo *Repository))
-	//同步缓存预热
+	// Sync cache warm-up
 	CachePreheat(f func(repo *Repository))
 	GetSingleInfra(com interface{})
 }
