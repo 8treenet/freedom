@@ -33,6 +33,7 @@ func NewApplication() *Application {
 		globalApp.IrisApp = iris.New()
 		globalApp.pool = newServicePool()
 		globalApp.rpool = newRepoPool()
+		globalApp.factoryPool = newFactoryPool()
 		globalApp.comPool = newInfraPool()
 		globalApp.msgsBus = newMessageBus()
 		globalApp.other = newOther()
@@ -49,6 +50,8 @@ type Application struct {
 	IrisApp     *iris.Application
 	pool        *ServicePool
 	rpool       *RepositoryPool
+	factoryPool *FactoryPool
+
 	comPool     *InfraPool
 	msgsBus     *EventBus
 	prefixParty string
@@ -119,6 +122,15 @@ func (app *Application) BindRepository(f interface{}) {
 		panic(fmt.Sprintf("%v : %s", f, fmt.Sprint(err)))
 	}
 	app.rpool.bind(outType, f)
+}
+
+// BindFactory .
+func (app *Application) BindFactory(f interface{}) {
+	outType, err := parsePoolFunc(f)
+	if err != nil {
+		panic(fmt.Sprintf("%v : %s", f, fmt.Sprint(err)))
+	}
+	app.factoryPool.bind(outType, f)
 }
 
 // ListenMessage .

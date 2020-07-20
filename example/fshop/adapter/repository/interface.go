@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"github.com/8treenet/freedom/example/fshop/adapter/dto"
+	"github.com/8treenet/freedom/example/fshop/domain/dto"
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
 )
 

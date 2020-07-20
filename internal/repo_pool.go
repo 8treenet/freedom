@@ -43,6 +43,7 @@ func (pool *RepositoryPool) allType() (list []reflect.Type) {
 
 func (pool *RepositoryPool) diRepo(entity interface{}) {
 	allFields(entity, func(value reflect.Value) {
+		//如果是指针的成员变量
 		if value.Kind() == reflect.Ptr && value.IsZero() {
 			ok, newfield := pool.get(value.Type())
 			if !ok {
@@ -51,10 +52,12 @@ func (pool *RepositoryPool) diRepo(entity interface{}) {
 			if !value.CanSet() {
 				globalApp.IrisApp.Logger().Fatal("The member variable must be publicly visible, Its type is " + value.Type().String())
 			}
+			//创建实例并且注入基础设施组件
 			value.Set(newfield)
 			globalApp.comPool.diInfra(newfield.Interface())
 		}
 
+		//如果是接口的成员变量
 		if value.Kind() == reflect.Interface && value.IsZero() {
 			typeList := pool.allType()
 			for index := 0; index < len(typeList); index++ {
@@ -68,7 +71,7 @@ func (pool *RepositoryPool) diRepo(entity interface{}) {
 				if !value.CanSet() {
 					globalApp.IrisApp.Logger().Fatal("The member variable must be publicly visible, Its type is " + value.Type().String())
 				}
-				pool.diRepo(newfield.Interface())
+				//创建实例并且注入基础设施组件
 				value.Set(newfield)
 				globalApp.comPool.diInfra(newfield.Interface())
 				return

@@ -29,9 +29,9 @@ $ freedom new-project [project-name]
 ## Build Persistent Objects
 ```sh
 # Vim [project-name]/cmd/conf/db.toml -- Fill in database address
-# Configurable address and output directory, using 'freedom new-crud -h' to see more
+# Configurable address and output directory, using 'freedom new-po -h' to see more
 $ cd [project-name]
-$ freedom new-crud
+$ freedom new-po
 ```
 
 ## Example

@@ -1,8 +1,8 @@
 package controller
 
 import (
-	"github.com/8treenet/freedom/example/fshop/adapter/dto"
 	application "github.com/8treenet/freedom/example/fshop/domain"
+	"github.com/8treenet/freedom/example/fshop/domain/dto"
 	"github.com/8treenet/freedom/example/fshop/infra"
 
 	"github.com/8treenet/freedom"

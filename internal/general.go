@@ -15,6 +15,7 @@ type Initiator interface {
 	BindService(f interface{})
 	InjectController(f interface{})
 	BindRepository(f interface{})
+	BindFactory(f interface{})
 	GetService(ctx iris.Context, service interface{})
 	// BindInfra if is a singleton, com is an object. if is multiton, com is a function
 	BindInfra(single bool, com interface{})

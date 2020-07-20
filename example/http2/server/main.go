@@ -33,7 +33,7 @@ func installMiddleware(app freedom.Application) {
 
 	//http client安装普罗米修斯监控
 	requests.InstallPrometheus(conf.Get().App.Other["service_name"].(string), freedom.Prometheus())
-	app.InstallBusMiddleware(middleware.NewLimiter())
+	app.InstallBusMiddleware(middleware.NewBusFilter())
 	app.InstallBusMiddleware(newBus(conf.Get().App.Other["service_name"].(string)))
 }
 

@@ -6,20 +6,20 @@
 - domain - 领域模型
     - aggregate - 聚合
     - entity - 实体
-    - object - 值对象
+    - dto - 传输对象
+    - po - 持久化对象
     - *.go - 领域服务
 
 - adapter - 端口适配器
     - controller - 输入适配器
     - repository - 输出适配器
-    - dto - 传输对象
 
 - server - 服务端程序入口
     - conf - 配置文件
     - main.go - 主函数
 
 - infra - 基础设施
-    - *go - 基础扩展设施组件
+    - *go - 基础设施组件    
 
 
 ---
@@ -89,12 +89,14 @@ type Initiator interface {
     BindController(relativePath string, controller interface{}, handlers ...context.Handler)
     //绑定服务
     BindService(f interface{})
-    //注入到控制器
-    InjectController(f interface{})
-    //绑定Repo
-    BindRepository(f interface{})
     //获取服务
     GetService(ctx iris.Context, service interface{})
+    //注入到控制器
+    InjectController(f interface{})
+    //绑定工厂
+    BindFactory(f interface{})
+    //绑定Repo
+    BindRepository(f interface{})
     //绑定基础设施组件 如果组件是单例 com是对象， 如果组件是多例com是创建函数。
     BindInfra(single bool, com interface{})
     //获取基础设施组件, 只有控制器获取组件需要在Prepare内调用， service和repository可直接依赖注入
@@ -156,7 +158,7 @@ func installMiddleware(app freedom.Application) {
     app.InstallMiddleware(middleware.NewRequestLogger("x-request-id", true))
 
     requests.InstallPrometheus(conf.Get().App.Other["service_name"].(string), freedom.Prometheus())
-    app.InstallBusMiddleware(middleware.NewLimiter())
+    app.InstallBusMiddleware(middleware.NewBusFilter())
 }
 
 func installDatabase(app freedom.Application) {
@@ -303,8 +305,8 @@ func init() {
 // Default .
 type Default struct {
 	Worker    freedom.Worker    //注入请求运行时
-	DefRepo   *repository.Default   //注入仓库对象  DI方式
-	DefRepoIF repository.DefaultRepoInterface  //也可以注入仓库接口 DIP方式
+	DefRepo   *repository.Default   //注入资源库对象  DI方式
+	DefRepoIF repository.DefaultRepoInterface  //也可以注入资源库接口 DIP方式
 }
 
 // RemoteInfo .
@@ -313,7 +315,7 @@ func (s *Default) RemoteInfo() (result struct {
 	Ua string
 }) {
         s.Worker.Logger().Infof("我是service")
-        //调用仓库的方法
+        //调用资源库的方法
         result.Ip = s.DefRepo.GetIP()
         result.Ua = s.DefRepoIF.GetUA()
         return
@@ -343,7 +345,7 @@ type Default struct {
 
 // GetIP .
 func (repo *Default) GetIP() string {
-    //只有继承仓库后才有DB、Redis、NewHttp、Other 访问权限, 并且可以直接获取 Worker
+    //只有继承资源库后才有DB、Redis、NewHttp、Other 访问权限, 并且可以直接获取 Worker
     repo.DB()
     repo.Redis()
     repo.Other()

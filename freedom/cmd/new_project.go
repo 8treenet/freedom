@@ -27,6 +27,7 @@ var (
 			if err != nil {
 				return
 			}
+			mkdirAll(sysPath)
 
 			projectPath := strings.Replace(sysPath, build.Default.GOPATH+"/src/", "", 1)
 			projectName := args[0]
@@ -39,7 +40,6 @@ var (
 				pdata["PackagePath"] = projectName
 			}
 
-			mkdirAll(sysPath)
 			m := project.FileContent()
 			for filepath, content := range m {
 				var pf *os.File
@@ -69,9 +69,9 @@ func mkdirAll(projectPath string) {
 	os.MkdirAll(projectPath+"/adapter/controller", os.ModePerm)
 	os.MkdirAll(projectPath+"/adapter/repository", os.ModePerm)
 	os.MkdirAll(projectPath+"/domain", os.ModePerm)
-	os.MkdirAll(projectPath+"/domain/object", os.ModePerm)
 	os.MkdirAll(projectPath+"/domain/aggregate", os.ModePerm)
 	os.MkdirAll(projectPath+"/domain/entity", os.ModePerm)
-	os.MkdirAll(projectPath+"/adapter/dto", os.ModePerm)
+	os.MkdirAll(projectPath+"/domain/dto", os.ModePerm)
+	os.MkdirAll(projectPath+"/domain/po", os.ModePerm)
 	os.MkdirAll(projectPath+"/infra", os.ModePerm)
 }

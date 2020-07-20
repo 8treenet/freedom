@@ -1,10 +1,9 @@
 package domain
 
 import (
-	"github.com/8treenet/freedom/example/fshop/adapter/dto"
 	"github.com/8treenet/freedom/example/fshop/adapter/repository"
 	"github.com/8treenet/freedom/example/fshop/domain/aggregate"
-	"github.com/8treenet/freedom/infra/transaction"
+	"github.com/8treenet/freedom/example/fshop/domain/dto"
 
 	"github.com/8treenet/freedom"
 )
@@ -23,39 +22,29 @@ func init() {
 
 // Cart 领域服务.
 type Cart struct {
-	Worker      freedom.Worker          //运行时，一个请求绑定一个运行时
-	UserRepo    repository.UserRepo     //用户仓库
-	CartRepo    repository.CartRepo     //购物车仓库
-	GoodsRepo   repository.GoodsRepo    //商品仓库
-	OrderRepo   repository.OrderRepo    //订单仓库
-	Transaction transaction.Transaction //事务组件
+	Worker      freedom.Worker         //运行时，一个请求绑定一个运行时
+	CartRepo    repository.CartRepo    //依赖倒置购物车资源库
+	CartFactory *aggregate.CartFactory //依赖注入购物车聚合根工厂
+	ShopFactory *aggregate.ShopFactory //依赖注入购买聚合根工厂
 }
 
 // Add 购物车增加商品
 func (c *Cart) Add(userId, goodsId, goodsNum int) (e error) {
-	cmd := aggregate.NewCartAddCmd(c.UserRepo, c.CartRepo, c.GoodsRepo)
-	e = cmd.LoadEntity(goodsId, goodsNum)
+	//创建购物车增加商品聚合根
+	cmd, e := c.CartFactory.NewCartAddCmd(goodsId, goodsNum)
 	if e != nil {
 		return
 	}
-
 	return cmd.Run(goodsNum)
 }
 
 // Items 购物车全部商品项
 func (c *Cart) Items(userId int) (items dto.CartItemRes, e error) {
-	//创建查询购物车上牌聚合根
-	query := aggregate.NewCartItemQuery(c.UserRepo, c.CartRepo, c.GoodsRepo)
-	e = query.LoadEntity(userId)
+	//创建购物车查询聚合根
+	query, e := c.CartFactory.NewCartItemQuery(userId)
 	if e != nil {
 		return
 	}
-
-	//查询购物车全部商品
-	if e = query.QueryAllItem(); e != nil {
-		return
-	}
-
 	query.VisitAllItem(func(id, goodsId int, goodsName string, goodsNum, totalPrice int) {
 		items.Items = append(items.Items, struct {
 			Id         int
@@ -82,12 +71,12 @@ func (c *Cart) DeleteAll(userId int) (e error) {
 
 // Shop 购物车全部购买
 func (c *Cart) Shop(userId int) (e error) {
-	// cqrs 创建购物车购买商品聚合根命令
-	cmd := aggregate.NewShopCartGoodsCmd(c.UserRepo, c.OrderRepo, c.GoodsRepo, c.CartRepo, c.Transaction)
-	if e = cmd.LoadEntity(userId); e != nil {
-		return e
+	//使用抽象工厂 创建购物车类型
+	shopType := c.ShopFactory.NewCartShopType()
+	//使用抽象工厂 创建抽象聚合根
+	cmd, e := c.ShopFactory.NewShopCmd(userId, shopType)
+	if e != nil {
+		return
 	}
-
-	e = cmd.Shop()
-	return
+	return cmd.Shop()
 }

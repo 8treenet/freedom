@@ -92,7 +92,7 @@ func mainTemplate() string {
 		app.InstallMiddleware(middleware.NewRequestLogger("x-request-id", true))
 		
 		requests.InstallPrometheus(conf.Get().App.Other["service_name"].(string), freedom.Prometheus())
-		app.InstallBusMiddleware(middleware.NewLimiter())
+		app.InstallBusMiddleware(middleware.NewBusFilter())
 	}
 	
 	func installDatabase(app freedom.Application) {

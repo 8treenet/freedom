@@ -5,7 +5,7 @@ import (
 
 	"github.com/8treenet/freedom"
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
-	"github.com/8treenet/freedom/example/fshop/domain/object"
+	"github.com/8treenet/freedom/example/fshop/domain/po"
 )
 
 func init() {
@@ -25,7 +25,7 @@ type Delivery struct {
 
 // New 创建实体
 func (repo *Delivery) New() (deliveryEntity *entity.Delivery, err error) {
-	deliveryEntity = &entity.Delivery{Delivery: object.Delivery{Created: time.Now(), Updated: time.Now()}}
+	deliveryEntity = &entity.Delivery{Delivery: po.Delivery{Created: time.Now(), Updated: time.Now()}}
 	//注入基础Entity 包含运行时和领域事件的producer
 	repo.InjectBaseEntity(deliveryEntity)
 	return

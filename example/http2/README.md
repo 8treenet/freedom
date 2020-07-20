@@ -60,7 +60,7 @@ func newBus(serviceName string) func(freedom.Worker) {
 package repositorys
 //声明接口
 type GoodsInterface interface {
-	GetGoods(goodsID int) objects.GoodsModel
+	GetGoods(goodsID int) dto.GoodsModel
 }
 ```
 ```go
@@ -108,7 +108,7 @@ type GoodsRepository struct {
 }
 
 // 实现接口
-func (repo *GoodsRepository) GetGoods(goodsID int) (result objects.GoodsModel) {
+func (repo *GoodsRepository) GetGoods(goodsID int) (result dto.GoodsModel) {
 	//篇幅有限 不调用其他微服务API，直接调用自身的API
 	addr := "http://127.0.0.1:8000/goods/" + strconv.Itoa(goodsID)
 	repo.NewH2CRequest(addr).Get().ToJSON(&result)
@@ -116,7 +116,7 @@ func (repo *GoodsRepository) GetGoods(goodsID int) (result objects.GoodsModel) {
 	//开启go 并发,并且没有group wait。请求结束触发相关对象回收，会快于当前并发go的读取数据，所以使用DeferRecycle
 	repo.Worker.DeferRecycle()
 	go func() {
-		var model objects.GoodsModel
+		var model dto.GoodsModel
 		repo.NewH2CRequest(addr).Get().ToJSON(&model)
 		repo.NewHttpRequest(addr, false).Get().ToJSON(&model)
 	}()

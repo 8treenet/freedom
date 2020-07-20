@@ -116,12 +116,12 @@ package entity
 import (
     "strconv"
     "github.com/8treenet/freedom"
-    "github.com/8treenet/freedom/example/event-example/domain/objects"
+    "github.com/8treenet/freedom/example/event-example/domain/dto"
 )
 
 type Goods struct {
     freedom.Entity             //继承实体接口
-    goodsObj objects.Goods     //商品值对象
+    goodsObj dto.Goods 
 }
 
 func (g *Goods) Shopping() {
