@@ -7,11 +7,11 @@ import (
 )
 
 func init() {
-	//More references github.com/8treenet/extjson
+	// More references github.com/8treenet/extjson
 	extjson.SetDefaultOption(extjson.ExtJSONEntityOption{
 		NamedStyle:       extjson.NamedStyleLowerCamelCase,
-		SliceNotNull:     true, //空数组不返回null, 返回[]
-		StructPtrNotNull: true, //nil结构体指针不返回null, 返回{}})
+		SliceNotNull:     true, // Empty slice does not return null, return []
+		StructPtrNotNull: true, // Nil point does not return null, return {}
 	})
 	requests.Unmarshal = extjson.Unmarshal
 	requests.Marshal = extjson.Marshal

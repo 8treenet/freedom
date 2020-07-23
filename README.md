@@ -9,7 +9,7 @@
 - Integrated Gorm
 - Link Tracing
 - Infra Container, Component-based Infrastructure
-- Http2 Server & client
+- Http2 Server & Client
 - Dependency Injection & Dependency Inversion
 - CRUD Automatic Code Generation
 - DDD & Hexagonal Architecture
@@ -26,7 +26,7 @@ $ go get github.com/8treenet/freedom/freedom
 $ freedom new-project [project-name]
 ```
 
-## Build Persistent Objects
+## Build Persistent Objects(PO)
 ```sh
 # Vim [project-name]/cmd/conf/db.toml -- Fill in database address
 # Configurable address and output directory, using 'freedom new-po -h' to see more

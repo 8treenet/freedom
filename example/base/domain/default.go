@@ -30,7 +30,7 @@ func (s *Default) RemoteInfo() (result struct {
 	Ip string
 	Ua string
 }) {
-	s.Worker.Logger().Infof("我是service")
+	s.Worker.Logger().Infof("I'm service")
 	result.Ip = s.DefRepo.GetIP()
 	result.Ua = s.DefRepoIF.GetUA()
 	return
