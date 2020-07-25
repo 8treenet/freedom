@@ -10,11 +10,12 @@ import (
 func init() {
 	freedom.Prepare(func(initiator freedom.Initiator) {
 		/*
-		   普通方式绑定 Default控制器到路径 /
+		   Common binding, default controller to path '/'.
 		   initiator.BindController("/", &DefaultController{})
 		*/
 
-		//中间件方式绑定， 只对本控制器生效，全局中间件请在main加入。
+		// Middleware binding. Valid only for this controller.
+		// If you need global middleware, please add in main.
 		initiator.BindController("/", &Default{}, func(ctx freedom.Context) {
 			worker := freedom.ToWorker(ctx)
 			worker.Logger().Info("Hello middleware begin")
@@ -32,7 +33,7 @@ type Default struct {
 
 // Get handles the GET: / route.
 func (c *Default) Get() freedom.Result {
-	c.Worker.Logger().Infof("我是控制器")
+	c.Worker.Logger().Infof("I'm Controller")
 	remote := c.Sev.RemoteInfo()
 	return &infra.JSONResponse{Object: remote}
 }

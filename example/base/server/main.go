@@ -19,11 +19,11 @@ import (
 func main() {
 	app := freedom.NewApplication()
 	/*
-		installDatabase(app) //安装数据库
-		installRedis(app) //安装redis
-		installLogrus(app) //安装第三方logger
+		installDatabase(app)
+		installRedis(app)
+		installLogrus(app)  // Install the third logger
 
-		http2 h2c 服务
+		http2 h2c service
 		h2caddrRunner := app.CreateH2CRunner(conf.Get().App.Other["listen_addr"].(string))
 	*/
 
