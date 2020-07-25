@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/8treenet/freedom"
+	"github.com/8treenet/freedom/example/fshop/domain/dependency"
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
 	"github.com/8treenet/freedom/example/fshop/domain/po"
 )
@@ -16,7 +17,8 @@ func init() {
 	})
 }
 
-var _ DeliveryRepo = new(Delivery)
+//实现领域模型内的依赖倒置
+var _ dependency.DeliveryRepo = new(Delivery)
 
 // Delivery .
 type Delivery struct {

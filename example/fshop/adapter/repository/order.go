@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/8treenet/freedom"
+	"github.com/8treenet/freedom/example/fshop/domain/dependency"
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
 	"github.com/8treenet/freedom/example/fshop/domain/po"
 	"github.com/8treenet/freedom/infra/store"
@@ -18,7 +19,8 @@ func init() {
 	})
 }
 
-var _ OrderRepo = new(Order)
+//实现领域模型内的依赖倒置
+var _ dependency.OrderRepo = new(Order)
 
 // Order .
 type Order struct {

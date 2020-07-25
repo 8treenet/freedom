@@ -3,6 +3,7 @@ package repository
 import (
 	"time"
 
+	"github.com/8treenet/freedom/example/fshop/domain/dependency"
 	"github.com/8treenet/freedom/example/fshop/domain/dto"
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
 	"github.com/8treenet/freedom/example/fshop/domain/po"
@@ -18,7 +19,8 @@ func init() {
 	})
 }
 
-var _ UserRepo = new(User)
+//实现领域模型内的依赖倒置
+var _ dependency.UserRepo = new(User)
 
 // User .
 type User struct {

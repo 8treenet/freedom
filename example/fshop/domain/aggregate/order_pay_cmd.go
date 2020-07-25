@@ -3,7 +3,7 @@ package aggregate
 import (
 	"errors"
 
-	"github.com/8treenet/freedom/example/fshop/adapter/repository"
+	"github.com/8treenet/freedom/example/fshop/domain/dependency"
 	"github.com/8treenet/freedom/example/fshop/domain/dto"
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
 	"github.com/8treenet/freedom/infra/transaction"
@@ -14,8 +14,8 @@ type OrderPayCmd struct {
 	entity.Order
 	userEntity *entity.User
 
-	userRepo  repository.UserRepo
-	orderRepo repository.OrderRepo
+	userRepo  dependency.UserRepo
+	orderRepo dependency.OrderRepo
 	tx        transaction.Transaction
 }
 

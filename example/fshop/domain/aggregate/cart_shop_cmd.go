@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/8treenet/freedom/example/fshop/adapter/repository"
+	"github.com/8treenet/freedom/example/fshop/domain/dependency"
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
 	"github.com/8treenet/freedom/example/fshop/domain/po"
 	"github.com/8treenet/freedom/infra/transaction"
@@ -13,9 +13,9 @@ import (
 // 购买商品聚合根
 type CartShopCmd struct {
 	entity.Order
-	orderRepo repository.OrderRepo
-	goodsRepo repository.GoodsRepo
-	cartRepo  repository.CartRepo
+	orderRepo dependency.OrderRepo
+	goodsRepo dependency.GoodsRepo
+	cartRepo  dependency.CartRepo
 	tx        transaction.Transaction
 
 	userEntity     entity.User

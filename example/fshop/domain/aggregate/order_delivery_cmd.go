@@ -3,7 +3,7 @@ package aggregate
 import (
 	"errors"
 
-	"github.com/8treenet/freedom/example/fshop/adapter/repository"
+	"github.com/8treenet/freedom/example/fshop/domain/dependency"
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
 	"github.com/8treenet/freedom/infra/transaction"
 )
@@ -12,8 +12,8 @@ import (
 type DeliveryCmd struct {
 	entity.Order
 	adminEntity  *entity.Admin
-	orderRepo    repository.OrderRepo
-	deliveryRepo repository.DeliveryRepo
+	orderRepo    dependency.OrderRepo
+	deliveryRepo dependency.DeliveryRepo
 	tx           transaction.Transaction
 }
 

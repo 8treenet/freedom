@@ -1,9 +1,11 @@
-package repository
+package dependency
 
 import (
 	"github.com/8treenet/freedom/example/fshop/domain/dto"
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
 )
+
+//依赖倒置的接口 外部adapter负责实现
 
 type UserRepo interface {
 	Get(id int) (obj *entity.User, e error)

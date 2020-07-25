@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/8treenet/freedom/example/fshop/adapter/repository"
+	"github.com/8treenet/freedom/example/fshop/domain/dependency"
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
 	"github.com/8treenet/freedom/example/fshop/domain/po"
 	"github.com/8treenet/freedom/infra/transaction"
@@ -16,8 +16,8 @@ type GoodsShopCmd struct {
 	userEntity  *entity.User
 	goodsEntity *entity.Goods
 
-	orderRepo repository.OrderRepo
-	goodsRepo repository.GoodsRepo
+	orderRepo dependency.OrderRepo
+	goodsRepo dependency.GoodsRepo
 	tx        transaction.Transaction
 	goodsNum  int
 }

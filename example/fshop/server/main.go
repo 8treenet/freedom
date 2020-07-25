@@ -6,7 +6,8 @@ import (
 
 	"github.com/8treenet/extjson"
 	"github.com/8treenet/freedom"
-	_ "github.com/8treenet/freedom/example/fshop/adapter/controller"
+	_ "github.com/8treenet/freedom/example/fshop/adapter/controller" //引入输入适配器 http路由
+	_ "github.com/8treenet/freedom/example/fshop/adapter/repository" //引入输出适配器 repository资源库
 	"github.com/8treenet/freedom/example/fshop/server/conf"
 	"github.com/8treenet/freedom/infra/kafka" //需要开启 server/conf/infra/kafka.toml open = true
 	"github.com/8treenet/freedom/infra/requests"

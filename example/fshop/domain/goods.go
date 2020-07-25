@@ -1,8 +1,8 @@
 package domain
 
 import (
-	"github.com/8treenet/freedom/example/fshop/adapter/repository"
 	"github.com/8treenet/freedom/example/fshop/domain/aggregate"
+	"github.com/8treenet/freedom/example/fshop/domain/dependency"
 	"github.com/8treenet/freedom/example/fshop/domain/dto"
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
 
@@ -24,7 +24,7 @@ func init() {
 // Goods 商品领域服务.
 type Goods struct {
 	Worker      freedom.Worker         //运行时，一个请求绑定一个运行时
-	GoodsRepo   repository.GoodsRepo   //依赖倒置商品资源库
+	GoodsRepo   dependency.GoodsRepo   //依赖倒置商品资源库
 	ShopFactory *aggregate.ShopFactory //依赖注入购买聚合根工厂
 }
 

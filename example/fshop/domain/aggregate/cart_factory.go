@@ -2,7 +2,7 @@ package aggregate
 
 import (
 	"github.com/8treenet/freedom"
-	"github.com/8treenet/freedom/example/fshop/adapter/repository"
+	"github.com/8treenet/freedom/example/fshop/domain/dependency"
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
 )
 
@@ -16,10 +16,10 @@ func init() {
 
 // CartFactory 购物车聚合根工厂
 type CartFactory struct {
-	UserRepo  repository.UserRepo  //依赖倒置用户资源库
-	CartRepo  repository.CartRepo  //依赖倒置购物车资源库
-	GoodsRepo repository.GoodsRepo //依赖倒置商品资源库
-	OrderRepo repository.OrderRepo //依赖倒置订单资源库
+	UserRepo  dependency.UserRepo  //依赖倒置用户资源库
+	CartRepo  dependency.CartRepo  //依赖倒置购物车资源库
+	GoodsRepo dependency.GoodsRepo //依赖倒置商品资源库
+	OrderRepo dependency.OrderRepo //依赖倒置订单资源库
 }
 
 // NewCartAddCmd 创建添加聚合根

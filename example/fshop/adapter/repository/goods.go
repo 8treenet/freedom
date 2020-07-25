@@ -5,6 +5,7 @@ import (
 
 	"github.com/8treenet/freedom/infra/store"
 
+	"github.com/8treenet/freedom/example/fshop/domain/dependency"
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
 	"github.com/8treenet/freedom/example/fshop/domain/po"
 
@@ -19,7 +20,8 @@ func init() {
 	})
 }
 
-var _ GoodsRepo = new(Goods)
+//实现领域模型内的依赖倒置
+var _ dependency.GoodsRepo = new(Goods)
 
 // Goods .
 type Goods struct {

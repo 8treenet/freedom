@@ -2,7 +2,7 @@ package aggregate
 
 import (
 	"github.com/8treenet/freedom"
-	"github.com/8treenet/freedom/example/fshop/adapter/repository"
+	"github.com/8treenet/freedom/example/fshop/domain/dependency"
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
 	"github.com/8treenet/freedom/infra/transaction"
 )
@@ -22,10 +22,10 @@ const (
 
 // ShopFactory 购买聚合根抽象工厂
 type ShopFactory struct {
-	UserRepo  repository.UserRepo     //依赖倒置用户资源库
-	CartRepo  repository.CartRepo     //依赖倒置购物车资源库
-	GoodsRepo repository.GoodsRepo    //依赖倒置商品资源库
-	OrderRepo repository.OrderRepo    //依赖倒置订单资源库
+	UserRepo  dependency.UserRepo     //依赖倒置用户资源库
+	CartRepo  dependency.CartRepo     //依赖倒置购物车资源库
+	GoodsRepo dependency.GoodsRepo    //依赖倒置商品资源库
+	OrderRepo dependency.OrderRepo    //依赖倒置订单资源库
 	TX        transaction.Transaction //依赖倒置事务组件
 }
 

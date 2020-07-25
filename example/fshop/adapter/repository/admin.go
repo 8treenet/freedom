@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"github.com/8treenet/freedom/example/fshop/domain/dependency"
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
 
 	"github.com/8treenet/freedom"
@@ -14,7 +15,8 @@ func init() {
 	})
 }
 
-var _ AdminRepo = new(Admin)
+//实现领域模型内的依赖倒置
+var _ dependency.AdminRepo = new(Admin)
 
 // Admin .
 type Admin struct {

@@ -61,7 +61,8 @@ func mainTemplate() string {
 		"time"
 		_ "github.com/jinzhu/gorm/dialects/mysql"
 		"github.com/8treenet/freedom"
-		_ "{{.PackagePath}}/adapter/controller"
+		_ "{{.PackagePath}}/adapter/repository" //引入输出适配器 repository资源库
+		_ "{{.PackagePath}}/adapter/controller" //引入输入适配器 http路由
 		"{{.PackagePath}}/server/conf"
 		"github.com/go-redis/redis"
 		"github.com/jinzhu/gorm"

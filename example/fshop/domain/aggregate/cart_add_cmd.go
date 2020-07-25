@@ -3,7 +3,7 @@ package aggregate
 import (
 	"errors"
 
-	"github.com/8treenet/freedom/example/fshop/adapter/repository"
+	"github.com/8treenet/freedom/example/fshop/domain/dependency"
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
 )
 
@@ -11,7 +11,7 @@ import (
 type CartAddCmd struct {
 	entity.User
 	goods    entity.Goods
-	cartRepo repository.CartRepo
+	cartRepo dependency.CartRepo
 }
 
 func (cmd *CartAddCmd) Run(goodsNum int) error {

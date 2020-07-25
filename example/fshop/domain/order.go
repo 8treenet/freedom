@@ -1,8 +1,8 @@
 package domain
 
 import (
-	"github.com/8treenet/freedom/example/fshop/adapter/repository"
 	"github.com/8treenet/freedom/example/fshop/domain/aggregate"
+	"github.com/8treenet/freedom/example/fshop/domain/dependency"
 	"github.com/8treenet/freedom/example/fshop/domain/dto"
 
 	"github.com/8treenet/freedom"
@@ -23,7 +23,7 @@ func init() {
 // Order 订单领域服务.
 type Order struct {
 	Worker       freedom.Worker          //运行时，一个请求绑定一个运行时
-	OrderRepo    repository.OrderRepo    //依赖倒置订单资源库
+	OrderRepo    dependency.OrderRepo    //依赖倒置订单资源库
 	OrderFactory *aggregate.OrderFactory //依赖注入订单工厂
 }
 

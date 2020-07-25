@@ -1,7 +1,7 @@
 package domain
 
 import (
-	"github.com/8treenet/freedom/example/fshop/adapter/repository"
+	"github.com/8treenet/freedom/example/fshop/domain/dependency"
 	"github.com/8treenet/freedom/example/fshop/domain/dto"
 
 	"github.com/8treenet/freedom"
@@ -22,7 +22,7 @@ func init() {
 // User 用户领域服务.
 type User struct {
 	Worker   freedom.Worker      //运行时，一个请求绑定一个运行时
-	UserRepo repository.UserRepo //依赖倒置用户资源库
+	UserRepo dependency.UserRepo //依赖倒置用户资源库
 }
 
 // ChangePassword 修改密码

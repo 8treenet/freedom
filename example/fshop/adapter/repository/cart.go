@@ -3,6 +3,7 @@ package repository
 import (
 	"time"
 
+	"github.com/8treenet/freedom/example/fshop/domain/dependency"
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
 	"github.com/8treenet/freedom/example/fshop/domain/po"
 
@@ -17,7 +18,8 @@ func init() {
 	})
 }
 
-var _ CartRepo = new(Cart)
+//实现领域模型内的依赖倒置
+var _ dependency.CartRepo = new(Cart)
 
 // Cart .
 type Cart struct {
