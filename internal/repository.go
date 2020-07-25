@@ -125,12 +125,12 @@ func (repo *Repository) InjectBaseEntity(entity Entity) {
 func (repo *Repository) InjectBaseEntitys(entitys interface{}) {
 	entitysValue := reflect.ValueOf(entitys)
 	if entitysValue.Kind() != reflect.Slice {
-		panic("It's not a slice")
+		globalApp.IrisApp.Logger().Fatalf("[freedom]InjectBaseEntitys: It's not a slice, %v", entitysValue.Type())
 	}
 	for i := 0; i < entitysValue.Len(); i++ {
 		iface := entitysValue.Index(i).Interface()
 		if _, ok := iface.(Entity); !ok {
-			panic("This is not an entity")
+			globalApp.IrisApp.Logger().Fatalf("[freedom]InjectBaseEntitys: This is not an entity, %v", entitysValue.Type())
 		}
 		injectBaseEntity(repo.Worker, iface)
 	}

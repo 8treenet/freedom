@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/8treenet/freedom"
-	"github.com/8treenet/freedom/example/infra-example/server/conf"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
@@ -15,16 +14,11 @@ func TestGoodsRepository_Get(t *testing.T) {
 	unitTest := freedom.NewUnitTest()
 	unitTest.InstallGorm(func() (db *gorm.DB) {
 		//这是连接数据库方式，mock方式参见TestGoodsService_MockGet
-		conf := conf.Get().DB
 		var e error
-		db, e = gorm.Open("mysql", conf.Addr)
+		db, e = gorm.Open("mysql", "root:123123@tcp(127.0.0.1:3306)/freedom?charset=utf8&parseTime=True&loc=Local")
 		if e != nil {
 			freedom.Logger().Fatal(e.Error())
 		}
-
-		db.DB().SetMaxIdleConns(conf.MaxIdleConns)
-		db.DB().SetMaxOpenConns(conf.MaxOpenConns)
-		db.DB().SetConnMaxLifetime(time.Duration(conf.ConnMaxLifeTime) * time.Second)
 		db = db.Debug()
 		return
 	})

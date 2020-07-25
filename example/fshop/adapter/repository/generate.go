@@ -2,10 +2,11 @@
 package repository
 
 import (
+	"time"
+
 	"github.com/8treenet/freedom"
 	"github.com/8treenet/freedom/example/fshop/domain/po"
 	"github.com/jinzhu/gorm"
-	"time"
 )
 
 func ormErrorLog(repo freedom.GORMRepository, model, method string, e error, expression ...interface{}) {

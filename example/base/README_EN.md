@@ -1,107 +1,109 @@
 # freedom
-### base - 基础示例
+### base - base example
 
-#### 目录结构
+#### Directory Structure
 
-- domain - 领域模型
-    - aggregate - 聚合
-    - entity - 实体
-    - dto - 传输对象
-    - po - 持久化对象
-    - *.go - 领域服务
+- domain - Domain Model
+    - aggregate
+    - entity
+    - dto - Data Transfer Object
+    - po - Persistent Object
+    - *.go - Domain Service
 
-- adapter - 端口适配器
-    - controller - 输入适配器
-    - repository - 输出适配器
+- adapter - Port Adapter
+    - controller - In Adapter
+    - repository - Out Adapter
 
-- server - 服务端程序入口
-    - conf - 配置文件
-    - main.go - 主函数
+- server - Server Program Entrance
+    - conf - Config File
+    - main.go - Main
 
-- infra - 基础设施
-    - *go - 基础设施组件    
-
+- infra - Infrastructure
+    - *go - Component   
 
 ---
-#### 接口介绍
+#### Interface Introduction
 ```go
-// main 应用安装接口
+// main Application Install Interface 
 type Application interface {
-    //安装gorm 
+    // Install Gorm 
     InstallGorm(f func() (db *gorm.DB))
-    //安装redis
+    // Install Redis
     InstallRedis(f func() (client redis.Cmdable))
-    //安装路由中间件
+    // Install Router Middleware
     InstallMiddleware(handler iris.Handler)
-    //安装总线中间件,参考Http2 example
+    //Install Bus Middleware，using by http2 example
     InstallBusMiddleware(handle ...BusHandler)
-    //安装全局Party http://domian/relativePath/controllerParty
+    //Install Global Party http://domian/relativePath/controllerParty
     InstallParty(relativePath string)
-    //创建http h2c
+    // Create H2C Runner
     CreateH2CRunner(addr string, configurators ...host.Configurator) iris.Runner
-    //创建http 
+    // Create HTTP Runner 
     CreateRunner(addr string, configurators ...host.Configurator) iris.Runner
-    //返回iris应用
+    // Return Iris Application
     Iris() *iris.Application
-    //日志
+    // Logger
     Logger() *golog.Logger
-    //启动
+    // Start Running
     Run(serve iris.Runner, c iris.Configuration)
-    //安装领域事件
+    // Install Domain Events
     InstallDomainEventInfra(eventInfra DomainEventInfra)
-    //安装其他, 如mongodb、es 等
+    // Install Others, such as mongodb、es
     InstallOther(f func() interface{})
-    //启动回调: Prepare之后，Run之前.
+    // Start Callback Function: After Prepare And Before Run
     Start(f func(starter Starter))
-    //安装序列化:应用内的 领域事件对象、实体等序列化和反序列化。未安装默认使用官方json
+    // Install Serializer: Used for serialization and deserialization, such as domain event objects or entity.
+  	// Used official json by default
     InstallSerializer(marshal func(v interface{}) ([]byte, error), unmarshal func(data []byte, v interface{}) error)
 }
 
  /*
-    Worker 请求运行时对象，一个请求创建一个运行时对象，可以注入到controller、service、repository。
+    Worker is a requesting runtime object, a request corresponds to an object. It can be injected into controller、service or repository.
  */
 type Worker interface {
-    //获取iris的上下文
+    // Get Iris Context
     IrisContext() freedom.Context
-    //获取带上下文的日志实例。
+    // Logger with some context information
     Logger() Logger
-    //获取一级缓存实例，请求结束，该缓存生命周期结束。
+    // Get the first level cache instance. When the request ends, the life cycle of the cache ends.
     Store() *memstore.Store
-    //获取总线，读写上下游透传的数据
+    // The bus can get the information transmitted from top to bottom
     Bus() *Bus
-    //获取标准上下文
+    // Common Context
     Context() stdContext.Context
-    //With标准上下文
+    // With Common Context
     WithContext(stdContext.Context)
-    //该worker起始的时间
+    // Start Time
     StartTime() time.Time
-    //延迟回收对象
+    // Delay Reclaiming
     DelayReclaiming()
 }
 
-// Initiator 实例初始化接口，在Prepare使用。
+// Initiator is the instance initialization interface, used in Prepare.
 type Initiator interface {
-    //创建 iris.Party，可以指定中间件。
+    // Create Iris.Party. You can specify middleware.
     CreateParty(relativePath string, handlers ...context.Handler) iris.Party
-    //绑定控制器到 iris.Party
+    // Bind Controller By Iris.Party
     BindControllerByParty(party iris.Party, controller interface{})
-    //直接绑定控制器到路径，可以指定中间件。
+    // Binding controller via relativePath. You can specify middleware.
     BindController(relativePath string, controller interface{}, handlers ...context.Handler)
-    //绑定服务
+    // Bind Service
     BindService(f interface{})
-    //获取服务
+    // Get Service
     GetService(ctx iris.Context, service interface{})
-    //注入到控制器
+    // Inject Somethings to Controller
     InjectController(f interface{})
-    //绑定工厂
+    // Bind Factory
     BindFactory(f interface{})
-    //绑定Repo
+    // Bind Repository
     BindRepository(f interface{})
-    //绑定基础设施组件 如果组件是单例 com是对象， 如果组件是多例com是创建函数。
+    // Bind Infrastructure. If is a singleton, com is an object. if is multiton, com is a function
     BindInfra(single bool, com interface{})
-    //获取基础设施组件, 只有控制器获取组件需要在Prepare内调用， service和repository可直接依赖注入
+    // Get Infrastructure. 
+  	// Only the controller obtains the component that needs to be called in Prepare, 
+  	// and service and repository can be directly dependency injected
     GetInfra(ctx iris.Context, com interface{})
-    //启动回调: Prepare之后，Run之前.
+    // Start Callback Function: After Prepare And Before Run
     Start(f func(starter Starter))
     Iris() *iris.Application
 }
@@ -109,50 +111,52 @@ type Initiator interface {
 // Starter .
 type Starter interface {
     Iris() *iris.Application
-    //异步缓存预热
+    // Asynchronous Cache Preheat
     AsyncCachePreheat(f func(repo *Repository))
-    //同步缓存预热
+    // Synchronous Cache Preheat
     CachePreheat(f func(repo *Repository))
-    //获取单例组件
+    // Get Single Infrastructure
     GetSingleInfra(com interface{})
 }
 
 ```
 
 ---
-#### 应用生命周期
-|外部使用 | 内部调用 |
+#### Application Cycle
+|External Use | Internal Call |
 | ----- | :---: |
-|Application.InstallMiddleware| 注册安装的全局中间件|
-|Application.InstallGorm|触发回调|
-|freedom.Prepare|触发回调|
-|Initiator.Starter|触发回调|
+|Application.InstallMiddleware| Register Install's global middleware |
+|Application.InstallGorm|Trigger callback|
+|freedom.Prepare|Trigger callback|
+|Initiator.Starter|Trigger callback|
 |infra.Booting|触发组件方法|
 |http.Run|开启监听服务|
-|infra.Closeing|触发回调|
+|infra.Closeing|Trigger callback|
 |Application.Close|程序关闭|
 
-#### 请求生命周期
-###### 每一个请求开始都会创建若干依赖对象，worker、controller、service、repository、infra等。每一个请求独立使用这些对象，不会多请求并发的读写共享对象。当然也无需担心效率问题，框架已经做了池。请求结束会回收这些对象。 如果过程中使用了go func(){//访问相关对象}，请在之前调用 **Worker.DelayReclaiming()**.
+#### Request Cycle
+###### Each request starts with the creation of a number of dependency objects, such as worker, controller, service, repository, infra  and so on. Each request to use these objects independently, not more than one request concurrent read and write shared objects. Of course, there is no need to worry about efficiency, the framework has made the pool. The end of the request will recycle these objects. 
+
+###### If the process uses go func(){/access related objects}, please call Worker.DelayReclaiming() before.
 
 ---
 #### main
 ```go
 func main() {
-    app := freedom.NewApplication() //创建应用
+    app := freedom.NewApplication() // Create Application
     installDatabase(app)
     installRedis(app)
     installMiddleware(app)
 
-    //创建http 监听
+    // Create HTTP Listener
     addrRunner := app.CreateRunner(conf.Get().App.Other["listen_addr"].(string))
-    //创建http2.0 h2c 监听
+    // Create HTTP2.0 H2C Listener
     addrRunner = app.CreateH2CRunner(conf.Get().App.Other["listen_addr"].(string))
     app.Run(addrRunner, *conf.Get().App)
 }
 
 func installMiddleware(app freedom.Application) {
-    //安装全局中间件
+    //Install Global Middleware
     app.InstallMiddleware(middleware.NewRecover())
     app.InstallMiddleware(middleware.NewTrace("x-request-id"))
     app.InstallMiddleware(middleware.NewRequestLogger("x-request-id", true))
@@ -163,7 +167,7 @@ func installMiddleware(app freedom.Application) {
 
 func installDatabase(app freedom.Application) {
     app.InstallGorm(func() (db *gorm.DB) {
-        //安装db的回调函数
+        //Install DB CallBack Function
         conf := conf.Get().DB
         var e error
         db, e = gorm.Open("mysql", conf.Addr)
@@ -191,7 +195,7 @@ func installRedis(app freedom.Application) {
 ```
 ---
 #### controllers/default.go
-##### [iris路由文档](https://github.com/kataras/iris/wiki/MVC)
+##### [Iris Routing Document]](https://github.com/kataras/iris/wiki/MVC)
 ```go
 package controller
 
@@ -205,11 +209,12 @@ import (
 func init() {
 	freedom.Prepare(func(initiator freedom.Initiator) {
 		/*
-		   普通方式绑定 Default控制器到路径 /
+		   Common binding, default controller to path '/'.
 		   initiator.BindController("/", &DefaultController{})
 		*/
 
-		//中间件方式绑定， 只对本控制器生效，全局中间件请在main加入。
+		// Middleware binding. Valid only for this controller.
+		// If you need global middleware, please add in main.
 		initiator.BindController("/", &Default{}, func(ctx freedom.Context) {
 			worker := freedom.ToWorker(ctx)
 			worker.Logger().Info("Hello middleware begin")
@@ -220,15 +225,16 @@ func init() {
 }
 
 type Default struct {
-	Sev    *domain.Default //注入领域服务 Default
-	Worker freedom.Worker //注入请求运行时 Worker
+  Sev    *domain.Default // Injected domain services. (Default)
+  Worker freedom.Worker // Injected requesting runtime object. (Worker)
 }
 
 // Get handles the GET: / route.
 func (c *Default) Get() freedom.Result {
-    c.Worker.Logger().Infof("我是控制器")
-    remote := c.Sev.RemoteInfo() //调用服务方法
-    //返回JSON对象
+    c.Worker.Logger().Infof("I'm Controller")
+  	// Call services function
+    remote := c.Sev.RemoteInfo() 
+    // Return Json object
     return &infra.JSONResponse{Object: remote}
 }
 
@@ -249,9 +255,9 @@ func (c *Default) PostHello() freedom.Result {
 
 func (m *Default) BeforeActivation(b freedom.BeforeActivation) {
 	b.Handle("ANY", "/custom", "CustomHello")
-	//b.Handle("GET", "/custom", "CustomHello")
-	//b.Handle("PUT", "/custom", "CustomHello")
-	//b.Handle("POST", "/custom", "CustomHello")
+	// b.Handle("GET", "/custom", "CustomHello")
+	// b.Handle("PUT", "/custom", "CustomHello")
+	// b.Handle("POST", "/custom", "CustomHello")
 }
 
 // PostHello handles the POST: /hello route.
@@ -279,7 +285,7 @@ func (c *Default) GetAgeByUserBy(age int, user string) freedom.Result {
 }
 ```
 
-#### 领域服务 domain/default.go
+#### Domain Service (domain/default.go)
 ```go
 package domain
 
@@ -290,12 +296,12 @@ import (
 
 func init() {
 	freedom.Prepare(func(initiator freedom.Initiator) {
-            //绑定 Default Service
+            // Bind Default Service
             initiator.BindService(func() *Default {
                 return &Default{}
             })
             initiator.InjectController(func(ctx freedom.Context) (service *Default) {
-                //把 Default 注入到控制器
+                // Injected Default to Controller
                 initiator.GetService(ctx, &service)
                 return
             })
@@ -304,9 +310,9 @@ func init() {
 
 // Default .
 type Default struct {
-	Worker    freedom.Worker    //注入请求运行时
-	DefRepo   *repository.Default   //注入资源库对象  DI方式
-	DefRepoIF repository.DefaultRepoInterface  //也可以注入资源库接口 DIP方式
+	Worker    freedom.Worker    // Injected requesting runtime object. (Worker)
+	DefRepo   *repository.Default   // Injected repository object (DI)
+  DefRepoIF repository.DefaultRepoInterface  // Injected repository interface (DIP)
 }
 
 // RemoteInfo .
@@ -314,8 +320,8 @@ func (s *Default) RemoteInfo() (result struct {
 	Ip string
 	Ua string
 }) {
-        s.Worker.Logger().Infof("我是service")
-        //调用资源库的方法
+        s.Worker.Logger().Infof("I'm Service")
+        // Call repository function
         result.Ip = s.DefRepo.GetIP()
         result.Ua = s.DefRepoIF.GetUA()
         return
@@ -330,7 +336,7 @@ import (
 
 func init() {
 	freedom.Prepare(func(initiator freedom.Initiator) {
-        //绑定 Default Repository
+        // Bind default repository
 		initiator.BindRepository(func() *Default {
 			return &Default{}
 		})
@@ -339,28 +345,30 @@ func init() {
 
 // Default .
 type Default struct {
-    //继承 freedom.Repository
+    // Implement freedom.Repository
 	freedom.Repository
 }
 
 // GetIP .
 func (repo *Default) GetIP() string {
-    //只有继承资源库后才有DB、Redis、NewHttp、Other 访问权限, 并且可以直接获取 Worker
+    // It have access to DB, Redis, NewHttp and Other only when 
+  	// it inherit the repository, and you can get the worker directly.
     repo.DB()
     repo.Redis()
     repo.Other()
     repo.NewHttpRequest()
-    repo.Worker.Logger().Infof("我是Repository GetIP")
+    repo.Worker.Logger().Infof("I'm Repository GetIP")
     return repo.Worker.IrisContext().RemoteAddr()
 }
 
 ```
 
-#### 配置文件
+#### Configuration
 
-|文件 | 作用 |
+|File | Effect |
 | ----- | :---: |
-|server/conf/app.toml|服务配置|
-|server/conf/db.toml|db配置|
-|server/conf/redis.toml|缓存配置|
-|server/conf/infra/.toml|组件相关配置|
+|server/conf/app.toml|Service Configuration|
+|server/conf/db.toml|DB Configuration|
+|server/conf/redis.toml|Cache Configuration|
+|server/conf/infra/.toml|Component Related Configuration|
+

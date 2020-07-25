@@ -43,11 +43,11 @@ func (c *Consumer) Booting(sb freedom.SingleBoot) {
 	c.topicPath = sb.EventsPath(c)
 	freedom.Configure(&c.conf, "infra/kafka.toml", true)
 	if !c.conf.Consumer.Open {
-		freedom.Logger().Debug("'infra/kafka.toml' '[[consumer.open]]' is false")
+		freedom.Logger().Debug("[freedom]'infra/kafka.toml' '[[consumer.open]]' is false")
 		return
 	}
 	if len(c.conf.Consumers) == 0 {
-		freedom.Logger().Error("'infra/kafka.toml' file under '[[consumer_clients]]' error")
+		freedom.Logger().Error("[freedom]'infra/kafka.toml' file under '[[consumer_clients]]' error")
 		return
 	}
 	sb.Closeing(func() {
@@ -64,7 +64,7 @@ func (c *Consumer) Listen() {
 	topicNames := []string{}
 	for topic, path := range c.topicPath {
 		topicNames = append(topicNames, topic)
-		freedom.Logger().Debug("Consumer listening topic:", topic, ", path:", path)
+		freedom.Logger().Debug("[freedom]Consumer listening topic:", topic, ", path:", path)
 	}
 	var ctx context.Context
 
@@ -80,7 +80,7 @@ func (c *Consumer) Listen() {
 		if err != nil {
 			freedom.Logger().Fatal(err)
 		}
-		freedom.Logger().Debug("Consumer connect servers: ", addrConf.Servers)
+		freedom.Logger().Debug("[freedom]Consumer connect servers: ", addrConf.Servers)
 		c.consumerGroups = append(c.consumerGroups, client)
 		c.wg.Add(1)
 		go func() {
@@ -93,7 +93,7 @@ func (c *Consumer) Listen() {
 					consumer: c,
 					conf:     &addrConf,
 				}); err != nil {
-					freedom.Logger().Errorf("Error from consumer: %v", err)
+					freedom.Logger().Errorf("[freedom]Error from consumer: %v", err)
 					time.Sleep(5 * time.Second)
 				}
 				// check if context was cancelled, signaling that the consumer should stop
@@ -112,7 +112,7 @@ func (c *Consumer) Close() {
 		if err := item.Close(); err != nil {
 			freedom.Logger().Error(err)
 		} else {
-			freedom.Logger().Debug("Consumer close complete")
+			freedom.Logger().Debug("[freedom]Consumer close complete")
 		}
 	}
 	c.consumerGroups = []sarama.ConsumerGroup{}
@@ -124,7 +124,7 @@ func (kc *Consumer) call(msg *sarama.ConsumerMessage, conf *consumerConf) {
 	}()
 	path, ok := kc.topicPath[msg.Topic]
 	if !ok {
-		freedom.Logger().Error("Undefined 'topic' :", msg.Topic, conf.Servers)
+		freedom.Logger().Error("[freedom]Undefined 'topic' :", msg.Topic, conf.Servers)
 	}
 	path = strings.ReplaceAll(path, ":param1", string(msg.Key))
 	var request requests.Request
@@ -141,7 +141,7 @@ func (kc *Consumer) call(msg *sarama.ConsumerMessage, conf *consumerConf) {
 	_, resp := request.Post().ToString()
 
 	if resp.Error != nil || resp.StatusCode != 200 {
-		freedom.Logger().Errorf("Call message processing failed, path:%s, topic:%s, addr:%v, body:%v, error:%v", path, msg.Topic, conf.Servers, string(msg.Value), resp.Error)
+		freedom.Logger().Errorf("[freedom]Call message processing failed, path:%s, topic:%s, addr:%v, body:%v, error:%v", path, msg.Topic, conf.Servers, string(msg.Value), resp.Error)
 	}
 }
 

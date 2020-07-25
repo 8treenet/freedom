@@ -24,7 +24,7 @@ func (pool *RepositoryPool) get(t reflect.Type) (ok bool, result reflect.Value) 
 
 	values := reflect.ValueOf(fun).Call([]reflect.Value{})
 	if len(values) == 0 {
-		panic("BindRepository func return to empty")
+		globalApp.Logger().Fatalf("[freedom]BindRepository: func return to empty, %v", reflect.TypeOf(fun))
 	}
 
 	return true, values[0]
@@ -50,7 +50,7 @@ func (pool *RepositoryPool) diRepo(entity interface{}) {
 				return
 			}
 			if !value.CanSet() {
-				globalApp.IrisApp.Logger().Fatal("The member variable must be publicly visible, Its type is " + value.Type().String())
+				globalApp.IrisApp.Logger().Fatalf("[freedom]This use repository object must be a capital variable: %v" + value.Type().String())
 			}
 			//创建实例并且注入基础设施组件
 			value.Set(newfield)
@@ -69,7 +69,7 @@ func (pool *RepositoryPool) diRepo(entity interface{}) {
 					continue
 				}
 				if !value.CanSet() {
-					globalApp.IrisApp.Logger().Fatal("The member variable must be publicly visible, Its type is " + value.Type().String())
+					globalApp.IrisApp.Logger().Fatalf("[freedom]This use repository object must be a capital variable: %v" + value.Type().String())
 				}
 				//创建实例并且注入基础设施组件
 				value.Set(newfield)

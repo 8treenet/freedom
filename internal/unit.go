@@ -24,7 +24,7 @@ type UnitTest interface {
 }
 
 type UnitTestImpl struct {
-	rt      Worker
+	rt      *worker
 	request *http.Request
 }
 
@@ -36,16 +36,31 @@ func (u *UnitTestImpl) GetRepository(repository interface{}) {
 	value := reflect.ValueOf(repository).Elem()
 	ok, newfield := globalApp.rpool.get(value.Type())
 	if !ok {
-		panic("not found")
+		globalApp.IrisApp.Logger().Fatalf("[freedom]No dependency injection was found for the object,%v", value.Type().String())
 	}
 	if !value.CanSet() {
-		globalApp.IrisApp.Logger().Fatal("The member variable must be publicly visible, Its type is " + value.Type().String())
+		globalApp.IrisApp.Logger().Fatalf("[freedom]This use repository object must be a capital variable, %v" + value.Type().String())
 	}
 
-	br, ok := newfield.Interface().(BeginRequest)
-	if ok {
-		br.BeginRequest(u.rt)
+	repo := newfield.Interface()
+	globalApp.comPool.diInfra(repo)
+	globalApp.pool.objBeginRequest(u.rt, repo)
+	value.Set(newfield)
+}
+
+func (u *UnitTestImpl) GetFactory(factory interface{}) {
+	value := reflect.ValueOf(factory).Elem()
+	ok, newfield := globalApp.factoryPool.get(value.Type())
+	if !ok {
+		globalApp.IrisApp.Logger().Fatalf("[freedom]No dependency injection was found for the object,%v", value.Type().String())
 	}
+	if !value.CanSet() {
+		globalApp.IrisApp.Logger().Fatalf("[freedom]This use repository object must be a capital variable, %v" + value.Type().String())
+	}
+
+	factoryObj := newfield.Interface()
+	globalApp.comPool.diInfra(factoryObj)
+	globalApp.pool.objBeginRequest(u.rt, factoryObj)
 	value.Set(newfield)
 }
 
@@ -68,7 +83,7 @@ func (u *UnitTestImpl) Run() {
 	globalApp.comPool.singleBooting(globalApp)
 }
 
-func (u *UnitTestImpl) newRuntime() Worker {
+func (u *UnitTestImpl) newRuntime() *worker {
 	ctx := context.NewContext(globalApp.IrisApp)
 	if u.request == nil {
 		u.request = new(http.Request)

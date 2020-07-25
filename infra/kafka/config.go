@@ -89,7 +89,7 @@ func clientCertPool(filePath string) *x509.CertPool {
 	clientCertPool := x509.NewCertPool()
 	ok := clientCertPool.AppendCertsFromPEM(certBytes)
 	if !ok {
-		panic("kafka producer failed to parse root certificate")
+		panic("[freedom]kafka producer failed to parse root certificate")
 	}
 	return clientCertPool
 }

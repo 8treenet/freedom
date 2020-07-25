@@ -38,7 +38,7 @@ func (o *other) get(object interface{}) {
 
 	poolValue, ok := o.pool[vtype]
 	if !ok {
-		panic("Not found other")
+		globalApp.IrisApp.Logger().Fatalf("[freedom]Repository.Other: Does not exist, %v", vtype)
 	}
 	value.Elem().Set(poolValue)
 }

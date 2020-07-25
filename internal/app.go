@@ -2,7 +2,6 @@ package internal
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"reflect"
 	"time"
@@ -110,7 +109,7 @@ func (app *Application) GetService(ctx iris.Context, service interface{}) {
 func (app *Application) BindService(f interface{}) {
 	outType, err := parsePoolFunc(f)
 	if err != nil {
-		panic(fmt.Sprintf("%v : %s", f, fmt.Sprint(err)))
+		globalApp.Logger().Fatalf("[freedom]BindService: The binding function is incorrect, %v : %s", f, err.Error())
 	}
 	app.pool.bind(outType, f)
 }
@@ -119,7 +118,7 @@ func (app *Application) BindService(f interface{}) {
 func (app *Application) BindRepository(f interface{}) {
 	outType, err := parsePoolFunc(f)
 	if err != nil {
-		panic(fmt.Sprintf("%v : %s", f, fmt.Sprint(err)))
+		globalApp.Logger().Fatalf("[freedom]BindRepository: The binding function is incorrect, %v : %s", f, err.Error())
 	}
 	app.rpool.bind(outType, f)
 }
@@ -128,7 +127,7 @@ func (app *Application) BindRepository(f interface{}) {
 func (app *Application) BindFactory(f interface{}) {
 	outType, err := parsePoolFunc(f)
 	if err != nil {
-		panic(fmt.Sprintf("%v : %s", f, fmt.Sprint(err)))
+		globalApp.Logger().Fatalf("[freedom]BindFactory: The binding function is incorrect, %v : %s", f, err.Error())
 	}
 	app.factoryPool.bind(outType, f)
 }
@@ -148,13 +147,13 @@ func (app *Application) BindInfra(single bool, com interface{}) {
 	if !single {
 		outType, err := parsePoolFunc(com)
 		if err != nil {
-			panic(fmt.Sprintf("%v : %s", com, fmt.Sprint(err)))
+			globalApp.Logger().Fatalf("[freedom]BindInfra: The binding function is incorrect, %v : %s", reflect.TypeOf(com), err.Error())
 		}
 		app.comPool.bind(single, outType, com)
 		return
 	}
 	if reflect.TypeOf(com).Kind() != reflect.Ptr {
-		panic("single:true, The infra must be an object")
+		globalApp.Logger().Fatalf("[freedom]BindInfra: This is not a single-case object, %v", reflect.TypeOf(com))
 	}
 	app.comPool.bind(single, reflect.TypeOf(com), com)
 }
@@ -241,7 +240,7 @@ func (app *Application) closeing(timeout int64) {
 		defer cancel()
 		close := func() {
 			if err := recover(); err != nil {
-				app.IrisApp.Logger().Error(err)
+				app.IrisApp.Logger().Errorf("[freedom]An error was encountered during the program shutdown, %v", err)
 			}
 			app.comPool.closeing()
 		}
@@ -304,7 +303,7 @@ func (app *Application) Start(f func(starter Starter)) {
 // GetSingleInfra .
 func (app *Application) GetSingleInfra(com interface{}) {
 	if !app.comPool.GetSingleInfra(reflect.ValueOf(com).Elem()) {
-		panic("Component not found")
+		app.IrisApp.Logger().Errorf("[freedom]GetSingleInfra: Gets an unimplemented component, %v", com)
 	}
 }
 

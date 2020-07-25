@@ -38,7 +38,7 @@ func getEntityPrimary(entity interface{}) []string {
 		primarys = append(primarys, fields[i].DBName)
 	}
 	if len(primarys) == 0 {
-		panic("Not found 'gorm:primary_key'")
+		globalApp.IrisApp.Logger().Fatal("[freedom] Not found 'gorm:primary_key'")
 	}
 	entityPrimary[entityType] = primarys
 	return primarys

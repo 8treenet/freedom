@@ -48,17 +48,17 @@ func (msg *Msg) Publish() {
 		syncProducer := producer.getSaramaProducer(msg.producerName)
 		if syncProducer == nil {
 			errMsg := fmt.Sprintf("This '%s', no producer found, please check 'infra/kafka.toml'.", msg.topic)
-			freedom.Logger().Error(errMsg)
+			freedom.Logger().Error("[freedom]" + errMsg)
 			freedom.Prometheus().KafkaProducerWithLabelValues(msg.topic, errors.New(errMsg), now)
 			return
 		}
 		_, _, err := syncProducer.SendMessage(saramaMsg)
-		freedom.Logger().Debug("Produce topic: ", saramaMsg.Topic)
+		freedom.Logger().Debug("[freedom]Produce topic: ", saramaMsg.Topic)
 		freedom.Prometheus().KafkaProducerWithLabelValues(msg.topic, err, now)
 		if err == nil {
 			return
 		}
-		freedom.Logger().Error("Failed to send message,", "topic:"+msg.topic, "content:"+string(msg.content), "error:"+err.Error())
+		freedom.Logger().Error("[freedom]Failed to send message,", "topic:"+msg.topic, "content:"+string(msg.content), "error:"+err.Error())
 	}()
 }
 
