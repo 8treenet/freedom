@@ -16,13 +16,13 @@ func init() {
 
 		initiator.ListenEvent(EventSell, "StoreController.PostSellGoodsBy")
 		/*
-			绑定事件 ListenEvent(eventName string, fun interface{}, appointInfra ...interface{})
-			eventName : 事件名称
-			fun : 绑定方法
-			appointInfra: 指定的基础设施组件, 默认全部基础设施组件可见
+			Binding Event, ListenEvent(eventName string, fun interface{}, appointInfra ...interface{})
+			eventName : Event Name
+			fun : Binding Function
+			appointInfra: Specified infrastructure components, all infrastructure components are visible by default
 
-			//可以指定 kafka, rocket, 定时器, 等
-			initiator.ListenEvent(EventSell, "StoreController.PostSellGoodsBy", &kafka.Consumer{}) //绑定kafka消息组件
+			// Can specify kafka, rocket, timer, etc.
+			initiator.ListenEvent(EventSell, "StoreController.PostSellGoodsBy", &kafka.Consumer{}) // Binding Kafka message components
 		*/
 	})
 }
@@ -31,13 +31,13 @@ type StoreController struct {
 	Worker freedom.Worker
 }
 
-// PostSellGoodsBy 事件方法为 Post开头, 参数是事件id
+// PostSellGoodsBy. The event method starts with Post, and the parameter is the event id.
 func (s *StoreController) PostSellGoodsBy(eventID string) error {
 	//rawData, err := ioutil.ReadAll(s.Worker.Ctx().Request().Body)
 	var goods dto.Goods
 	s.Worker.IrisContext().ReadJSON(&goods)
 
 	action := s.Worker.IrisContext().GetHeader("x-action")
-	s.Worker.Logger().Infof("消耗商品ID:%d, %d件, 行为:%s, 消息key:%s", goods.ID, goods.Amount, action, eventID)
+	s.Worker.Logger().Infof("Consumed goods ID:%d, Amount: %d, Action: %s, Event Key: %s", goods.ID, goods.Amount, action, eventID)
 	return nil
 }

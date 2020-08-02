@@ -14,16 +14,16 @@ type Goods struct {
 
 /*
 	DomainEvent(fun interface{}, object interface{}, header ...map[string]string)
-	fun : 为触发事件的方法, `实体名字:方法名`
-	object : 结构体数据,会做json转换
-	header : k/v 附加数据
+	fun : Function for triggering the event, `k:v = EntityName:FuncName`
+	object : Structure data, Could do json conversion
+	header : k/v, Additional data
 */
 func (g *Goods) Shopping() {
 	/*
-		相关购买逻辑。。。
+		Related shoping logic. . .
 	*/
 
-	//触发领域事件 `Goods:Shopping`
+	// Trigger domain event, `Goods:Shopping`
 	g.DomainEvent("Goods:Shopping", g.goodsObj)
 }
 
