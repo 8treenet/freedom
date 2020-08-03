@@ -14,9 +14,9 @@ import (
 	"github.com/Shopify/sarama"
 )
 
-// mac 启动kafka: zookeeper-server-start /usr/local/etc/kafka/zookeeper.properties & kafka-server-start /usr/local/etc/kafka/server.properties
+// mac: Start kafka: zookeeper-server-start /usr/local/etc/kafka/zookeeper.properties & kafka-server-start /usr/local/etc/kafka/server.properties
 func main() {
-	//如果使用默认kafka配置，无需设置
+	// If you use the default Kafka configuration, no need to set
 	kafka.SettingConfig(func(conf *sarama.Config, other map[string]interface{}) {
 		conf.Producer.Retry.Max = 3
 		conf.Producer.Retry.Backoff = 5 * time.Second
@@ -27,7 +27,7 @@ func main() {
 	installMiddleware(app)
 	addrRunner := app.CreateH2CRunner(conf.Get().App.Other["listen_addr"].(string))
 
-	//获取领域事件的kafka基础设施并安装
+	// Obtain and install the kafka infrastructure for domain events
 	app.InstallDomainEventInfra(kafka.GetDomainEventInfra())
 	app.Run(addrRunner, *conf.Get().App)
 }
