@@ -7,7 +7,7 @@
 - 集成iris v12
 - 集成普罗米修斯
 - 集成gorm
-- 链路追踪
+- 无侵入式Trace
 - infra容器 基于组件的基础设施
 - http2 server & client
 - 依赖注入&依赖倒置
