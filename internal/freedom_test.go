@@ -97,19 +97,6 @@ type TestUser struct {
 	Status   int
 }
 
-func newReorder(sort, field string, args ...string) *Reorder {
-	fields := []string{field}
-	fields = append(fields, args...)
-	orders := []string{}
-	for index := 0; index < len(fields); index++ {
-		orders = append(orders, sort)
-	}
-	return &Reorder{
-		fields: fields,
-		orders: orders,
-	}
-}
-
 type parsePool struct {
 }
 
@@ -160,4 +147,11 @@ func TestOther(t *testing.T) {
 	for i := 0; i < len(blist); i++ {
 		t.Log(blist[i])
 	}
+}
+
+func TestFetchValue(t *testing.T) {
+	var tu *B
+	src := new(TestUser)
+	err := fetchValue(&tu, src)
+	t.Log(tu, err)
 }

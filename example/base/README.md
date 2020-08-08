@@ -27,8 +27,8 @@
 ```go
 // main 应用安装接口
 type Application interface {
-    //安装gorm 
-    InstallGorm(f func() (db *gorm.DB))
+    //安装DB 
+    InstallDB(f func() interface{})
     //安装redis
     InstallRedis(f func() (client redis.Cmdable))
     //安装路由中间件
@@ -124,7 +124,7 @@ type Starter interface {
 |外部使用 | 内部调用 |
 | ----- | :---: |
 |Application.InstallMiddleware| 注册安装的全局中间件|
-|Application.InstallGorm|触发回调|
+|Application.InstallDB|触发回调|
 |freedom.Prepare|触发回调|
 |Initiator.Starter|触发回调|
 |infra.Booting|触发组件方法|
@@ -162,15 +162,14 @@ func installMiddleware(app freedom.Application) {
 }
 
 func installDatabase(app freedom.Application) {
-    app.InstallGorm(func() (db *gorm.DB) {
+    app.InstallDB(func() interface{} {
         //安装db的回调函数
         conf := conf.Get().DB
-        var e error
-        db, e = gorm.Open("mysql", conf.Addr)
+        db, e := gorm.Open("mysql", conf.Addr)
         if e != nil {
             freedom.Logger().Fatal(e.Error())
         }
-        return
+        return db
     })
 }
 

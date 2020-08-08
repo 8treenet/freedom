@@ -7,6 +7,7 @@ import (
 	"github.com/8treenet/freedom/example/fshop/domain/dependency"
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
 	"github.com/8treenet/freedom/example/fshop/domain/po"
+	"github.com/jinzhu/gorm"
 )
 
 func init() {
@@ -42,4 +43,14 @@ func (repo *Delivery) Save(deliveryEntity *entity.Delivery) error {
 
 	_, err := saveDelivery(repo, &deliveryEntity.Delivery)
 	return err
+}
+
+func (repo *Delivery) db() *gorm.DB {
+	var db *gorm.DB
+	if err := repo.FetchDB(&db); err != nil {
+		panic(err)
+	}
+	db = db.New()
+	db.SetLogger(repo.Worker.Logger())
+	return db
 }

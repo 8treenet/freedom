@@ -26,8 +26,8 @@
 ```go
 // main Application Install Interface 
 type Application interface {
-    // Install Gorm 
-    InstallGorm(f func() (db *gorm.DB))
+    // Install DB 
+    InstallDB(f func() interface{})
     // Install Redis
     InstallRedis(f func() (client redis.Cmdable))
     // Install Router Middleware
@@ -126,7 +126,7 @@ type Starter interface {
 |External Use | Internal Call |
 | ----- | :---: |
 |Application.InstallMiddleware| Register Install's global middleware |
-|Application.InstallGorm|Trigger callback|
+|Application.InstallDB|Trigger callback|
 |freedom.Prepare|Trigger callback|
 |Initiator.Starter|Trigger callback|
 |infra.Booting|触发组件方法|
@@ -166,7 +166,7 @@ func installMiddleware(app freedom.Application) {
 }
 
 func installDatabase(app freedom.Application) {
-    app.InstallGorm(func() (db *gorm.DB) {
+    app.InstallDB(func() interface{} {
         //Install DB CallBack Function
         conf := conf.Get().DB
         var e error

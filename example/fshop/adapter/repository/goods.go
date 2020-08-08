@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/8treenet/freedom/infra/store"
+	"github.com/jinzhu/gorm"
 
 	"github.com/8treenet/freedom/example/fshop/domain/dependency"
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
@@ -78,7 +79,7 @@ func (repo *Goods) Finds(ids []int) (entitys []*entity.Goods, e error) {
 }
 
 func (repo *Goods) FindsByPage(page, pageSize int, tag string) (entitys []*entity.Goods, e error) {
-	build := repo.NewORMDescBuilder("id").NewPageBuilder(page, pageSize)
+	build := NewORMDescBuilder("id").NewPageBuilder(page, pageSize)
 	e = findGoodsList(repo, po.Goods{Tag: tag}, &entitys, build)
 	if e != nil {
 		return
@@ -98,4 +99,14 @@ func (repo *Goods) New(name, tag string, price, stock int) (entityGoods *entity.
 	entityGoods = &entity.Goods{Goods: goods}
 	repo.InjectBaseEntity(entityGoods)
 	return
+}
+
+func (repo *Goods) db() *gorm.DB {
+	var db *gorm.DB
+	if err := repo.FetchDB(&db); err != nil {
+		panic(err)
+	}
+	db = db.New()
+	db.SetLogger(repo.Worker.Logger())
+	return db
 }

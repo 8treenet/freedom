@@ -230,10 +230,9 @@ func (req *JSONRequest) ReadJSON(obj interface{}) error {
 	}
 
 	/*
-		使用第三方 extjson 反序列化
 		使用第三方 validate 做数据验证
 	*/
-	err = extjson.Unmarshal(rawData, obj)
+	err = json.Unmarshal(rawData, obj)
 	if err != nil {
 		return err
 	}

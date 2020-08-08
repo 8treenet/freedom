@@ -12,7 +12,6 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/go-redis/redis"
-	"github.com/jinzhu/gorm"
 	"github.com/kataras/golog"
 	iris "github.com/kataras/iris/v12"
 )
@@ -32,12 +31,6 @@ type (
 
 	// Repository .
 	Repository = internal.Repository
-
-	// GORMRepository .
-	GORMRepository = internal.GORMRepository
-
-	// QueryBuilder .
-	QueryBuilder = internal.QueryBuilder
 
 	// Infra .
 	Infra = internal.Infra
@@ -155,7 +148,7 @@ func Configure(obj interface{}, file string, must bool, metaData ...interface{})
 
 // Application .
 type Application interface {
-	InstallGorm(f func() (db *gorm.DB))
+	InstallDB(f func() (db interface{}))
 	InstallRedis(f func() (client redis.Cmdable))
 	InstallOther(f func() interface{})
 	InstallMiddleware(handler iris.Handler)

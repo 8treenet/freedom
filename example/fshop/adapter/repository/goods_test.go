@@ -13,14 +13,13 @@ import (
 func getUnitTest() freedom.UnitTest {
 	//创建单元测试工具
 	unitTest := freedom.NewUnitTest()
-	unitTest.InstallGorm(func() (db *gorm.DB) {
-		var e error
-		db, e = gorm.Open("mysql", "root:123123@tcp(127.0.0.1:3306)/fshop?charset=utf8&parseTime=True&loc=Local")
+	unitTest.InstallDB(func() interface{} {
+		db, e := gorm.Open("mysql", "root:123123@tcp(127.0.0.1:3306)/fshop?charset=utf8&parseTime=True&loc=Local")
 		if e != nil {
 			freedom.Logger().Fatal(e.Error())
 		}
 		db = db.Debug()
-		return
+		return db
 	})
 
 	opt := &redis.Options{

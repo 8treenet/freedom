@@ -6,6 +6,7 @@ import (
 	"github.com/8treenet/freedom/example/fshop/domain/dependency"
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
 	"github.com/8treenet/freedom/example/fshop/domain/po"
+	"github.com/jinzhu/gorm"
 
 	"github.com/8treenet/freedom"
 )
@@ -64,6 +65,16 @@ func (repo *Cart) New(userId, goodsId, num int) (cartEntity *entity.Cart, e erro
 
 // DeleteAll 删除全部购物车
 func (repo *Cart) DeleteAll(userId int) (e error) {
-	e = repo.DB().Where(po.Cart{UserId: userId}).Delete(po.Cart{}).Error
+	e = repo.db().Where(po.Cart{UserId: userId}).Delete(po.Cart{}).Error
 	return
+}
+
+func (repo *Cart) db() *gorm.DB {
+	var db *gorm.DB
+	if err := repo.FetchDB(&db); err != nil {
+		panic(err)
+	}
+	db = db.New()
+	db.SetLogger(repo.Worker.Logger())
+	return db
 }

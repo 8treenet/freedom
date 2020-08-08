@@ -7,6 +7,7 @@ import (
 	"github.com/8treenet/freedom/example/fshop/domain/dto"
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
 	"github.com/8treenet/freedom/example/fshop/domain/po"
+	"github.com/jinzhu/gorm"
 
 	"github.com/8treenet/freedom"
 )
@@ -66,4 +67,14 @@ func (repo *User) New(userDto dto.RegisterUserReq, money int) (entityUser *entit
 	entityUser = &entity.User{User: user}
 	repo.InjectBaseEntity(entityUser)
 	return
+}
+
+func (repo *User) db() *gorm.DB {
+	var db *gorm.DB
+	if err := repo.FetchDB(&db); err != nil {
+		panic(err)
+	}
+	db = db.New()
+	db.SetLogger(repo.Worker.Logger())
+	return db
 }

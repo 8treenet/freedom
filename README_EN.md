@@ -6,7 +6,6 @@
 ## Overview
 - Integrated Iris v12
 - Integrated Prometheus
-- Integrated Gorm
 - Link Tracing
 - Infra Container, Component-based Infrastructure
 - Http2 Server & Client

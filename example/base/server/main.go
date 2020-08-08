@@ -42,10 +42,9 @@ func installMiddleware(app freedom.Application) {
 }
 
 func installDatabase(app freedom.Application) {
-	app.InstallGorm(func() (db *gorm.DB) {
+	app.InstallDB(func() interface{} {
 		conf := conf.Get().DB
-		var e error
-		db, e = gorm.Open("mysql", conf.Addr)
+		db, e := gorm.Open("mysql", conf.Addr)
 		if e != nil {
 			freedom.Logger().Fatal(e.Error())
 		}
@@ -53,7 +52,7 @@ func installDatabase(app freedom.Application) {
 		db.DB().SetMaxIdleConns(conf.MaxIdleConns)
 		db.DB().SetMaxOpenConns(conf.MaxOpenConns)
 		db.DB().SetConnMaxLifetime(time.Duration(conf.ConnMaxLifeTime) * time.Second)
-		return
+		return db
 	})
 }
 

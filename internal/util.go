@@ -550,3 +550,17 @@ func parsePoolFunc(f interface{}) (outType reflect.Type, e error) {
 	}
 	return
 }
+
+func fetchValue(dest, src interface{}) bool {
+	value := reflect.ValueOf(dest)
+	if value.Kind() != reflect.Ptr {
+		return false
+	}
+	value = value.Elem()
+	srvValue := reflect.ValueOf(src)
+	if value.Type() == srvValue.Type() {
+		value.Set(srvValue)
+		return true
+	}
+	return false
+}

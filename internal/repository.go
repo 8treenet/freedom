@@ -1,14 +1,13 @@
 package internal
 
 import (
+	"errors"
 	"reflect"
 	"time"
 
 	"github.com/8treenet/freedom/infra/requests"
 	"github.com/go-redis/redis"
 	iris "github.com/kataras/iris/v12"
-
-	"github.com/jinzhu/gorm"
 )
 
 // Repository .
@@ -21,50 +20,29 @@ func (repo *Repository) BeginRequest(rt Worker) {
 	repo.Worker = rt
 }
 
-// DB .
-func (repo *Repository) DB() (db *gorm.DB) {
+// FetchDB .
+func (repo *Repository) FetchDB(db interface{}) error {
+	resultDB := globalApp.Database.db
+
 	transactionData := repo.Worker.Store().Get("freedom_local_transaction_db")
 	if transactionData != nil {
-		return transactionData.(*gorm.DB)
+		resultDB = transactionData
 	}
-
-	db = globalApp.Database.db.New()
-	db.SetLogger(repo.Worker.Logger())
-	return
-}
-
-// SourceDB .
-func (repo *Repository) SourceDB() (db *gorm.DB) {
-	return globalApp.Database.db
-}
-
-// NewORMDescBuilder .
-func (repo *Repository) NewORMDescBuilder(column string, columns ...string) *Reorder {
-	return repo.newReorder("desc", column, columns...)
-}
-
-// NewORMAscBuilder .
-func (repo *Repository) NewORMAscBuilder(column string, columns ...string) *Reorder {
-	return repo.newReorder("asc", column, columns...)
-}
-
-// NewORMBuilder .
-func (repo *Repository) NewORMBuilder() *Builder {
-	return &Builder{}
-}
-
-// NewDescOrder .
-func (repo *Repository) newReorder(sort, field string, args ...string) *Reorder {
-	fields := []string{field}
-	fields = append(fields, args...)
-	orders := []string{}
-	for index := 0; index < len(fields); index++ {
-		orders = append(orders, sort)
+	if !fetchValue(db, resultDB) {
+		return errors.New("DB not found, please install")
 	}
-	return &Reorder{
-		fields: fields,
-		orders: orders,
+	// db = globalApp.Database.db.New()
+	// db.SetLogger(repo.Worker.Logger())
+	return nil
+}
+
+// FetchSourceDB .
+func (repo *Repository) FetchSourceDB(db interface{}) error {
+	resultDB := globalApp.Database.db
+	if !fetchValue(db, resultDB) {
+		return errors.New("DB not found, please install")
 	}
+	return nil
 }
 
 // Redis .

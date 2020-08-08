@@ -3,7 +3,6 @@ module github.com/8treenet/freedom
 go 1.13
 
 require (
-	github.com/8treenet/extjson v1.0.1
 	github.com/BurntSushi/toml v0.3.1
 	github.com/Shopify/sarama v1.25.0
 	github.com/ajg/form v1.5.1 // indirect

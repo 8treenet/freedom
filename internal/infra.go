@@ -5,7 +5,6 @@ import (
 
 	"github.com/8treenet/freedom/infra/requests"
 	"github.com/go-redis/redis"
-	"github.com/jinzhu/gorm"
 )
 
 // Infra .
@@ -19,7 +18,7 @@ func (c *Infra) BeginRequest(rt Worker) {
 }
 
 // DB .
-func (c *Infra) DB() (db *gorm.DB) {
+func (c *Infra) SourceDB() (db interface{}) {
 	return globalApp.Database.db
 }
 

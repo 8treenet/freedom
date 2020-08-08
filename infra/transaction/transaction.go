@@ -23,7 +23,7 @@ type Transaction interface {
 	ExecuteTx(fun func() error, ctx context.Context, opts *sql.TxOptions) (e error)
 }
 
-// TransactionImpl .
+//GORM TransactionImpl .
 type TransactionImpl struct {
 	freedom.Infra
 	db *gorm.DB
@@ -49,10 +49,12 @@ func (t *TransactionImpl) execute(fun func() error, ctx context.Context, opts *s
 	if t.db != nil {
 		panic("unknown error")
 	}
+
+	db := t.SourceDB().(*gorm.DB)
 	if ctx != nil && opts != nil {
-		t.db = t.DB().BeginTx(ctx, opts)
+		t.db = db.BeginTx(ctx, opts)
 	} else {
-		t.db = t.DB().Begin()
+		t.db = db.Begin()
 	}
 
 	t.Worker.Store().Set("freedom_local_transaction_db", t.db)

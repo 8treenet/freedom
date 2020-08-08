@@ -5,6 +5,7 @@ import (
 
 	"github.com/8treenet/freedom"
 	"github.com/8treenet/freedom/example/http2/domain/dto"
+	"github.com/jinzhu/gorm"
 )
 
 func init() {
@@ -37,3 +38,31 @@ func (repo *GoodsRepository) GetGoods(goodsID int) (result dto.Goods) {
 	}()
 	return result
 }
+
+// db .
+func (repo *GoodsRepository) db() *gorm.DB {
+	var db *gorm.DB
+	if err := repo.FetchDB(&db); err != nil {
+		panic(err)
+	}
+	db = db.New()
+	db.SetLogger(repo.Worker.Logger())
+	return db
+}
+
+/*
+	// xorm
+	func (repo *Default) db() *xorm.Engine {
+		var db *xorm.Engine
+		if err := repo.FetchDB(&db); err != nil {
+			panic(err)
+		}
+		return db
+	}
+	func main {
+		app.InstallDB(func() interface{} {
+			db, _ := xorm.NewEngine("mysql", "root:root@tcp(127.0.0.1:3306)/xorm?charset=utf8")
+			return db
+		})
+	}
+*/

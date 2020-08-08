@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/go-redis/redis"
-	"github.com/jinzhu/gorm"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 
@@ -55,8 +54,8 @@ type Application struct {
 	msgsBus     *EventBus
 	prefixParty string
 	Database    struct {
-		db      *gorm.DB
-		Install func() (db *gorm.DB)
+		db      interface{}
+		Install func() (db interface{})
 	}
 
 	Cache struct {
@@ -256,7 +255,7 @@ func (app *Application) Closeing(f func()) {
 }
 
 // InstallGorm .
-func (app *Application) InstallGorm(f func() (db *gorm.DB)) {
+func (app *Application) InstallDB(f func() interface{}) {
 	app.Database.Install = f
 }
 

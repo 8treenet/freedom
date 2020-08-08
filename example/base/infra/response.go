@@ -2,9 +2,9 @@
 package infra
 
 import (
+	"encoding/json"
 	"strconv"
 
-	"github.com/8treenet/extjson"
 	"github.com/kataras/iris/v12/context"
 	"github.com/kataras/iris/v12/hero"
 )
@@ -35,7 +35,7 @@ func (jrep JSONResponse) Dispatch(ctx context.Context) {
 	}
 	ctx.Values().Set("code", strconv.Itoa(repData.Code))
 
-	jrep.content, _ = extjson.Marshal(repData)
+	jrep.content, _ = json.Marshal(repData)
 	ctx.Values().Set("response", string(jrep.content))
 	hero.DispatchCommon(ctx, 0, jrep.contentType, jrep.content, nil, nil, true)
 }

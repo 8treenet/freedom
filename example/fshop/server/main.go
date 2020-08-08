@@ -4,7 +4,6 @@ package main
 import (
 	"time"
 
-	"github.com/8treenet/extjson"
 	"github.com/8treenet/freedom"
 	_ "github.com/8treenet/freedom/example/fshop/adapter/controller" //引入输入适配器 http路由
 	_ "github.com/8treenet/freedom/example/fshop/adapter/repository" //引入输出适配器 repository资源库
@@ -37,21 +36,12 @@ func installMiddleware(app freedom.Application) {
 
 	app.InstallBusMiddleware(middleware.NewBusFilter())
 	requests.InstallPrometheus(conf.Get().App.Other["service_name"].(string), freedom.Prometheus())
-
-	//安装序列化和反序列化
-	extjson.SetDefaultOption(extjson.ExtJSONEntityOption{
-		NamedStyle:       extjson.NamedStyleLowerCamelCase,
-		SliceNotNull:     true, //空数组不返回null, 返回[]
-		StructPtrNotNull: true, //nil结构体指针不返回null, 返回{}})
-	})
-	app.InstallSerializer(extjson.Marshal, extjson.Unmarshal)
 }
 
 func installDatabase(app freedom.Application) {
-	app.InstallGorm(func() (db *gorm.DB) {
+	app.InstallDB(func() interface{} {
 		conf := conf.Get().DB
-		var e error
-		db, e = gorm.Open("mysql", conf.Addr)
+		db, e := gorm.Open("mysql", conf.Addr)
 		if e != nil {
 			freedom.Logger().Fatal(e.Error())
 		}
@@ -60,7 +50,7 @@ func installDatabase(app freedom.Application) {
 		db.DB().SetMaxIdleConns(conf.MaxIdleConns)
 		db.DB().SetMaxOpenConns(conf.MaxOpenConns)
 		db.DB().SetConnMaxLifetime(time.Duration(conf.ConnMaxLifeTime) * time.Second)
-		return
+		return db
 	})
 }
 

@@ -9,6 +9,7 @@ import (
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
 	"github.com/8treenet/freedom/example/fshop/domain/po"
 	"github.com/8treenet/freedom/infra/store"
+	"github.com/jinzhu/gorm"
 )
 
 func init() {
@@ -103,7 +104,7 @@ func (repo *Order) Find(orderNo string, userId int) (orderEntity *entity.Order, 
 
 // Finds .
 func (repo *Order) Finds(userId int, page, pageSize int) (entitys []*entity.Order, totalPage int, e error) {
-	pager := repo.NewORMDescBuilder("id").NewPageBuilder(page, pageSize)
+	pager := NewORMDescBuilder("id").NewPageBuilder(page, pageSize)
 
 	e = findOrderList(repo, po.Order{UserId: userId}, &entitys, pager)
 	if e != nil {
@@ -130,4 +131,14 @@ func (repo *Order) Get(orderNo string) (orderEntity *entity.Order, e error) {
 	repo.InjectBaseEntity(orderEntity)
 
 	return orderEntity, repo.Cache.GetEntity(orderEntity)
+}
+
+func (repo *Order) db() *gorm.DB {
+	var db *gorm.DB
+	if err := repo.FetchDB(&db); err != nil {
+		panic(err)
+	}
+	db = db.New()
+	db.SetLogger(repo.Worker.Logger())
+	return db
 }

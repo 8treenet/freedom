@@ -5,7 +5,6 @@ import (
 	"reflect"
 
 	"github.com/go-redis/redis"
-	"github.com/jinzhu/gorm"
 	"github.com/kataras/iris/v12/context"
 )
 
@@ -14,7 +13,7 @@ var _ UnitTest = new(UnitTestImpl)
 type UnitTest interface {
 	GetService(service interface{})
 	GetRepository(repository interface{})
-	InstallGorm(f func() (db *gorm.DB))
+	InstallDB(f func() (db interface{}))
 	InstallRedis(f func() (client redis.Cmdable))
 	Run()
 	SetRequest(request *http.Request)
@@ -64,8 +63,8 @@ func (u *UnitTestImpl) GetFactory(factory interface{}) {
 	value.Set(newfield)
 }
 
-func (u *UnitTestImpl) InstallGorm(f func() (db *gorm.DB)) {
-	globalApp.InstallGorm(f)
+func (u *UnitTestImpl) InstallDB(f func() (db interface{})) {
+	globalApp.InstallDB(f)
 }
 
 func (u *UnitTestImpl) InstallRedis(f func() (client redis.Cmdable)) {

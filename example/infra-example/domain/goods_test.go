@@ -13,14 +13,13 @@ import (
 func TestGoodsService_Get(t *testing.T) {
 	//创建单元测试工具
 	unitTest := freedom.NewUnitTest()
-	unitTest.InstallGorm(func() (db *gorm.DB) {
+	unitTest.InstallDB(func() interface{} {
 		//这是连接数据库方式，mock方式参见TestGoodsService_MockGet
-		var e error
-		db, e = gorm.Open("mysql", "root:123123@tcp(127.0.0.1:3306)/freedom?charset=utf8&parseTime=True&loc=Local")
+		db, e := gorm.Open("mysql", "root:123123@tcp(127.0.0.1:3306)/freedom?charset=utf8&parseTime=True&loc=Local")
 		if e != nil {
 			freedom.Logger().Fatal(e.Error())
 		}
-		return
+		return db
 	})
 
 	//启动单元测试

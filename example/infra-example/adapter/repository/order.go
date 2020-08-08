@@ -5,6 +5,7 @@ import (
 
 	"github.com/8treenet/freedom"
 	"github.com/8treenet/freedom/example/infra-example/domain/po"
+	"github.com/jinzhu/gorm"
 )
 
 func init() {
@@ -41,4 +42,13 @@ func (repo *OrderRepository) Create(goodsID, num, userID int) error {
 		Updated: time.Now(),
 	})
 	return e
+}
+
+func (repo *OrderRepository) db() *gorm.DB {
+	var db *gorm.DB
+	if err := repo.FetchDB(&db); err != nil {
+		panic(err)
+	}
+	db.SetLogger(repo.Worker.Logger())
+	return db
 }

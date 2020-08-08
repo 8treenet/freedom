@@ -2,9 +2,9 @@
 package infra
 
 import (
+	"encoding/json"
 	"io/ioutil"
 
-	"github.com/8treenet/extjson"
 	"github.com/8treenet/freedom"
 	"gopkg.in/go-playground/validator.v9"
 )
@@ -40,7 +40,7 @@ func (req *Request) ReadJSON(obj interface{}) error {
 	if err != nil {
 		return err
 	}
-	err = extjson.Unmarshal(rawData, obj)
+	err = json.Unmarshal(rawData, obj)
 	if err != nil {
 		return err
 	}
