@@ -36,7 +36,7 @@ type Starter interface {
 	GetSingleInfra(com interface{})
 }
 
-// SingleBoot .
+// SingleBoot 单例组件启动的接口 e.g. infra里面的kafka
 type SingleBoot interface {
 	Iris() *iris.Application
 	EventsPath(infra interface{}) map[string]string

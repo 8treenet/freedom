@@ -11,13 +11,16 @@ const (
 	WorkerKey = "freedom-worker-ctx"
 )
 
+// newServicePool create a ServicePool
 func newServicePool() *ServicePool {
 	result := new(ServicePool)
 	result.instancePool = make(map[reflect.Type]*sync.Pool)
 	return result
 }
 
-// ServicePool .
+// ServicePool is domain service pool,a domain service type owns a pool
+// instancePool key: the reflect.Type of domain service
+// instancePool value: *sync.Pool
 type ServicePool struct {
 	instancePool map[reflect.Type]*sync.Pool
 }
@@ -25,6 +28,7 @@ type ServicePool struct {
 // get .
 func (pool *ServicePool) get(rt *worker, service interface{}) {
 	svalue := reflect.ValueOf(service)
+	// ptr 为 领域服务指针对象 的类型， 相当于做了个 * 操作
 	ptr := svalue.Elem() // Level 1
 
 	var newService interface{}
@@ -80,11 +84,14 @@ func (pool *ServicePool) bind(t reflect.Type, f interface{}) {
 	}
 }
 
+// malloc return a service object from pool or create a new service obj
 func (pool *ServicePool) malloc(t reflect.Type) interface{} {
+	// 判断此 领域服务类型是否存在 pool
 	syncpool, ok := pool.instancePool[t]
 	if !ok {
 		return nil
 	}
+	// Get 其实是在 BindService 时注入的 生成 service 对象的函数
 	newSercice := syncpool.Get()
 	if newSercice == nil {
 		globalApp.Logger().Fatalf("[freedom]BindService: func return to empty, %v", t)
