@@ -1,4 +1,4 @@
-package domain_test
+package aggregate_test
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 
 	"github.com/8treenet/freedom"
 	_ "github.com/8treenet/freedom/example/fshop/adapter/repository" //引入输出适配器 repository资源库。不引入会报错！！！！！！！！！！！！！！
-	"github.com/8treenet/freedom/example/fshop/domain"
+	"github.com/8treenet/freedom/example/fshop/domain/aggregate"
 	"github.com/go-redis/redis"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
@@ -43,38 +43,21 @@ func getUnitTest() freedom.UnitTest {
 	return unitTest
 }
 
-// TestGoodsServiceNew 创建商品
-func TestGoodsServiceNew(t *testing.T) {
+// TestCartItemAggregate 测试购物车聚合根
+func TestCartItemAggregate(t *testing.T) {
 	//获取单测工具
 	unitTest := getUnitTest()
 	unitTest.Run()
 
-	var srv *domain.Goods
+	var aggregate *aggregate.CartFactory
 	//获取领域服务
-	unitTest.GetService(&srv)
-	t.Log(srv.New("freedom-test", 50))
-}
-
-// TestGoodsServiceAddStock 增加库存
-func TestGoodsServiceAddStock(t *testing.T) {
-	//获取单测工具
-	unitTest := getUnitTest()
-	unitTest.Run()
-
-	var srv *domain.Goods
-	//获取领域服务
-	unitTest.GetService(&srv)
-	t.Log(srv.AddStock(1, 100))
-}
-
-// TestGoodsServiceShop 购买
-func TestGoodsServiceShop(t *testing.T) {
-	//获取单测工具
-	unitTest := getUnitTest()
-	unitTest.Run()
-
-	var srv *domain.Goods
-	//获取领域服务
-	unitTest.GetService(&srv)
-	t.Log(srv.Shop(1, 1, 1))
+	unitTest.GetFactory(&aggregate)
+	cartItemQuery, err := aggregate.NewCartItemQuery(1)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	//获取全部购物车价格
+	totalPrice := cartItemQuery.AllItemTotalPrice()
+	t.Log(totalPrice)
 }
