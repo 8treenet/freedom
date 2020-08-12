@@ -49,7 +49,7 @@ func TestGoodsEntity(t *testing.T) {
 	unitTest.Run()
 
 	var repo *Goods
-	//获取领域服务
+	//获取资源库
 	unitTest.GetRepository(&repo)
 	goodsEnity, err := repo.Get(1)
 	if err != nil {
