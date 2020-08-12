@@ -13,6 +13,7 @@ var _ UnitTest = new(UnitTestImpl)
 type UnitTest interface {
 	GetService(service interface{})
 	GetRepository(repository interface{})
+	GetFactory(factory interface{})
 	InstallDB(f func() (db interface{}))
 	InstallRedis(f func() (client redis.Cmdable))
 	Run()
@@ -59,7 +60,8 @@ func (u *UnitTestImpl) GetFactory(factory interface{}) {
 
 	factoryObj := newfield.Interface()
 	globalApp.comPool.diInfra(factoryObj)
-	globalApp.pool.objBeginRequest(u.rt, factoryObj)
+	globalApp.rpool.diRepo(factoryObj)
+	globalApp.pool.factoryCall(u.rt, reflect.ValueOf(u.rt), factoryObj)
 	value.Set(newfield)
 }
 

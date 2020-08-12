@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/8treenet/freedom"
+	"github.com/8treenet/freedom/example/fshop/domain/entity"
 	"github.com/go-redis/redis"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
@@ -41,8 +42,8 @@ func getUnitTest() freedom.UnitTest {
 	return unitTest
 }
 
-// TestGoodsGet 读取商品
-func TestGoodsGet(t *testing.T) {
+// TestGoodsEntity 商品实体单测
+func TestGoodsEntity(t *testing.T) {
 	//获取单测工具
 	unitTest := getUnitTest()
 	unitTest.Run()
@@ -50,5 +51,20 @@ func TestGoodsGet(t *testing.T) {
 	var repo *Goods
 	//获取资源库
 	unitTest.GetRepository(&repo)
-	t.Log(repo.Get(1))
+	goodsEnity, err := repo.Get(1)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	err = goodsEnity.MarkedTag(entity.GoodsNewTag)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	err = repo.Save(goodsEnity)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	t.Log("ok", goodsEnity)
 }
