@@ -24,7 +24,7 @@ var _ Initiator = new(Application)
 var _ SingleBoot = new(Application)
 var _ Starter = new(Application)
 
-// NewApplication .
+// NewApplication create an instance of freedom.
 func NewApplication() *Application {
 	globalAppOnce.Do(func() {
 		globalApp = new(Application)
@@ -43,45 +43,54 @@ func NewApplication() *Application {
 	return globalApp
 }
 
-// Application .
+// Application is the framework's application.
+// Create an application of freedom, by using NewApplication().
 type Application struct {
+	// IrisApp is an iris application
 	IrisApp     *iris.Application
 	pool        *ServicePool
 	rpool       *RepositoryPool
 	factoryPool *FactoryPool
 
-	comPool     *InfraPool
-	msgsBus     *EventBus
+	comPool *InfraPool
+	msgsBus *EventBus
+	// prefixParty means the prefix of url path
 	prefixParty string
-	Database    struct {
+	// Database contains a database connection object and an installation function
+	Database struct {
 		db      interface{}
 		Install func() (db interface{})
 	}
-
+	// Cache contains a redis client and an installation function
 	Cache struct {
 		client  redis.Cmdable
 		Install func() (client redis.Cmdable)
 	}
-	other         *other
-	Middleware    []context.Handler
-	Prometheus    *Prometheus
+	other *other
+	// Middleware is a set that satisfies the iris handler's definition
+	Middleware []context.Handler
+	Prometheus *Prometheus
+	// ControllerDep TODO
 	ControllerDep []interface{}
 	eventInfra    DomainEventInfra
-	unmarshal     func(data []byte, v interface{}) error
-	marshal       func(v interface{}) ([]byte, error)
+	// unmarshal deserializes [] byte into object
+	unmarshal func(data []byte, v interface{}) error
+	// marshal serializes objects into []byte
+	marshal func(v interface{}) ([]byte, error)
 }
 
-// InstallParty .
+// InstallParty installs prefixParty of Application
 func (app *Application) InstallParty(relativePath string) {
 	app.prefixParty = relativePath
 }
 
-// CreateParty .
+// CreateParty returns a sub-router of iris which may have the same prefix and share same handlers
 func (app *Application) CreateParty(relativePath string, handlers ...context.Handler) iris.Party {
 	return app.IrisApp.Party(app.prefixParty+relativePath, handlers...)
 }
 
-// BindController .
+// BindController binds the controller that satisfies the iris's definition to the Application
+// and adds the controller into msgsBus
 func (app *Application) BindController(relativePath string, controller interface{}, handlers ...context.Handler) {
 	mvcApp := mvc.New(app.IrisApp.Party(app.prefixParty+relativePath, handlers...))
 	mvcApp.Register(app.generalDep()...)
@@ -90,7 +99,7 @@ func (app *Application) BindController(relativePath string, controller interface
 	return
 }
 
-// BindControllerByParty .
+// BindControllerByParty binds the controller by iris's party
 func (app *Application) BindControllerByParty(party iris.Party, controller interface{}) {
 	mvcApp := mvc.New(party)
 	mvcApp.Register(app.generalDep()...)
@@ -98,7 +107,7 @@ func (app *Application) BindControllerByParty(party iris.Party, controller inter
 	return
 }
 
-// GetService .
+// GetService TODO
 func (app *Application) GetService(ctx iris.Context, service interface{}) {
 	app.pool.get(ctx.Values().Get(WorkerKey).(*worker), service)
 	return
