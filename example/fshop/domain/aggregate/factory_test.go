@@ -50,7 +50,7 @@ func TestCartItemAggregate(t *testing.T) {
 	unitTest.Run()
 
 	var aggregate *aggregate.CartFactory
-	//获取领域服务
+	//获取工厂
 	unitTest.GetFactory(&aggregate)
 	cartItemQuery, err := aggregate.NewCartItemQuery(1)
 	if err != nil {
