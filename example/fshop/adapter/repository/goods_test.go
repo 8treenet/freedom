@@ -48,7 +48,7 @@ func TestGoodsGet(t *testing.T) {
 	unitTest.Run()
 
 	var repo *Goods
-	//获取领域服务
+	//获取资源库
 	unitTest.GetRepository(&repo)
 	t.Log(repo.Get(1))
 }
