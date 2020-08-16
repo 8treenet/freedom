@@ -46,45 +46,53 @@ func (pool *FactoryPool) allType() (list []reflect.Type) {
 }
 
 // diFactory .
-func (pool *FactoryPool) diFactory(entity interface{}) {
-	allFields(entity, func(value reflect.Value) {
-		//如果是指针的成员变量
-		if value.Kind() == reflect.Ptr && value.IsZero() {
-			ok, newfield := pool.get(value.Type())
+func (pool *FactoryPool) diFactory(factory interface{}) {
+	allFields(factory, func(value reflect.Value) {
+		pool.diFactoryFromValue(value)
+	})
+}
+
+func (pool *FactoryPool) diFactoryFromValue(value reflect.Value) {
+	//如果是指针的成员变量
+	if value.Kind() == reflect.Ptr && value.IsZero() {
+		ok, newfield := pool.get(value.Type())
+		if !ok {
+			return
+		}
+		if !value.CanSet() {
+			globalApp.IrisApp.Logger().Fatalf("[freedom]This use factory object must be a capital variable: %v" + value.Type().String())
+		}
+		//创建实例并且注入基础设施组件和资源库
+		value.Set(newfield)
+		allFieldsFromValue(newfield, func(fieldValue reflect.Value) {
+			globalApp.rpool.diRepoFromValue(fieldValue)
+			globalApp.comPool.diInfraFromValue(fieldValue)
+		})
+		// globalApp.comPool.diInfra(factoryObj)
+		// globalApp.rpool.diRepo(factoryObj)
+	}
+
+	//如果是接口的成员变量
+	if value.Kind() == reflect.Interface && value.IsZero() {
+		typeList := pool.allType()
+		for index := 0; index < len(typeList); index++ {
+			if !typeList[index].Implements(value.Type()) {
+				continue
+			}
+			ok, newfield := pool.get(typeList[index])
 			if !ok {
-				return
+				continue
 			}
 			if !value.CanSet() {
-				globalApp.IrisApp.Logger().Fatalf("[freedom]This use factory object must be a capital variable: %v" + value.Type().String())
+				globalApp.IrisApp.Logger().Fatalf("[freedom]This use factory object must be a capital variable: %v", value.Type().String())
 			}
 			//创建实例并且注入基础设施组件和资源库
 			value.Set(newfield)
-			factoryObj := newfield.Interface()
-			globalApp.comPool.diInfra(factoryObj)
-			globalApp.rpool.diRepo(factoryObj)
+			allFieldsFromValue(newfield, func(fieldValue reflect.Value) {
+				globalApp.rpool.diRepoFromValue(fieldValue)
+				globalApp.comPool.diInfraFromValue(fieldValue)
+			})
+			return
 		}
-
-		//如果是接口的成员变量
-		if value.Kind() == reflect.Interface && value.IsZero() {
-			typeList := pool.allType()
-			for index := 0; index < len(typeList); index++ {
-				if !typeList[index].Implements(value.Type()) {
-					continue
-				}
-				ok, newfield := pool.get(typeList[index])
-				if !ok {
-					continue
-				}
-				if !value.CanSet() {
-					globalApp.IrisApp.Logger().Fatalf("[freedom]This use factory object must be a capital variable: %v", value.Type().String())
-				}
-				//创建实例并且注入基础设施组件和资源库
-				value.Set(newfield)
-				factoryObj := newfield.Interface()
-				globalApp.comPool.diInfra(factoryObj)
-				globalApp.rpool.diRepo(factoryObj)
-				return
-			}
-		}
-	})
+	}
 }

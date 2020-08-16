@@ -76,9 +76,12 @@ func (pool *ServicePool) bind(t reflect.Type, f interface{}) {
 			}
 
 			newService := values[0].Interface()
-			globalApp.rpool.diRepo(newService)
-			globalApp.comPool.diInfra(newService)
-			globalApp.factoryPool.diFactory(newService)
+			allFields(newService, func(fieldValue reflect.Value) {
+				globalApp.rpool.diRepoFromValue(fieldValue)
+				globalApp.comPool.diInfraFromValue(fieldValue)
+				globalApp.factoryPool.diFactoryFromValue(fieldValue)
+
+			})
 			return newService
 		},
 	}
@@ -106,8 +109,8 @@ func (pool *ServicePool) allType() (list []reflect.Type) {
 	return
 }
 
-func (pool *ServicePool) factoryCall(rt *worker, wokrerValue reflect.Value, obj interface{}) {
-	allFields(obj, func(factoryValue reflect.Value) {
+func (pool *ServicePool) factoryCall(rt *worker, wokrerValue reflect.Value, factoryFieldValue reflect.Value) {
+	allFieldsFromValue(factoryFieldValue, func(factoryValue reflect.Value) {
 		factoryKind := factoryValue.Kind()
 		if factoryKind == reflect.Interface && wokrerValue.Type().AssignableTo(factoryValue.Type()) && factoryValue.CanSet() {
 			//如果是运行时对象
@@ -118,7 +121,7 @@ func (pool *ServicePool) factoryCall(rt *worker, wokrerValue reflect.Value, obj 
 			return
 		}
 		fvi := factoryValue.Interface()
-		allFields(fvi, func(value reflect.Value) {
+		allFieldsFromValue(factoryValue, func(value reflect.Value) {
 			if !value.CanInterface() {
 				return
 			}
@@ -151,15 +154,14 @@ func (pool *ServicePool) objBeginRequest(rt *worker, obj interface{}) {
 		vi := value.Interface()
 		//如果成员变量是工厂
 		if globalApp.factoryPool.exist(value.Type()) {
-			pool.factoryCall(rt, rtValue, vi)
+			pool.factoryCall(rt, rtValue, value)
 			return
 		}
-
-		allFields(vi, func(value reflect.Value) {
-			if !value.CanInterface() {
+		allFieldsFromValue(value, func(fieldValue reflect.Value) {
+			if !fieldValue.CanInterface() {
 				return
 			}
-			infra := value.Interface()
+			infra := fieldValue.Interface()
 			br, ok := infra.(BeginRequest)
 			if ok {
 				br.BeginRequest(rt)

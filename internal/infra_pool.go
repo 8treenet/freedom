@@ -164,8 +164,12 @@ func (pool *InfraPool) free(obj interface{}) {
 
 func (pool *InfraPool) diInfra(obj interface{}) {
 	allFields(obj, func(value reflect.Value) {
-		globalApp.comPool.getByInternal(value)
+		pool.diInfraFromValue(value)
 	})
+}
+
+func (pool *InfraPool) diInfraFromValue(value reflect.Value) {
+	globalApp.comPool.getByInternal(value)
 }
 
 // GetSingleInfra .

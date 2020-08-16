@@ -41,41 +41,51 @@ func (pool *RepositoryPool) allType() (list []reflect.Type) {
 	return
 }
 
-func (pool *RepositoryPool) diRepo(entity interface{}) {
-	allFields(entity, func(value reflect.Value) {
-		//如果是指针的成员变量
-		if value.Kind() == reflect.Ptr && value.IsZero() {
-			ok, newfield := pool.get(value.Type())
+func (pool *RepositoryPool) diRepo(repo interface{}) {
+	allFields(repo, func(value reflect.Value) {
+		pool.diRepoFromValue(value)
+	})
+}
+
+func (pool *RepositoryPool) diRepoFromValue(value reflect.Value) {
+	//如果是指针的成员变量
+	if value.Kind() == reflect.Ptr && value.IsZero() {
+		ok, newfield := pool.get(value.Type())
+		if !ok {
+			return
+		}
+		if !value.CanSet() {
+			globalApp.IrisApp.Logger().Fatalf("[freedom]This use repository object must be a capital variable: %v" + value.Type().String())
+		}
+		//创建实例并且注入基础设施组件
+		value.Set(newfield)
+		allFieldsFromValue(newfield, func(repoValue reflect.Value) {
+			globalApp.comPool.diInfraFromValue(repoValue)
+		})
+		//globalApp.comPool.diInfra(newfield.Interface())
+	}
+
+	//如果是接口的成员变量
+	if value.Kind() == reflect.Interface && value.IsZero() {
+		typeList := pool.allType()
+		for index := 0; index < len(typeList); index++ {
+			if !typeList[index].Implements(value.Type()) {
+				continue
+			}
+			ok, newfield := pool.get(typeList[index])
 			if !ok {
-				return
+				continue
 			}
 			if !value.CanSet() {
 				globalApp.IrisApp.Logger().Fatalf("[freedom]This use repository object must be a capital variable: %v" + value.Type().String())
 			}
 			//创建实例并且注入基础设施组件
 			value.Set(newfield)
-			globalApp.comPool.diInfra(newfield.Interface())
+			allFieldsFromValue(newfield, func(repoValue reflect.Value) {
+				globalApp.comPool.diInfraFromValue(repoValue)
+			})
+			//globalApp.comPool.diInfra(newfield.Interface())
+			return
 		}
-
-		//如果是接口的成员变量
-		if value.Kind() == reflect.Interface && value.IsZero() {
-			typeList := pool.allType()
-			for index := 0; index < len(typeList); index++ {
-				if !typeList[index].Implements(value.Type()) {
-					continue
-				}
-				ok, newfield := pool.get(typeList[index])
-				if !ok {
-					continue
-				}
-				if !value.CanSet() {
-					globalApp.IrisApp.Logger().Fatalf("[freedom]This use repository object must be a capital variable: %v" + value.Type().String())
-				}
-				//创建实例并且注入基础设施组件
-				value.Set(newfield)
-				globalApp.comPool.diInfra(newfield.Interface())
-				return
-			}
-		}
-	})
+	}
 }

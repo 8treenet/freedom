@@ -497,7 +497,7 @@ func deepValues(reflectValue reflect.Value, object bool) []reflect.Value {
 }
 
 func indirect(reflectValue reflect.Value) reflect.Value {
-	for reflectValue.Kind() == reflect.Ptr {
+	for reflectValue.Kind() == reflect.Ptr || reflectValue.Kind() == reflect.Interface {
 		reflectValue = reflectValue.Elem()
 	}
 	return reflectValue
@@ -524,9 +524,13 @@ func allFields(dest interface{}, call func(reflect.Value)) {
 	}
 }
 
-// allFieldsByValue
-func allFieldsByValue(val reflect.Value, call func(reflect.Value)) {
+// allFieldsFromValue
+func allFieldsFromValue(val reflect.Value, call func(reflect.Value)) {
 	destVal := indirect(val)
+	destType := destVal.Type()
+	if destType.Kind() != reflect.Struct && destType.Kind() != reflect.Interface {
+		return
+	}
 	for index := 0; index < destVal.NumField(); index++ {
 		val := destVal.Field(index)
 		call(val)
