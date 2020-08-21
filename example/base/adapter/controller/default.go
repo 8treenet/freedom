@@ -33,13 +33,27 @@ type Default struct {
 
 // Get handles the GET: / route.
 func (c *Default) Get() freedom.Result {
-	c.Worker.Logger().Infof("I'm Controller")
+	c.Worker.Logger().Info("I'm Controller")
 	remote := c.Sev.RemoteInfo()
 	return &infra.JSONResponse{Object: remote}
 }
 
 // GetHello handles the GET: /hello route.
 func (c *Default) GetHello() string {
+	field := freedom.LogFields{
+		"framework": "freedom",
+		"like":      "DDD",
+	}
+	c.Worker.Logger().Info("hello", field)
+	c.Worker.Logger().Infof("hello %s", "format", field)
+	c.Worker.Logger().Debug("hello", field)
+	c.Worker.Logger().Debugf("hello %s", "format", field)
+	c.Worker.Logger().Error("hello", field)
+	c.Worker.Logger().Errorf("hello %s", "format", field)
+	c.Worker.Logger().Warn("hello", field)
+	c.Worker.Logger().Warnf("hello %s", "format", field)
+	c.Worker.Logger().Print("hello")
+	c.Worker.Logger().Println("hello")
 	return "hello"
 }
 
@@ -71,7 +85,7 @@ func (m *Default) BeforeActivation(b freedom.BeforeActivation) {
 // PostHello handles the POST: /hello route.
 func (c *Default) CustomHello() freedom.Result {
 	method := c.Worker.IrisContext().Request().Method
-	c.Worker.Logger().Info(method, "CustomHello")
+	c.Worker.Logger().Info("CustomHello", freedom.LogFields{"method": method})
 	return &infra.JSONResponse{Object: method + "CustomHello"}
 }
 

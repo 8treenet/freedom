@@ -152,12 +152,17 @@ func main() {
 }
 
 func installMiddleware(app freedom.Application) {
-    //安装全局中间件
+    //Recover中间件
     app.InstallMiddleware(middleware.NewRecover())
+    //Trace链路中间件
     app.InstallMiddleware(middleware.NewTrace("x-request-id"))
-    app.InstallMiddleware(middleware.NewRequestLogger("x-request-id", true))
-
+    //日志中间件，每个请求一个logger
+    app.InstallMiddleware(middleware.NewRequestLogger("x-request-id"))
+    //logRow中间件，每一行日志都会触发回调。如果返回true，将停止中间件遍历回调。
+    app.Logger().Handle(middleware.DefaultLogRowHandle)
+    //HttpClient 普罗米修斯中间件，监控下游的API请求。
     requests.InstallPrometheus(conf.Get().App.Other["service_name"].(string), freedom.Prometheus())
+    //总线中间件，处理上下游透传的Header
     app.InstallBusMiddleware(middleware.NewBusFilter())
 }
 
@@ -256,7 +261,7 @@ func (m *Default) BeforeActivation(b freedom.BeforeActivation) {
 // PostHello handles the POST: /hello route.
 func (c *Default) CustomHello() freedom.Result {
 	method := c.Worker.IrisContext().Request().Method
-	c.Worker.Logger().Info(method, "CustomHello")
+	c.Worker.Logger().Info("CustomHello", freedom.LogFields{"method": method})
 	return &infra.JSONResponse{Object: method + "CustomHello"}
 }
 

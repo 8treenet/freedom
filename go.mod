@@ -15,7 +15,7 @@ require (
 	github.com/iris-contrib/go.uuid v2.0.0+incompatible
 	github.com/jinzhu/gorm v1.9.12
 	github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88 // indirect
-	github.com/kataras/golog v0.0.10
+	github.com/kataras/golog v0.1.2
 	github.com/kataras/iris/v12 v12.1.8
 	github.com/leodido/go-urn v1.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.4 // indirect

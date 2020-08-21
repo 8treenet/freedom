@@ -18,6 +18,6 @@ type ShopController struct {
 
 // Get handles the GET: /shop/:id route.
 func (s *ShopController) GetBy(id int) string {
-	s.Worker.Logger().Info("我是控制器", "ShopController.GetByID")
+	s.Worker.Logger().Info("我是控制器 ShopController.GetByID")
 	return s.Shopping.Shopping(id)
 }

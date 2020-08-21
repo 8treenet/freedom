@@ -26,7 +26,7 @@ type Delivery struct {
 func (d *Delivery) PostOrderPayBy(eventID string) error {
 	var msg dto.OrderPayMsg
 	d.Request.ReadJSON(&msg)
-	d.Worker.Logger().Info("发货提醒 eventId:", eventID, "msg:", msg)
+	d.Worker.Logger().Info("发货提醒:", freedom.LogFields{"eventId": eventID, "msgBody": msg})
 	return nil
 }
 

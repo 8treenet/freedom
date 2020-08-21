@@ -1,8 +1,6 @@
 package middleware
 
 import (
-	"time"
-
 	"github.com/kataras/iris/v12/context"
 )
 
@@ -10,38 +8,43 @@ import (
 // See `Configuration` too.
 type skipperFunc func(ctx context.Context) bool
 
-// loggerConfig contains the options for the logger middleware
+// RequestLoggerConfig contains the options for the logger middleware
 // can be optionally be passed to the `New`.
-type loggerConfig struct {
+type RequestLoggerConfig struct {
+	IP                 bool
+	Query              bool
+	MessageContextKeys []string
+	MessageHeaderKeys  []string
+	RequestRawBody     bool
+	Title              string
 	// Status displays status code (bool).
 	//
 	// Defaults to true.
-	Status bool
+	// Status bool
 	// IP displays request's remote address (bool).
 	//
 	// Defaults to true.
-	IP bool
+
 	// Method displays the http method (bool).
 	//
 	// Defaults to true.
-	Method bool
+	//Method bool
 	// Path displays the request path (bool).
 	//
 	// Defaults to true.
-	Path bool
+	//Path bool
 
 	// Query will append the URL Query to the Path.
 	// Path should be true too.
 	//
-	// Defaults to false.
-	Query bool
+	// Defaults to true.
 
 	// Columns will display the logs as a formatted columns-rows text (bool).
 	// If custom `LogFunc` has been provided then this field is useless and users should
 	// use the `Columinize` function of the logger to get the output result as columns.
 	//
 	// Defaults to false.
-	Columns bool
+	//Columns bool
 
 	// MessageContextKeys if not empty,
 	// the middleware will try to fetch
@@ -52,7 +55,6 @@ type loggerConfig struct {
 	// a new column will be added named 'Message'.
 	//
 	// Defaults to empty.
-	MessageContextKeys []string
 
 	// MessageHeaderKeys if not empty,
 	// the middleware will try to fetch
@@ -63,61 +65,40 @@ type loggerConfig struct {
 	// a new column will be added named 'HeaderMessage'.
 	//
 	// Defaults to empty.
-	MessageHeaderKeys []string
-
-	// LogFunc is the writer which logs are written to,
-	// if missing the logger middleware uses the app.Logger().Infof instead.
-	// Note that message argument can be empty.
-	LogFunc func(endTime time.Time, latency time.Duration, status, ip, method, path string, message interface{}, headerMessage interface{})
-	// LogFuncCtx can be used instead of `LogFunc` if handlers need to customize the output based on
-	// custom request-time information that the LogFunc isn't aware of.
-	LogFuncCtx func(ctx context.Context, latency time.Duration)
-	// Skippers used to skip the logging i.e by `ctx.Path()` and serve
-	// the next/main handler immediately.
-	Skippers []skipperFunc
-	// the Skippers as one function in order to reduce the time needed to
-	// combine them at serve time.
-	skip skipperFunc
-
-	TraceName string
+	traceName string
 }
 
 // DefaultConfig returns a default config
 // that have all boolean fields to true except `Columns`,
 // all strings are empty,
 // LogFunc and Skippers to nil as well.
-func DefaultConfig() loggerConfig {
-	return loggerConfig{
-		Status:     true,
-		IP:         true,
-		Method:     true,
-		Path:       true,
-		Query:      false,
-		Columns:    false,
-		LogFunc:    nil,
-		LogFuncCtx: nil,
-		Skippers:   nil,
-		skip:       nil,
+func DefaultConfig() *RequestLoggerConfig {
+	return &RequestLoggerConfig{
+		IP:                 false,
+		Query:              true,
+		RequestRawBody:     true,
+		MessageContextKeys: []string{"response"},
+		Title:              "[access]",
 	}
 }
 
 // AddSkipper adds a skipper to the configuration.
-func (c *loggerConfig) AddSkipper(sk skipperFunc) {
-	c.Skippers = append(c.Skippers, sk)
-	c.buildSkipper()
-}
+// func (c *LoggerConfig) AddSkipper(sk skipperFunc) {
+// 	c.Skippers = append(c.Skippers, sk)
+// 	c.buildSkipper()
+// }
 
-func (c *loggerConfig) buildSkipper() {
-	if len(c.Skippers) == 0 {
-		return
-	}
-	skippersLocked := c.Skippers[0:]
-	c.skip = func(ctx context.Context) bool {
-		for _, s := range skippersLocked {
-			if s(ctx) {
-				return true
-			}
-		}
-		return false
-	}
-}
+// func (c *LoggerConfig) buildSkipper() {
+// 	if len(c.Skippers) == 0 {
+// 		return
+// 	}
+// 	skippersLocked := c.Skippers[0:]
+// 	c.skip = func(ctx context.Context) bool {
+// 		for _, s := range skippersLocked {
+// 			if s(ctx) {
+// 				return true
+// 			}
+// 		}
+// 		return false
+// 	}
+// }

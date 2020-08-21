@@ -66,7 +66,6 @@ func mainTemplate() string {
 		"{{.PackagePath}}/server/conf"
 		"github.com/go-redis/redis"
 		"github.com/jinzhu/gorm"
-		"github.com/sirupsen/logrus"
 		"github.com/8treenet/freedom/middleware"
 		"github.com/8treenet/freedom/infra/requests"
 	)
@@ -76,23 +75,27 @@ func mainTemplate() string {
 		/*
 			installDatabase(app) //安装数据库
 			installRedis(app) //安装redis
-			installLogrus(app) //安装第三方logger
 
 			http2 h2c 服务
 			h2caddrRunner := app.CreateH2CRunner(conf.Get().App.Other["listen_addr"].(string))
 		*/
-
 		installMiddleware(app)
 		addrRunner := app.CreateRunner(conf.Get().App.Other["listen_addr"].(string))
 		app.Run(addrRunner, *conf.Get().App)
 	}
 
 	func installMiddleware(app freedom.Application) {
+		//Recover中间件
 		app.InstallMiddleware(middleware.NewRecover())
+		//Trace链路中间件
 		app.InstallMiddleware(middleware.NewTrace("x-request-id"))
-		app.InstallMiddleware(middleware.NewRequestLogger("x-request-id", true))
-		
+		//日志中间件，每个请求一个logger
+		app.InstallMiddleware(middleware.NewRequestLogger("x-request-id"))
+		//logRow中间件，每一行日志都会触发回调。如果返回true，将停止中间件遍历回调。
+		app.Logger().Handle(middleware.DefaultLogRowHandle)
+		//HttpClient 普罗米修斯中间件，监控下游的API请求。
 		requests.InstallPrometheus(conf.Get().App.Other["service_name"].(string), freedom.Prometheus())
+		//总线中间件，处理上下游透传的Header
 		app.InstallBusMiddleware(middleware.NewBusFilter())
 	}
 	
@@ -134,12 +137,6 @@ func mainTemplate() string {
 			client = redisClient
 			return
 		})
-	}
-	
-	func installLogrus(app freedom.Application) {
-		logrus.SetLevel(logrus.InfoLevel)
-		logrus.SetFormatter(&logrus.JSONFormatter{TimestampFormat: "2006-01-02 15:04:05.000"})
-		freedom.Logger().Install(logrus.StandardLogger())
 	}
 	`
 }

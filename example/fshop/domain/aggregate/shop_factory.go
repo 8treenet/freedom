@@ -9,8 +9,9 @@ import (
 
 func init() {
 	freedom.Prepare(func(initiator freedom.Initiator) {
+		//绑定创建工厂函数到框架，框架会根据客户的使用做依赖倒置和依赖注入的处理。
 		initiator.BindFactory(func() *ShopFactory {
-			return &ShopFactory{}
+			return &ShopFactory{} //创建ShopFactory
 		})
 	})
 }

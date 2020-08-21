@@ -12,8 +12,9 @@ import (
 
 func init() {
 	freedom.Prepare(func(initiator freedom.Initiator) {
+		//绑定创建资源库函数到框架，框架会根据客户的使用做依赖倒置和依赖注入的处理。
 		initiator.BindRepository(func() *Delivery {
-			return &Delivery{}
+			return &Delivery{} //创建Delivery资源库
 		})
 	})
 }

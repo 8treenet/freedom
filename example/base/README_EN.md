@@ -156,11 +156,10 @@ func main() {
 }
 
 func installMiddleware(app freedom.Application) {
-    //Install Global Middleware
     app.InstallMiddleware(middleware.NewRecover())
     app.InstallMiddleware(middleware.NewTrace("x-request-id"))
-    app.InstallMiddleware(middleware.NewRequestLogger("x-request-id", true))
-
+    app.InstallMiddleware(middleware.NewRequestLogger("x-request-id"))
+    app.Logger().Handle(middleware.DefaultLogRowHandle)
     requests.InstallPrometheus(conf.Get().App.Other["service_name"].(string), freedom.Prometheus())
     app.InstallBusMiddleware(middleware.NewBusFilter())
 }
@@ -263,7 +262,7 @@ func (m *Default) BeforeActivation(b freedom.BeforeActivation) {
 // PostHello handles the POST: /hello route.
 func (c *Default) CustomHello() freedom.Result {
 	method := c.Worker.IrisContext().Request().Method
-	c.Worker.Logger().Info(method, "CustomHello")
+	c.Worker.Logger().Info("CustomHello", freedom.LogFields{"method": method})
 	return &infra.JSONResponse{Object: method + "CustomHello"}
 }
 

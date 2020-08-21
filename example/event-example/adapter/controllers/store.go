@@ -38,6 +38,7 @@ func (s *StoreController) PostSellGoodsBy(eventID string) error {
 	s.Worker.IrisContext().ReadJSON(&goods)
 
 	action := s.Worker.IrisContext().GetHeader("x-action")
-	s.Worker.Logger().Infof("Consumed goods ID:%d, Amount: %d, Action: %s, Event Key: %s", goods.ID, goods.Amount, action, eventID)
+	s.Worker.Logger().Infof("PostSellGoodsBy goods ID:%d, amount: %d, action: %s, eventId: %s", goods.ID, goods.Amount, action, eventID)
+	s.Worker.Logger().Info("PostSellGoodsBy", freedom.LogFields{"goods": goods.ID, "amount": goods.Amount, "action": action, "eventId": eventID})
 	return nil
 }

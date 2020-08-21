@@ -568,3 +568,21 @@ func fetchValue(dest, src interface{}) bool {
 	}
 	return false
 }
+
+func parseCallServiceFunc(f interface{}) (inType reflect.Type, e error) {
+	ftype := reflect.TypeOf(f)
+	if ftype.Kind() != reflect.Func {
+		e = errors.New("It's not a func")
+		return
+	}
+	if ftype.NumIn() != 1 {
+		e = errors.New("The pointer parameter must be a service object")
+		return
+	}
+	inType = ftype.In(0)
+	if inType.Kind() != reflect.Ptr {
+		e = errors.New("The pointer parameter must be a service object")
+		return
+	}
+	return
+}

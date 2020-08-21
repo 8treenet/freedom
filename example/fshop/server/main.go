@@ -7,6 +7,7 @@ import (
 	"github.com/8treenet/freedom"
 	_ "github.com/8treenet/freedom/example/fshop/adapter/controller" //引入输入适配器 http路由
 	_ "github.com/8treenet/freedom/example/fshop/adapter/repository" //引入输出适配器 repository资源库
+	"github.com/8treenet/freedom/example/fshop/adapter/timer"
 	"github.com/8treenet/freedom/example/fshop/server/conf"
 	"github.com/8treenet/freedom/infra/kafka" //需要开启 server/conf/infra/kafka.toml open = true
 	"github.com/8treenet/freedom/infra/requests"
@@ -25,17 +26,25 @@ func main() {
 
 	//安装领域事件的基础设施
 	app.InstallDomainEventInfra(kafka.GetDomainEventInfra())
+
+	timer.FixedTime(app) //非控制器使用领域服务示例
 	addrRunner := app.CreateH2CRunner(conf.Get().App.Other["listen_addr"].(string))
 	app.Run(addrRunner, *conf.Get().App)
 }
 
 func installMiddleware(app freedom.Application) {
+	//Recover中间件
 	app.InstallMiddleware(middleware.NewRecover())
+	//Trace链路中间件
 	app.InstallMiddleware(middleware.NewTrace("x-request-id"))
-	app.InstallMiddleware(middleware.NewRequestLogger("x-request-id", true))
-
-	app.InstallBusMiddleware(middleware.NewBusFilter())
+	//日志中间件，每个请求一个logger
+	app.InstallMiddleware(middleware.NewRequestLogger("x-request-id"))
+	//logRow中间件，每一行日志都会触发回调。如果返回true，将停止中间件遍历回调。
+	app.Logger().Handle(middleware.DefaultLogRowHandle)
+	//HttpClient 普罗米修斯中间件，监控下游的API请求。
 	requests.InstallPrometheus(conf.Get().App.Other["service_name"].(string), freedom.Prometheus())
+	//总线中间件，处理上下游透传的Header
+	app.InstallBusMiddleware(middleware.NewBusFilter())
 }
 
 func installDatabase(app freedom.Application) {

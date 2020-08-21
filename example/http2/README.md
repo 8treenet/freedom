@@ -14,19 +14,9 @@ $  go run domain/main.go
 
 //创建应用
 app := freedom.NewApplication()
-//安装第三方日志中间件
-installLogrus(app)
-
 //创建 http2.0 H2cRunner
 h2caddrRunner := app.CreateH2CRunner(conf.Get().App.Other["listen_addr"].(string))
 app.Run(h2caddrRunner, *conf.Get().App)
-
-func installLogrus(app freedom.Application) {
-	logrus.SetLevel(logrus.InfoLevel)
-	logrus.SetFormatter(&logrus.JSONFormatter{TimestampFormat: "2006-01-02 15:04:05.000"})
-	//安装Logrus后，日志输出全部使用Logrus。
-	freedom.Logger().Install(logrus.StandardLogger())
-}
 
 // 安装中间件
 func installMiddleware(app freedom.Application) {
@@ -35,12 +25,20 @@ func installMiddleware(app freedom.Application) {
 		NewTrace默认设置了总线, 下游服务和事件消费者服务都会拿到x-request-id
 		NewRequestLogger 默认读取了总线里的x-request-id, 所有上下游服务打印日志全部都携带x-request-id
 	*/
+	//Recover中间件
+	app.InstallMiddleware(middleware.NewRecover())
+	//Trace链路中间件
 	app.InstallMiddleware(middleware.NewTrace("x-request-id"))
-	app.InstallMiddleware(middleware.NewRequestLogger("x-request-id", true))
-	
-
-	//http client安装普罗米修斯监控
+	//日志中间件，每个请求一个logger
+	app.InstallMiddleware(middleware.NewRequestLogger("x-request-id"))
+	//logRow中间件，每一行日志都会触发回调。如果返回true，将停止中间件遍历回调。
+	app.Logger().Handle(middleware.DefaultLogRowHandle)
+	//HttpClient 普罗米修斯中间件，监控下游的API请求。
 	requests.InstallPrometheus(conf.Get().App.Other["service_name"].(string), freedom.Prometheus())
+	//总线中间件，处理上下游透传的Header
+	app.InstallBusMiddleware(middleware.NewBusFilter())
+
+	//自定义Bus
 	app.InstallBusMiddleware(newBus(conf.Get().App.Other["service_name"].(string)))
 }
 
@@ -49,10 +47,39 @@ func newBus(serviceName string) func(freedom.Worker) {
 	//调用下游服务和事件消费者将传递service-name， 下游服务和mq事件消费者，使用 Worker.Bus() 可获取到service-name。
 	return func(run freedom.Worker) {
 		bus := run.Bus()
+		//Bus 主要处理http的Header，所有下游调用都会携带Header:x-service-name
 		bus.Add("x-service-name", serviceName)
 	}
 }
+```
+```go
+//默认的每行log中间件,支持自定义.
+func DefaultLogRowHandle(value *freedom.LogRow) bool {
+	//logRow中间件，每一行日志都会触发回调。如果返回true，将停止中间件遍历回调。
+	fieldKeys := []string{}
+	for k := range value.Fields {
+		fieldKeys = append(fieldKeys, k)
+	}
+	sort.Strings(fieldKeys)
+	for i := 0; i < len(fieldKeys); i++ {
+		fieldMsg := value.Fields[fieldKeys[i]]
+		if value.Message != "" {
+			value.Message += "  "
+		}
+		value.Message += fmt.Sprintf("%s:%v", fieldKeys[i], fieldMsg)
+	}
+	return false
 
+	/*
+		logrus.WithFields(value.Fields).Info(value.Message)
+		return true
+	*/
+	/*
+		zapLogger, _ := zap.NewProduction()
+		zapLogger.Info(value.Message)
+		return true
+	*/
+}
 ```
 
 #### 依赖倒置

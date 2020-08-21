@@ -31,13 +31,27 @@ func controllerTemplate() string {
 	
 	// Get handles the GET: / route.
 	func (c *Default) Get() freedom.Result {
-		c.Worker.Logger().Infof("我是控制器")
+		c.Worker.Logger().Info("我是控制器")
 		remote := c.Sev.RemoteInfo()
 		return &infra.JSONResponse{Object: remote}
 	}
 	
 	// GetHello handles the GET: /hello route.
 	func (c *Default) GetHello() string {
+		field := freedom.LogFields{
+			"framework": "freedom",
+			"like":      "DDD",
+		}
+		c.Worker.Logger().Info("hello", field)
+		c.Worker.Logger().Infof("hello %s", "format", field)
+		c.Worker.Logger().Debug("hello", field)
+		c.Worker.Logger().Debugf("hello %s", "format", field)
+		c.Worker.Logger().Error("hello", field)
+		c.Worker.Logger().Errorf("hello %s", "format", field)
+		c.Worker.Logger().Warn("hello", field)
+		c.Worker.Logger().Warnf("hello %s", "format", field)
+		c.Worker.Logger().Print("hello")
+		c.Worker.Logger().Println("hello")
 		return "hello"
 	}
 
@@ -69,7 +83,7 @@ func controllerTemplate() string {
 	// PostHello handles the POST: /hello route.
 	func (c *Default) CustomHello() freedom.Result {
 		method := c.Worker.IrisContext().Request().Method
-		c.Worker.Logger().Info(method, "CustomHello")
+		c.Worker.Logger().Info("CustomHello", freedom.LogFields{"method": method})
 		return &infra.JSONResponse{Object: method + "CustomHello"}
 	}
 	

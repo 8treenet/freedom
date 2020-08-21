@@ -3,11 +3,12 @@ package repository
 
 import (
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/8treenet/freedom"
 	"github.com/8treenet/freedom/example/fshop/domain/po"
 	"github.com/jinzhu/gorm"
-	"strings"
-	"time"
 )
 
 // GORMRepository .

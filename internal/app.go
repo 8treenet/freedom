@@ -341,3 +341,8 @@ func (app *Application) InstallSerializer(marshal func(v interface{}) ([]byte, e
 	app.marshal = marshal
 	app.unmarshal = unmarshal
 }
+
+// CallService .
+func (app *Application) CallService(fun interface{}, worker ...Worker) {
+	callService(fun, worker...)
+}

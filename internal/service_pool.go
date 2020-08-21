@@ -42,6 +42,17 @@ func (pool *ServicePool) get(rt *worker, service interface{}) {
 	rt.freeServices = append(rt.freeServices, newService)
 }
 
+// get .
+func (pool *ServicePool) pop(rt Worker, service reflect.Type) interface{} {
+	newService := pool.malloc(service)
+	if newService == nil {
+		globalApp.IrisApp.Logger().Fatalf("[freedom]No dependency injection was found for the service object,%v", service)
+	}
+
+	pool.objBeginRequest(rt, newService)
+	return newService
+}
+
 // freeHandle .
 func (pool *ServicePool) freeHandle() context.Handler {
 	return func(ctx context.Context) {
@@ -109,7 +120,7 @@ func (pool *ServicePool) allType() (list []reflect.Type) {
 	return
 }
 
-func (pool *ServicePool) factoryCall(rt *worker, wokrerValue reflect.Value, factoryFieldValue reflect.Value) {
+func (pool *ServicePool) factoryCall(rt Worker, wokrerValue reflect.Value, factoryFieldValue reflect.Value) {
 	allFieldsFromValue(factoryFieldValue, func(factoryValue reflect.Value) {
 		factoryKind := factoryValue.Kind()
 		if factoryKind == reflect.Interface && wokrerValue.Type().AssignableTo(factoryValue.Type()) && factoryValue.CanSet() {
@@ -139,7 +150,7 @@ func (pool *ServicePool) factoryCall(rt *worker, wokrerValue reflect.Value, fact
 	})
 }
 
-func (pool *ServicePool) objBeginRequest(rt *worker, obj interface{}) {
+func (pool *ServicePool) objBeginRequest(rt Worker, obj interface{}) {
 	rtValue := reflect.ValueOf(rt)
 	allFields(obj, func(value reflect.Value) {
 		kind := value.Kind()

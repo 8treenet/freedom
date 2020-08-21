@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"runtime"
 
-	"github.com/kataras/golog"
 	"github.com/kataras/iris/v12/context"
 
 	"github.com/8treenet/freedom"
@@ -25,7 +24,7 @@ func NewRecover() context.Handler {
 				logMessage := fmt.Sprintf("Recovered from path('%s')\n", ctx.Path())
 				logMessage += fmt.Sprintf("Panic: %s\n", err)
 				logMessage += fmt.Sprintf("At stack: %s\n", string(panicTrace()))
-				rt.Logger().Log(golog.ErrorLevel, logMessage)
+				rt.Logger().Error(logMessage)
 
 				ctx.StatusCode(500)
 				ctx.StopExecution()

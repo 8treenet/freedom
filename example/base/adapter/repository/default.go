@@ -22,13 +22,13 @@ type Default struct {
 // GetIP .
 func (repo *Default) GetIP() string {
 	//repo.DB().Find()
-	repo.Worker.Logger().Infof("I'm Repository GetIP")
+	repo.Worker.Logger().Info("I'm Repository GetIP")
 	return repo.Worker.IrisContext().RemoteAddr()
 }
 
 // GetUA - implement DefaultRepoInterface interface
 func (repo *Default) GetUA() string {
-	repo.Worker.Logger().Infof("I'm Repository GetUA")
+	repo.Worker.Logger().Info("I'm Repository GetUA")
 	return repo.Worker.IrisContext().Request().UserAgent()
 }
 

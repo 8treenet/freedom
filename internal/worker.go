@@ -15,6 +15,7 @@ import (
 type Worker interface {
 	IrisContext() iris.Context
 	Logger() Logger
+	SetLogger(Logger)
 	Store() *memstore.Store
 	Bus() *Bus
 	Context() stdContext.Context
@@ -125,4 +126,9 @@ func (rt *worker) Rand() *rand.Rand {
 		rt.randInstance = rand.New(rand.NewSource(time.Now().UnixNano()))
 	}
 	return rt.randInstance
+}
+
+// SetLogger .
+func (rt *worker) SetLogger(l Logger) {
+	rt.logger = l
 }

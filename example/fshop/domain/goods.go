@@ -11,9 +11,11 @@ import (
 
 func init() {
 	freedom.Prepare(func(initiator freedom.Initiator) {
+		//绑定创建领域服务函数到框架，框架会根据客户的使用做依赖倒置和依赖注入的处理。
 		initiator.BindService(func() *Goods {
-			return &Goods{}
+			return &Goods{} //创建Goods领域服务
 		})
+		//控制器客户需要明确使用 InjectController
 		initiator.InjectController(func(ctx freedom.Context) (service *Goods) {
 			initiator.GetService(ctx, &service)
 			return
@@ -57,11 +59,11 @@ func (g *Goods) Items(page, pagesize int, tag string) (items []dto.GoodsItemRes,
 func (g *Goods) AddStock(goodsId, num int) (e error) {
 	entity, e := g.GoodsRepo.Get(goodsId)
 	if e != nil {
-		g.Worker.Logger().Error("商品库存失败")
+		g.Worker.Logger().Error("商品库存失败", freedom.LogFields{"goodsId": goodsId, "num": num})
 		return
 	}
 
-	g.Worker.Logger().Info("增加库存")
+	g.Worker.Logger().Info("增加库存", freedom.LogFields{"goodsId": goodsId, "num": num})
 	entity.AddStock(num)
 	return g.GoodsRepo.Save(entity)
 }

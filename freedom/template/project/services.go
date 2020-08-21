@@ -41,7 +41,7 @@ func servicesTemplate() string {
 		Ip string
 		Ua string
 	}) {
-		s.Worker.Logger().Infof("我是service")
+		s.Worker.Logger().Info("我是service")
 		result.Ip = s.DefRepo.GetIP()
 		result.Ua = s.DefRepo.GetUA()
 		return
