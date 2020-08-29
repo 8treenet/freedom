@@ -34,7 +34,7 @@ func (repo *GoodsRepository) GetGoods(goodsID int) (result dto.Goods) {
 	go func() {
 		var model dto.Goods
 		repo.NewH2CRequest(addr).Get().ToJSON(&model)
-		repo.NewHttpRequest(addr, false).Get().ToJSON(&model)
+		repo.NewHTTPRequest(addr, false).Get().ToJSON(&model)
 	}()
 	return result
 }

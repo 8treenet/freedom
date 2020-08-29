@@ -7,10 +7,11 @@ import (
 )
 
 const (
-	versionNum = "v1.7.16"
+	versionNum = "v1.8.0"
 )
 
 var (
+	// VersionCmd .
 	VersionCmd = &cobra.Command{
 		Use:   "version",
 		Short: "Output current version number",

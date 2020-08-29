@@ -7,7 +7,7 @@ import (
 	"github.com/8treenet/freedom/example/fshop/domain"
 )
 
-// FixedTime
+// FixedTime .
 func FixedTime(app freedom.Application) {
 	/*
 		展示非控制器使用领域服务的示例

@@ -15,6 +15,7 @@ import (
 	"golang.org/x/sync/singleflight"
 )
 
+// EntityCache .
 type EntityCache interface {
 	//获取实体
 	GetEntity(freedom.Entity) error
@@ -34,7 +35,7 @@ type EntityCache interface {
 	CloseRedis() EntityCache
 }
 
-var _ EntityCache = new(EntityCacheImpl)
+var _ EntityCache = (*EntityCacheImpl)(nil)
 
 func init() {
 	freedom.Prepare(func(initiator freedom.Initiator) {
@@ -57,7 +58,7 @@ type EntityCacheImpl struct {
 	client       redis.Cmdable
 }
 
-// BeginRequest
+// BeginRequest .
 func (cache *EntityCacheImpl) BeginRequest(worker freedom.Worker) {
 	cache.expiration = 5 * time.Minute
 	cache.singleFlight = true
@@ -66,7 +67,7 @@ func (cache *EntityCacheImpl) BeginRequest(worker freedom.Worker) {
 	cache.client = cache.Redis()
 }
 
-// Get 读取实体缓存
+// GetEntity 读取实体缓存
 func (cache *EntityCacheImpl) GetEntity(result freedom.Entity) error {
 	value := reflect.ValueOf(result)
 	//一级缓存读取

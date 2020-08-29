@@ -16,13 +16,13 @@ func TestCartGetItems(t *testing.T) {
 // 添加购物车商品
 func TestPostCart(t *testing.T) {
 	var req dto.CartAddReq
-	req.UserId = 1
-	req.GoodsId = 1
+	req.UserID = 1
+	req.GoodsID = 1
 	req.GoodsNum = 1
 	str, err := requests.NewH2CRequest("http://127.0.0.1:8000/cart").Post().SetJSONBody(req).ToString()
 	t.Log(str, err)
 
-	req.GoodsId = 2
+	req.GoodsID = 2
 	req.GoodsNum = 1
 	str2, err2 := requests.NewH2CRequest("http://127.0.0.1:8000/cart").Post().SetJSONBody(req).ToString()
 	t.Log(str2, err2)
@@ -37,8 +37,8 @@ func TestDeleteCarts(t *testing.T) {
 // 购买购物车商品
 func TestCartShop(t *testing.T) {
 	obj := dto.CartShopReq{
-		UserId: 1, //用户id
+		UserID: 1, //用户id
 	}
-	str, err := requests.NewHttpRequest("http://127.0.0.1:8000/cart/shop").Post().SetJSONBody(obj).ToString()
+	str, err := requests.NewHTTPRequest("http://127.0.0.1:8000/cart/shop").Post().SetJSONBody(obj).ToString()
 	t.Log(str, err)
 }

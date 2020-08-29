@@ -22,11 +22,12 @@ type Single struct {
 }
 
 // Booting .
-func (c *Single) Booting(boot freedom.SingleBoot) {
+func (s *Single) Booting(boot freedom.SingleBoot) {
 	freedom.Logger().Info("Single.Booting")
-	c.life = rand.Intn(100)
+	s.life = rand.Intn(100)
 }
 
-func (mu *Single) GetLife() int {
-	return mu.life
+// GetLife .
+func (s *Single) GetLife() int {
+	return s.life
 }

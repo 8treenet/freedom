@@ -20,7 +20,7 @@ func init() {
 }
 
 //实现领域模型内的依赖倒置
-var _ dependency.DeliveryRepo = new(Delivery)
+var _ dependency.DeliveryRepo = (*Delivery)(nil)
 
 // Delivery .
 type Delivery struct {
@@ -37,7 +37,7 @@ func (repo *Delivery) New() (deliveryEntity *entity.Delivery, err error) {
 
 // Save 保存实体
 func (repo *Delivery) Save(deliveryEntity *entity.Delivery) error {
-	if deliveryEntity.Id == 0 {
+	if deliveryEntity.ID == 0 {
 		_, err := createDelivery(repo, &deliveryEntity.Delivery)
 		return err
 	}

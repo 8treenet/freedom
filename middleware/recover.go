@@ -10,7 +10,7 @@ import (
 	"github.com/8treenet/freedom"
 )
 
-// NewRecover
+// NewRecover .
 func NewRecover() context.Handler {
 	return func(ctx context.Context) {
 		defer func() {

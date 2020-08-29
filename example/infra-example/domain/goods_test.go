@@ -54,8 +54,8 @@ func TestGoodsService_MockGet(t *testing.T) {
 type MockGoodsRepository struct {
 }
 
-func (repo *MockGoodsRepository) Get(id int) (result po.Goods, e error) {
-	result.Id = 123
+func (repo *MockGoodsRepository) Get(ID int) (result po.Goods, e error) {
+	result.ID = 123
 	result.Name = "mock商品名称"
 	result.Price = 100
 	result.Stock = 30

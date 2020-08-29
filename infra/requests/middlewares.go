@@ -2,18 +2,21 @@ package requests
 
 import "net/http"
 
+// Middleware .
 type Middleware interface {
 	Next()
 	Stop(...error)
 	GetRequest() *http.Request
 	GetRespone() (*http.Response, error)
-	getStop() bool
+	IsStopped() bool
 }
 
 var middlewares []Handler
 
+// Handler .
 type Handler func(Middleware)
 
+// UseMiddleware .
 func UseMiddleware(handle ...Handler) {
 	middlewares = append(middlewares, handle...)
 }
@@ -25,7 +28,7 @@ func handle(request Middleware) {
 	}
 	for i := 0; i < len(middlewares); i++ {
 		middlewares[i](request)
-		if request.getStop() {
+		if request.IsStopped() {
 			return
 		}
 	}

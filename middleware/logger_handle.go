@@ -7,6 +7,7 @@ import (
 	"github.com/8treenet/freedom"
 )
 
+// DefaultLogRowHandle .
 func DefaultLogRowHandle(value *freedom.LogRow) bool {
 	//logRow中间件，每一行日志都会触发回调。如果返回true，将停止中间件遍历回调。
 	fieldKeys := []string{}

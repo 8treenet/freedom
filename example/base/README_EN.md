@@ -131,7 +131,7 @@ type Starter interface {
 |Initiator.Starter|Trigger callback|
 |infra.Booting|触发组件方法|
 |http.Run|开启监听服务|
-|infra.Closeing|Trigger callback|
+|infra.RegisterShutdown|Trigger callback|
 |Application.Close|程序关闭|
 
 #### Request Cycle

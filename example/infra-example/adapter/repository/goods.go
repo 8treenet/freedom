@@ -19,17 +19,20 @@ type GoodsRepository struct {
 	freedom.Repository
 }
 
-func (repo *GoodsRepository) Get(id int) (result po.Goods, e error) {
-	result.Id = id
+// Get .
+func (repo *GoodsRepository) Get(ID int) (result po.Goods, e error) {
+	result.ID = ID
 	e = findGoods(repo, &result)
 	return
 }
 
+// GetAll .
 func (repo *GoodsRepository) GetAll() (result []po.Goods, e error) {
 	e = findGoodsList(repo, po.Goods{}, &result)
 	return
 }
 
+// Save .
 func (repo *GoodsRepository) Save(goods *po.Goods) (e error) {
 	_, e = saveGoods(repo, goods)
 	return

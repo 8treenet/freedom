@@ -17,6 +17,7 @@ type prom interface {
 	RegisterCounter(conter *prometheus.CounterVec)
 }
 
+// InstallPrometheus .
 func InstallPrometheus(serviceName string, p prom) {
 	httpClientReqs := prometheus.NewCounterVec(
 		prometheus.CounterOpts{

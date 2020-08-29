@@ -8,7 +8,7 @@ import (
 	"github.com/8treenet/freedom/example/fshop/domain/po"
 )
 
-// 用户实体
+//User 用户实体
 type User struct {
 	freedom.Entity
 	po.User
@@ -16,7 +16,7 @@ type User struct {
 
 // Identity 唯一
 func (u *User) Identity() string {
-	return strconv.Itoa(u.Id)
+	return strconv.Itoa(u.ID)
 }
 
 // ChangePassword 修改密码

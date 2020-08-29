@@ -11,11 +11,12 @@ func init() {
 	})
 }
 
+// GoodsController .
 type GoodsController struct {
 	Worker freedom.Worker
 }
 
-// Get handles the GET: /goods/:id route.
+// GetBy handles the GET: /goods/:id route.
 func (goods *GoodsController) GetBy(id int) (result dto.Goods, e error) {
 	goods.Worker.Logger().Info("我是GoodsController.GetByID控制器,返回商品名称和价格")
 	//打印出bus的数据

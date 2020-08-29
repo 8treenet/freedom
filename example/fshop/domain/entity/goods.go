@@ -9,14 +9,15 @@ import (
 )
 
 const (
-	//热销
+	//GoodsHotTag 热销
 	GoodsHotTag = "HOT"
-	//新品
-	GoodsNewTag  = "NEW"
+	//GoodsNewTag 新品
+	GoodsNewTag = "NEW"
+	//GoodsNoneTag 默认
 	GoodsNoneTag = "NONE"
 )
 
-// 商品实体
+// Goods 商品实体
 type Goods struct {
 	freedom.Entity
 	po.Goods
@@ -24,7 +25,7 @@ type Goods struct {
 
 // Identity 唯一
 func (g *Goods) Identity() string {
-	return strconv.Itoa(g.Id)
+	return strconv.Itoa(g.ID)
 }
 
 // MarkedTag 为商品打tag

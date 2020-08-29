@@ -12,7 +12,7 @@ import (
 // 发货
 func TestDelivery(t *testing.T) {
 	var req dto.DeliveryReq
-	req.AdminId = 1
+	req.AdminID = 1
 	req.TrackingNumber = fmt.Sprint(rand.Intn(999999999999999))
 	req.OrderNo = "1596885638"
 

@@ -18,7 +18,7 @@ func newInfraPool() *InfraPool {
 type InfraPool struct {
 	instancePool map[reflect.Type]*sync.Pool
 	singlemap    map[reflect.Type]interface{}
-	closeingList []func()
+	shutdownList []func()
 }
 
 // bind .
@@ -101,14 +101,14 @@ func (pool *InfraPool) singleBooting(app *Application) {
 	}
 }
 
-func (pool *InfraPool) Closeing(f func()) {
-	pool.closeingList = append(pool.closeingList, f)
+func (pool *InfraPool) registerShutdown(f func()) {
+	pool.shutdownList = append(pool.shutdownList, f)
 }
 
-// closeing .
-func (pool *InfraPool) closeing() {
-	for i := 0; i < len(pool.closeingList); i++ {
-		pool.closeingList[i]()
+// shutdown .
+func (pool *InfraPool) shutdown() {
+	for i := 0; i < len(pool.shutdownList); i++ {
+		pool.shutdownList[i]()
 	}
 }
 

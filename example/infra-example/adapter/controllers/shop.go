@@ -12,13 +12,14 @@ func init() {
 	})
 }
 
+// ShopController .
 type ShopController struct {
 	Worker   freedom.Worker
 	OrderSev *domain.OrderService
 	Request  *infra.Request
 }
 
-// GetBy handles the POST: /route 购买商品.
+// Post handles the POST: /route 购买商品.
 func (c *ShopController) Post() freedom.Result {
 	var request struct {
 		GoodsID int `json:"goodsId"` //商品id

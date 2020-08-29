@@ -31,10 +31,10 @@ type ShopFactory struct {
 }
 
 // NewGoodsShopType 创建商品购买类型
-func (factory *ShopFactory) NewGoodsShopType(goodsId, goodsNum int) ShopType {
+func (factory *ShopFactory) NewGoodsShopType(goodsID, goodsNum int) ShopType {
 	return &shopType{
 		stype:    shopGoodsType,
-		goodsId:  goodsId,
+		goodsID:  goodsID,
 		goodsNum: goodsNum,
 	}
 }
@@ -47,17 +47,17 @@ func (factory *ShopFactory) NewCartShopType() ShopType {
 }
 
 // NewShopCmd 创建抽象聚合根
-func (factory *ShopFactory) NewShopCmd(userId int, stype ShopType) (ShopCmd, error) {
+func (factory *ShopFactory) NewShopCmd(userID int, stype ShopType) (ShopCmd, error) {
 	if stype.GetType() == 2 {
-		return factory.newCartShopCmd(userId)
+		return factory.newCartShopCmd(userID)
 	}
-	goodsId, goodsNum := stype.GetDirectGoods()
-	return factory.newGoodsShopCmd(userId, goodsId, goodsNum)
+	goodsID, goodsNum := stype.GetDirectGoods()
+	return factory.newGoodsShopCmd(userID, goodsID, goodsNum)
 }
 
 // newGoodsShopCmd 创建购买商品聚合根
-func (factory *ShopFactory) newGoodsShopCmd(userId, goodsId, goodsNum int) (*GoodsShopCmd, error) {
-	user, e := factory.UserRepo.Get(userId)
+func (factory *ShopFactory) newGoodsShopCmd(userID, goodsID, goodsNum int) (*GoodsShopCmd, error) {
+	user, e := factory.UserRepo.Get(userID)
 	if e != nil {
 		//用户不存在
 		return nil, e
@@ -67,7 +67,7 @@ func (factory *ShopFactory) newGoodsShopCmd(userId, goodsId, goodsNum int) (*Goo
 		return nil, e
 	}
 
-	goodsEntity, e := factory.GoodsRepo.Get(goodsId)
+	goodsEntity, e := factory.GoodsRepo.Get(goodsID)
 	if e != nil {
 		return nil, e
 	}
@@ -84,10 +84,10 @@ func (factory *ShopFactory) newGoodsShopCmd(userId, goodsId, goodsNum int) (*Goo
 }
 
 // newCartShopCmd 创建购买聚合根
-func (factory *ShopFactory) newCartShopCmd(userId int) (*CartShopCmd, error) {
-	user, e := factory.UserRepo.Get(userId)
+func (factory *ShopFactory) newCartShopCmd(userID int) (*CartShopCmd, error) {
+	user, e := factory.UserRepo.Get(userID)
 	if e != nil {
-		user.GetWorker().Logger().Error(e, "userId", userId)
+		user.GetWorker().Logger().Error(e, "userId", userID)
 		//用户不存在
 		return nil, e
 	}
@@ -98,25 +98,25 @@ func (factory *ShopFactory) newCartShopCmd(userId int) (*CartShopCmd, error) {
 		tx:        factory.TX,
 	}
 	cmd.userEntity = *user
-	cmd.allCartEntity, e = factory.CartRepo.FindAll(user.Id)
+	cmd.allCartEntity, e = factory.CartRepo.FindAll(user.ID)
 	if e != nil {
 		return nil, e
 	}
 
 	cmd.goodsEntityMap = make(map[int]*entity.Goods)
 	for i := 0; i < len(cmd.allCartEntity); i++ {
-		goodsEntity, e := factory.GoodsRepo.Get(cmd.allCartEntity[i].GoodsId)
+		goodsEntity, e := factory.GoodsRepo.Get(cmd.allCartEntity[i].GoodsID)
 		if e != nil {
 			return nil, e
 		}
-		cmd.goodsEntityMap[goodsEntity.Id] = goodsEntity
+		cmd.goodsEntityMap[goodsEntity.ID] = goodsEntity
 	}
 	return cmd, nil
 }
 
 type shopType struct {
 	stype    int
-	goodsId  int
+	goodsID  int
 	goodsNum int
 }
 
@@ -125,5 +125,5 @@ func (st *shopType) GetType() int {
 }
 
 func (st *shopType) GetDirectGoods() (int, int) {
-	return st.goodsId, st.goodsNum
+	return st.goodsID, st.goodsNum
 }

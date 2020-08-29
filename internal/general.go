@@ -36,11 +36,13 @@ type Starter interface {
 	GetSingleInfra(com interface{})
 }
 
-// SingleBoot 单例组件启动的接口 e.g. infra里面的kafka
+//SingleBoot singleton startup component.
 type SingleBoot interface {
 	Iris() *iris.Application
+	//Pass in the current component to get the event path, which can bind the specified component.
 	EventsPath(infra interface{}) map[string]string
-	Closeing(func())
+	//Register for a shutdown event.
+	RegisterShutdown(func())
 }
 
 // BeginRequest .

@@ -4,6 +4,7 @@ import (
 	"errors"
 )
 
+// Store .
 type Store struct {
 	cache map[interface{}]interface{}
 }
@@ -48,7 +49,7 @@ func (s *Store) Exist(key interface{}) bool {
 	return ok
 }
 
-// Interface .
+// ToInterface .
 func (s *Store) ToInterface(key interface{}) interface{} {
 	v, ok := s.cache[key]
 	if !ok {

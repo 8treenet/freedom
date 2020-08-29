@@ -29,7 +29,7 @@ func (u *User) Put() freedom.Result {
 	}
 
 	//调用领域服务
-	e := u.Sev.ChangePassword(req.Id, req.NewPassword, req.OldPassword)
+	e := u.Sev.ChangePassword(req.ID, req.NewPassword, req.OldPassword)
 	if e != nil {
 		//返回错误
 		return &infra.JSONResponse{Error: e}
@@ -38,8 +38,8 @@ func (u *User) Put() freedom.Result {
 }
 
 // GetBy 获取用户信息, GET: /user/:id route.
-func (c *User) GetBy(id int) freedom.Result {
-	dto, e := c.Sev.Get(id)
+func (u *User) GetBy(id int) freedom.Result {
+	dto, e := u.Sev.Get(id)
 	if e != nil {
 		return &infra.JSONResponse{Error: e}
 	}

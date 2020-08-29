@@ -25,6 +25,7 @@ func init() {
 	})
 }
 
+// Default .
 type Default struct {
 	Sev     *domain.Default
 	Worker  freedom.Worker
@@ -64,25 +65,26 @@ func (c *Default) PutHello() freedom.Result {
 
 // PostHello handles the POST: /hello route.
 func (c *Default) PostHello() freedom.Result {
-	var postJsonData struct {
+	var postJSONData struct {
 		UserName     string `json:"userName" validate:"required"`
 		UserPassword string `json:"userPassword" validate:"required"`
 	}
-	if err := c.Request.ReadJSON(&postJsonData); err != nil {
+	if err := c.Request.ReadJSON(&postJSONData); err != nil {
 		return &infra.JSONResponse{Error: err}
 	}
 
 	return &infra.JSONResponse{Object: "postHello"}
 }
 
-func (m *Default) BeforeActivation(b freedom.BeforeActivation) {
+// BeforeActivation .
+func (c *Default) BeforeActivation(b freedom.BeforeActivation) {
 	b.Handle("ANY", "/custom", "CustomHello")
 	//b.Handle("GET", "/custom", "CustomHello")
 	//b.Handle("PUT", "/custom", "CustomHello")
 	//b.Handle("POST", "/custom", "CustomHello")
 }
 
-// PostHello handles the POST: /hello route.
+// CustomHello handles the POST: /hello route.
 func (c *Default) CustomHello() freedom.Result {
 	method := c.Worker.IrisContext().Request().Method
 	c.Worker.Logger().Info("CustomHello", freedom.LogFields{"method": method})
@@ -93,7 +95,7 @@ func (c *Default) CustomHello() freedom.Result {
 func (c *Default) GetUserBy(username string) freedom.Result {
 	var query struct {
 		Token string `url:"token" validate:"required"`
-		Id    int64  `url:"id" validate:"required"`
+		ID    int64  `url:"id" validate:"required"`
 	}
 	if err := c.Request.ReadQuery(&query); err != nil {
 		return &infra.JSONResponse{Error: err}
@@ -101,9 +103,9 @@ func (c *Default) GetUserBy(username string) freedom.Result {
 	var data struct {
 		Name  string
 		Token string
-		Id    int64
+		ID    int64
 	}
-	data.Id = query.Id
+	data.ID = query.ID
 	data.Token = query.Token
 	data.Name = username
 	return &infra.JSONResponse{Object: data}

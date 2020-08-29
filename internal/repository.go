@@ -50,9 +50,9 @@ func (repo *Repository) Redis() redis.Cmdable {
 	return globalApp.Cache.client
 }
 
-// NewHttpRequest, transferBus : Whether to pass the context, turned on by default. Typically used for tracking internal services.
-func (repo *Repository) NewHttpRequest(url string, transferBus ...bool) requests.Request {
-	req := requests.NewHttpRequest(url)
+// NewHTTPRequest transferBus : Whether to pass the context, turned on by default. Typically used for tracking internal services.
+func (repo *Repository) NewHTTPRequest(url string, transferBus ...bool) requests.Request {
+	req := requests.NewHTTPRequest(url)
 	if len(transferBus) > 0 && !transferBus[0] {
 		return req
 	}
@@ -60,7 +60,7 @@ func (repo *Repository) NewHttpRequest(url string, transferBus ...bool) requests
 	return req
 }
 
-// NewH2CRequest, transferBus : Whether to pass the context, turned on by default. Typically used for tracking internal services.
+// NewH2CRequest transferBus : Whether to pass the context, turned on by default. Typically used for tracking internal services.
 func (repo *Repository) NewH2CRequest(url string, transferBus ...bool) requests.Request {
 	req := requests.NewH2CRequest(url)
 	if len(transferBus) > 0 && !transferBus[0] {
@@ -99,7 +99,7 @@ func (repo *Repository) InjectBaseEntity(entity Entity) {
 	return
 }
 
-// InjectBaseEntity .
+// InjectBaseEntitys .
 func (repo *Repository) InjectBaseEntitys(entitys interface{}) {
 	entitysValue := reflect.ValueOf(entitys)
 	if entitysValue.Kind() != reflect.Slice {
@@ -126,8 +126,8 @@ func repositoryAPIRun(irisConf iris.Configuration) {
 	if v, ok := irisConf.Other["repository_request_timeout"]; ok {
 		sec = v.(int64)
 	}
-	requests.NewHttpClient(time.Duration(sec) * time.Second)
-	requests.NewH2cClient(time.Duration(sec) * time.Second)
+	requests.InitHTTPClient(time.Duration(sec) * time.Second)
+	requests.InitH2cClient(time.Duration(sec) * time.Second)
 }
 
 // GetWorker .

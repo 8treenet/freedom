@@ -20,9 +20,9 @@ import (
 	"github.com/kataras/iris/v12/context"
 )
 
-var _ Initiator = new(Application)
-var _ SingleBoot = new(Application)
-var _ Starter = new(Application)
+var _ Initiator = (*Application)(nil)
+var _ SingleBoot = (*Application)(nil)
+var _ Starter = (*Application)(nil)
 
 // NewApplication create an instance of freedom.
 func NewApplication() *Application {
@@ -140,7 +140,7 @@ func (app *Application) BindFactory(f interface{}) {
 	app.factoryPool.bind(outType, f)
 }
 
-// ListenMessage .
+// ListenEvent .
 func (app *Application) ListenEvent(eventName string, objectMethod string, appointInfra ...interface{}) {
 	app.msgsBus.addEvent(objectMethod, eventName, appointInfra...)
 }
@@ -222,10 +222,11 @@ func (app *Application) Run(serve iris.Runner, irisConf iris.Configuration) {
 	if level, ok := irisConf.Other["shutdown_second"]; ok {
 		shutdownSecond = level.(int64)
 	}
-	app.closeing(shutdownSecond)
+	app.shutdown(shutdownSecond)
 	app.IrisApp.Run(serve, iris.WithConfiguration(irisConf))
 }
 
+//CreateH2CRunner .
 func (app *Application) CreateH2CRunner(addr string, configurators ...host.Configurator) iris.Runner {
 	h2cSer := &http2.Server{}
 	ser := &http.Server{
@@ -237,11 +238,12 @@ func (app *Application) CreateH2CRunner(addr string, configurators ...host.Confi
 	}
 }
 
+// CreateRunner .
 func (app *Application) CreateRunner(addr string, configurators ...host.Configurator) iris.Runner {
 	return iris.Addr(addr, configurators...)
 }
 
-func (app *Application) closeing(timeout int64) {
+func (app *Application) shutdown(timeout int64) {
 	iris.RegisterOnInterrupt(func() {
 		//读取配置的关闭最长时间
 		ctx, cancel := stdContext.WithTimeout(stdContext.Background(), time.Duration(timeout)*time.Second)
@@ -250,7 +252,7 @@ func (app *Application) closeing(timeout int64) {
 			if err := recover(); err != nil {
 				app.IrisApp.Logger().Errorf("[freedom]An error was encountered during the program shutdown, %v", err)
 			}
-			app.comPool.closeing()
+			app.comPool.shutdown()
 		}
 		close()
 		//通知组件服务即将关闭
@@ -258,12 +260,12 @@ func (app *Application) closeing(timeout int64) {
 	})
 }
 
-// Register .
-func (app *Application) Closeing(f func()) {
-	app.comPool.Closeing(f)
+// RegisterShutdown .
+func (app *Application) RegisterShutdown(f func()) {
+	app.comPool.registerShutdown(f)
 }
 
-// InstallGorm .
+// InstallDB .
 func (app *Application) InstallDB(f func() interface{}) {
 	app.Database.Install = f
 }

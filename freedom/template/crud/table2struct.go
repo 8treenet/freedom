@@ -7,6 +7,7 @@ import (
 	"strings"
 	"unicode"
 
+	//github.com/go-sql-driver/mysql"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -49,6 +50,7 @@ var typeForMysqlToGo = map[string]string{
 	"varbinary":          "string",
 }
 
+// Table2Struct .
 type Table2Struct struct {
 	dsn            string
 	db             *sql.DB
@@ -59,30 +61,36 @@ type Table2Struct struct {
 	tagKey         string // tag字段的key值,默认是orm
 }
 
+// NewTable2Struct .
 func NewTable2Struct() *Table2Struct {
 	return &Table2Struct{}
 }
 
+// Dsn .
 func (t *Table2Struct) Dsn(d string) *Table2Struct {
 	t.dsn = d
 	return t
 }
 
+// TagKey .
 func (t *Table2Struct) TagKey(r string) *Table2Struct {
 	t.tagKey = r
 	return t
 }
 
+// RealNameMethod .
 func (t *Table2Struct) RealNameMethod(r string) *Table2Struct {
 	t.realNameMethod = r
 	return t
 }
 
+// DB .
 func (t *Table2Struct) DB(d *sql.DB) *Table2Struct {
 	t.db = d
 	return t
 }
 
+// Field .
 type Field struct {
 	Column     string
 	Type       string
@@ -91,6 +99,7 @@ type Field struct {
 	StructName string
 }
 
+// SturctContent .
 type SturctContent struct {
 	Name          string
 	TableRealName string
@@ -99,6 +108,7 @@ type SturctContent struct {
 	NumberFields  []Field
 }
 
+// Run .
 func (t *Table2Struct) Run() (result []SturctContent, e error) {
 	// 链接mysql, 获取db对象
 	t.dialMysql()
@@ -138,6 +148,7 @@ func (t *Table2Struct) Run() (result []SturctContent, e error) {
 		depth := 1
 		tableName = t.camelCase(tableName)
 		sc.Name = tableName
+		structContent += "// " + tableName + " .\n"
 		structContent += "type " + tableName + " struct {\n"
 		structContent += "	changes map[string]interface{}\n"
 		for _, v := range item {
@@ -176,6 +187,7 @@ func (t *Table2Struct) Run() (result []SturctContent, e error) {
 		t.realNameMethod = "TableName"
 		// 添加 method 获取真实表名
 		if t.realNameMethod != "" {
+			structContent += "// " + t.realNameMethod + " .\n"
 			structContent += fmt.Sprintf("func (obj *%s) %s() string {\n",
 				tableName, t.realNameMethod)
 			structContent += fmt.Sprintf("%sreturn \"%s\"\n",
@@ -243,7 +255,6 @@ func (t *Table2Struct) getColumns(table ...string) (tableColumns map[string][]co
 
 		//col.Json = strings.ToLower(col.ColumnName)
 		col.Tag = col.ColumnName
-		col.ColumnComment = col.ColumnComment
 		col.ColumnName = t.camelCase(col.ColumnName)
 		col.Type = typeForMysqlToGo[col.Type]
 		if _, ok := tableColumns[col.TableName]; !ok {
@@ -347,44 +358,44 @@ func lintName(name string) (should string) {
 }
 
 var commonInitialisms = map[string]bool{
-	// "ACL":   true,
-	// "API":   true,
-	// "ASCII": true,
-	// "CPU":   true,
-	// "CSS":   true,
-	// "DNS":   true,
-	// "EOF":   true,
-	// "GUID":  true,
-	// "HTML":  true,
-	// "HTTP":  true,
-	// "HTTPS": true,
-	// "ID":    true,
-	// "IP":    true,
-	// "JSON":  true,
-	// "LHS":   true,
-	// "QPS":   true,
-	// "RAM":   true,
-	// "RHS":   true,
-	// "RPC":   true,
-	// "SLA":   true,
-	// "SMTP":  true,
-	// "SQL":   true,
-	// "SSH":   true,
-	// "TCP":   true,
-	// "TLS":   true,
-	// "TTL":   true,
-	// "UDP":   true,
-	// "UI":    true,
-	// "UID":   true,
-	// "UUID":  true,
-	// "URI":   true,
-	// "URL":   true,
-	// "UTF8":  true,
-	// "VM":    true,
-	// "XML":   true,
-	// "XMPP":  true,
-	// "XSRF":  true,
-	// "XSS":   true,
+	"ACL":   true,
+	"API":   true,
+	"ASCII": true,
+	"CPU":   true,
+	"CSS":   true,
+	"DNS":   true,
+	"EOF":   true,
+	"GUID":  true,
+	"HTML":  true,
+	"HTTP":  true,
+	"HTTPS": true,
+	"ID":    true,
+	"IP":    true,
+	"JSON":  true,
+	"LHS":   true,
+	"QPS":   true,
+	"RAM":   true,
+	"RHS":   true,
+	"RPC":   true,
+	"SLA":   true,
+	"SMTP":  true,
+	"SQL":   true,
+	"SSH":   true,
+	"TCP":   true,
+	"TLS":   true,
+	"TTL":   true,
+	"UDP":   true,
+	"UI":    true,
+	"UID":   true,
+	"UUID":  true,
+	"URI":   true,
+	"URL":   true,
+	"UTF8":  true,
+	"VM":    true,
+	"XML":   true,
+	"XMPP":  true,
+	"XSRF":  true,
+	"XSS":   true,
 }
 
 func lowerCamelCase(field string) string {

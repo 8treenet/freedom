@@ -23,7 +23,7 @@ func init() {
 }
 
 //实现领域模型内的依赖倒置
-var _ dependency.GoodsRepo = new(Goods)
+var _ dependency.GoodsRepo = (*Goods)(nil)
 
 // Goods .
 type Goods struct {
@@ -31,7 +31,7 @@ type Goods struct {
 	Cache store.EntityCache //实体缓存组件
 }
 
-// BeginRequest
+// BeginRequest .
 func (repo *Goods) BeginRequest(worker freedom.Worker) {
 	repo.Repository.BeginRequest(worker)
 
@@ -45,10 +45,10 @@ func (repo *Goods) BeginRequest(worker freedom.Worker) {
 	repo.Cache.SetPrefix("freedom")
 }
 
-// Get 通过id 获取商品实体.
-func (repo *Goods) Get(id int) (goodsEntity *entity.Goods, e error) {
+// Get 通过ID 获取商品实体.
+func (repo *Goods) Get(ID int) (goodsEntity *entity.Goods, e error) {
 	goodsEntity = &entity.Goods{}
-	goodsEntity.Id = id
+	goodsEntity.ID = ID
 	//注入基础Entity 包含运行时和领域事件的producer
 	repo.InjectBaseEntity(goodsEntity)
 
@@ -64,10 +64,11 @@ func (repo *Goods) Save(entity *entity.Goods) error {
 	return e
 }
 
-func (repo *Goods) Finds(ids []int) (entitys []*entity.Goods, e error) {
+// Finds .
+func (repo *Goods) Finds(IDs []int) (entitys []*entity.Goods, e error) {
 	var primarys []interface{}
-	for i := 0; i < len(ids); i++ {
-		primarys = append(primarys, ids[i])
+	for i := 0; i < len(IDs); i++ {
+		primarys = append(primarys, IDs[i])
 	}
 	e = findGoodsListByPrimarys(repo, &entitys, primarys...)
 	if e != nil {
@@ -79,8 +80,9 @@ func (repo *Goods) Finds(ids []int) (entitys []*entity.Goods, e error) {
 	return
 }
 
+// FindsByPage .
 func (repo *Goods) FindsByPage(page, pageSize int, tag string) (entitys []*entity.Goods, e error) {
-	build := NewORMDescBuilder("id").NewPageBuilder(page, pageSize)
+	build := NewORMDescBuilder("ID").NewPageBuilder(page, pageSize)
 	e = findGoodsList(repo, po.Goods{Tag: tag}, &entitys, build)
 	if e != nil {
 		return
@@ -90,6 +92,7 @@ func (repo *Goods) FindsByPage(page, pageSize int, tag string) (entitys []*entit
 	return
 }
 
+// New .
 func (repo *Goods) New(name, tag string, price, stock int) (entityGoods *entity.Goods, e error) {
 	goods := po.Goods{Name: name, Price: price, Stock: stock, Tag: tag, Created: time.Now(), Updated: time.Now()}
 

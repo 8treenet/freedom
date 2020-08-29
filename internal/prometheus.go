@@ -177,6 +177,7 @@ func newPrometheusHandle(p *Prometheus) func(context.Context) {
 	}
 }
 
+// OrmWithLabelValues .
 func (p *Prometheus) OrmWithLabelValues(model, method string, e error, starTime time.Time) {
 	if p.listen == "" {
 		return
@@ -199,6 +200,7 @@ func (p *Prometheus) OrmWithLabelValues(model, method string, e error, starTime 
 // 	p.httpClientLatency.WithLabelValues(domain, httpCode, protocol, method).Observe(float64(time.Since(starTime).Nanoseconds()) / 1000000000)
 // }
 
+// KafkaProducerWithLabelValues .
 func (p *Prometheus) KafkaProducerWithLabelValues(topic string, e error, starTime time.Time) {
 	if p.listen == "" {
 		return
@@ -212,10 +214,12 @@ func (p *Prometheus) KafkaProducerWithLabelValues(topic string, e error, starTim
 	p.kafkaProducerLatency.WithLabelValues(topic, err).Observe(float64(time.Since(starTime).Nanoseconds()) / 1000000000)
 }
 
+// RegisterCounter .
 func (p *Prometheus) RegisterCounter(conter *prometheus.CounterVec) {
 	p.counters = append(p.counters, conter)
 }
 
+// RegisterHistogram .
 func (p *Prometheus) RegisterHistogram(histogram *prometheus.HistogramVec) {
 	p.histograms = append(p.histograms, histogram)
 }

@@ -22,7 +22,7 @@ func init() {
 }
 
 //实现领域模型内的依赖倒置
-var _ dependency.OrderRepo = new(Order)
+var _ dependency.OrderRepo = (*Order)(nil)
 
 // Order .
 type Order struct {
@@ -30,7 +30,7 @@ type Order struct {
 	Cache store.EntityCache //实体缓存组件
 }
 
-// BeginRequest
+// BeginRequest .
 func (repo *Order) BeginRequest(worker freedom.Worker) {
 	repo.Repository.BeginRequest(worker)
 	//设置缓存的持久化数据源
@@ -43,7 +43,7 @@ func (repo *Order) BeginRequest(worker freedom.Worker) {
 	})
 }
 
-// 新建订单实体
+//New 新建订单实体 .
 func (repo *Order) New() (orderEntity *entity.Order, e error) {
 	orderNo := fmt.Sprint(time.Now().Unix())
 	orderEntity = &entity.Order{Order: po.Order{OrderNo: orderNo, Status: "NON_PAYMENT", Created: time.Now(), Updated: time.Now()}}
@@ -55,7 +55,7 @@ func (repo *Order) New() (orderEntity *entity.Order, e error) {
 
 // Save 保存订单实体
 func (repo *Order) Save(orderEntity *entity.Order) (e error) {
-	if orderEntity.Id == 0 {
+	if orderEntity.ID == 0 {
 		//新建
 		_, e = createOrder(repo, &orderEntity.Order)
 		if e != nil {
@@ -86,8 +86,8 @@ func (repo *Order) Save(orderEntity *entity.Order) (e error) {
 }
 
 // Find .
-func (repo *Order) Find(orderNo string, userId int) (orderEntity *entity.Order, e error) {
-	orderEntity = &entity.Order{Order: po.Order{OrderNo: orderNo, UserId: userId}}
+func (repo *Order) Find(orderNo string, userID int) (orderEntity *entity.Order, e error) {
+	orderEntity = &entity.Order{Order: po.Order{OrderNo: orderNo, UserID: userID}}
 	e = findOrder(repo, orderEntity)
 	if e != nil {
 		return
@@ -104,10 +104,10 @@ func (repo *Order) Find(orderNo string, userId int) (orderEntity *entity.Order, 
 }
 
 // Finds .
-func (repo *Order) Finds(userId int, page, pageSize int) (entitys []*entity.Order, totalPage int, e error) {
-	pager := NewORMDescBuilder("id").NewPageBuilder(page, pageSize)
+func (repo *Order) Finds(userID int, page, pageSize int) (entitys []*entity.Order, totalPage int, e error) {
+	pager := NewORMDescBuilder("ID").NewPageBuilder(page, pageSize)
 
-	e = findOrderList(repo, po.Order{UserId: userId}, &entitys, pager)
+	e = findOrderList(repo, po.Order{UserID: userID}, &entitys, pager)
 	if e != nil {
 		return
 	}

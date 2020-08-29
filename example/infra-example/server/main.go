@@ -18,6 +18,8 @@ func main() {
 	installDatabase(app)
 	installMiddleware(app)
 	addrRunner := app.CreateRunner(conf.Get().App.Other["listen_addr"].(string))
+	//app.InstallParty("/http2")
+	liveness(app)
 	app.Run(addrRunner, *conf.Get().App)
 }
 
@@ -48,5 +50,11 @@ func installDatabase(app freedom.Application) {
 		db.DB().SetMaxOpenConns(conf.MaxOpenConns)
 		db.DB().SetConnMaxLifetime(time.Duration(conf.ConnMaxLifeTime) * time.Second)
 		return db
+	})
+}
+
+func liveness(app freedom.Application) {
+	app.Iris().Get("/ping", func(ctx freedom.Context) {
+		ctx.WriteString("pong")
 	})
 }

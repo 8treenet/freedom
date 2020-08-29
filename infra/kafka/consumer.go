@@ -50,7 +50,7 @@ func (c *Consumer) Booting(sb freedom.SingleBoot) {
 		freedom.Logger().Error("[freedom]'infra/kafka.toml' file under '[[consumer_clients]]' error")
 		return
 	}
-	sb.Closeing(func() {
+	sb.RegisterShutdown(func() {
 		c.Close()
 	})
 
@@ -60,6 +60,7 @@ func (c *Consumer) Booting(sb freedom.SingleBoot) {
 	}
 }
 
+// Listen .
 func (c *Consumer) Listen() {
 	topicNames := []string{}
 	for topic, path := range c.topicPath {
@@ -105,6 +106,7 @@ func (c *Consumer) Listen() {
 	}
 }
 
+// Close .
 func (c *Consumer) Close() {
 	c.cancel()
 	c.wg.Wait()
@@ -118,20 +120,20 @@ func (c *Consumer) Close() {
 	c.consumerGroups = []sarama.ConsumerGroup{}
 }
 
-func (kc *Consumer) call(msg *sarama.ConsumerMessage, conf *consumerConf) {
+func (c *Consumer) call(msg *sarama.ConsumerMessage, conf *consumerConf) {
 	defer func() {
-		kc.limiter.Close(1)
+		c.limiter.Close(1)
 	}()
-	path, ok := kc.topicPath[msg.Topic]
+	path, ok := c.topicPath[msg.Topic]
 	if !ok {
 		freedom.Logger().Error("[freedom]Undefined 'topic' :", msg.Topic, conf.Servers)
 	}
 	path = strings.ReplaceAll(path, ":param1", string(msg.Key))
 	var request requests.Request
-	if kc.conf.Consumer.ProxyHTTP2 {
-		request = requests.NewH2CRequest(kc.conf.Consumer.ProxyAddr + path)
+	if c.conf.Consumer.ProxyHTTP2 {
+		request = requests.NewH2CRequest(c.conf.Consumer.ProxyAddr + path)
 	} else {
-		request = requests.NewHttpRequest(kc.conf.Consumer.ProxyAddr + path)
+		request = requests.NewHTTPRequest(c.conf.Consumer.ProxyAddr + path)
 	}
 	request = request.SetBody(msg.Value)
 	for index := 0; index < len(msg.Headers); index++ {

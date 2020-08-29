@@ -31,9 +31,7 @@ func (c *C) BeginRequest(ctx string) {
 
 type A struct {
 	C
-	III  int
-	B2   *B
-	Adsb DSB
+	III int
 }
 
 type DSB interface {
@@ -52,24 +50,12 @@ type JIEKOU = DSB
 
 func TestUtil(t *testing.T) {
 	a := new(A)
-	a.B2 = new(B)
-
-	//II := SSS()
-	// IIValue := reflect.ValueOf(II)
-	// IIType := reflect.TypeOf(II)
-	structFields(a, func(sf reflect.StructField, v reflect.Value) {
-		vtype := v.Type()
-		// if vtype.Kind() == reflect.Interface && IIType.AssignableTo(vtype) && v.CanSet() {
-		// 	v.Set(IIValue)
-		// }
-		if vtype.Kind() == reflect.Ptr {
-			fmt.Println(sf, v.Type())
-			fmt.Println(v.MethodByName("BeginRequest"))
-		}
+	allFields(a, func(v reflect.Value) {
+		t.Log(v.Type(), v)
 	})
-	// a.Adsb.HAHAH()
-	// a.C.Cdsb.HAHAH()
-	// a.B2.Bdsb.HAHAH()
+	allFieldsFromValue(reflect.ValueOf(a), func(v reflect.Value) {
+		t.Log(v.Type(), v)
+	})
 }
 
 func SSS() JIEKOU {

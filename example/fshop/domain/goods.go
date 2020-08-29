@@ -45,7 +45,7 @@ func (g *Goods) Items(page, pagesize int, tag string) (items []dto.GoodsItemRes,
 
 	for i := 0; i < len(entitys); i++ {
 		items = append(items, dto.GoodsItemRes{
-			Id:    entitys[i].Id,
+			ID:    entitys[i].ID,
 			Name:  entitys[i].Name,
 			Price: entitys[i].Price,
 			Stock: entitys[i].Stock,
@@ -56,21 +56,21 @@ func (g *Goods) Items(page, pagesize int, tag string) (items []dto.GoodsItemRes,
 }
 
 // AddStock 增加商品库存
-func (g *Goods) AddStock(goodsId, num int) (e error) {
-	entity, e := g.GoodsRepo.Get(goodsId)
+func (g *Goods) AddStock(goodsID, num int) (e error) {
+	entity, e := g.GoodsRepo.Get(goodsID)
 	if e != nil {
-		g.Worker.Logger().Error("商品库存失败", freedom.LogFields{"goodsId": goodsId, "num": num})
+		g.Worker.Logger().Error("商品库存失败", freedom.LogFields{"goodsId": goodsID, "num": num})
 		return
 	}
 
-	g.Worker.Logger().Info("增加库存", freedom.LogFields{"goodsId": goodsId, "num": num})
+	g.Worker.Logger().Info("增加库存", freedom.LogFields{"goodsId": goodsID, "num": num})
 	entity.AddStock(num)
 	return g.GoodsRepo.Save(entity)
 }
 
 // MarkedTag 商品打tag
-func (g *Goods) MarkedTag(goodsId int, tag string) (e error) {
-	goodsEntity, e := g.GoodsRepo.Get(goodsId)
+func (g *Goods) MarkedTag(goodsID int, tag string) (e error) {
+	goodsEntity, e := g.GoodsRepo.Get(goodsID)
 	if e != nil {
 		return
 	}
@@ -83,11 +83,11 @@ func (g *Goods) MarkedTag(goodsId int, tag string) (e error) {
 }
 
 // Shop 购买商品
-func (g *Goods) Shop(goodsId, goodsNum, userId int) (e error) {
+func (g *Goods) Shop(goodsID, goodsNum, userID int) (e error) {
 	//使用抽象工厂 创建商品类型
-	shopType := g.ShopFactory.NewGoodsShopType(goodsId, goodsNum)
+	shopType := g.ShopFactory.NewGoodsShopType(goodsID, goodsNum)
 	//使用抽象工厂 创建抽象聚合根
-	cmd, e := g.ShopFactory.NewShopCmd(userId, shopType)
+	cmd, e := g.ShopFactory.NewShopCmd(userID, shopType)
 	if e != nil {
 		return
 	}

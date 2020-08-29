@@ -24,18 +24,20 @@ type GoodsService struct {
 	GoodsRepo repository.GoodsInterface
 }
 
-func (srv *GoodsService) Get(id int) (rep dto.GoodsRep, e error) {
-	obj, e := srv.GoodsRepo.Get(id)
+// Get .
+func (srv *GoodsService) Get(ID int) (rep dto.GoodsRep, e error) {
+	obj, e := srv.GoodsRepo.Get(ID)
 	if e != nil {
 		return
 	}
-	rep.Id = obj.Id
+	rep.ID = obj.ID
 	rep.Name = obj.Name
 	rep.Stock = obj.Stock
 	rep.Price = obj.Price
 	return
 }
 
+// GetAll .
 func (srv *GoodsService) GetAll() (result []dto.GoodsRep, e error) {
 	objs, e := srv.GoodsRepo.GetAll()
 	if e != nil {
@@ -43,7 +45,7 @@ func (srv *GoodsService) GetAll() (result []dto.GoodsRep, e error) {
 	}
 	for _, goodsModel := range objs {
 		result = append(result, dto.GoodsRep{
-			Id:    goodsModel.Id,
+			ID:    goodsModel.ID,
 			Name:  goodsModel.Name,
 			Price: goodsModel.Price,
 			Stock: goodsModel.Stock,
@@ -52,6 +54,7 @@ func (srv *GoodsService) GetAll() (result []dto.GoodsRep, e error) {
 	return
 }
 
+// AddStock .
 func (srv *GoodsService) AddStock(goodsID, num int) error {
 	obj, e := srv.GoodsRepo.Get(goodsID)
 	if e != nil {

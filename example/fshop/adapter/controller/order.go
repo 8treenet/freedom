@@ -15,6 +15,7 @@ func init() {
 	})
 }
 
+// Order .
 type Order struct {
 	Worker   freedom.Worker
 	Request  *infra.Request //基础设施 用于处理客户端请求io的json数据和验证
@@ -29,7 +30,7 @@ func (o *Order) PutPay() freedom.Result {
 		return &infra.JSONResponse{Error: e}
 	}
 
-	e = o.OrderSrv.Pay(req.OrderNo, req.UserId)
+	e = o.OrderSrv.Pay(req.OrderNo, req.UserID)
 	return &infra.JSONResponse{Error: e}
 }
 
@@ -37,12 +38,12 @@ func (o *Order) PutPay() freedom.Result {
 func (o *Order) GetItems() freedom.Result {
 	page := o.Worker.IrisContext().URLParamIntDefault("page", 1)
 	pageSize := o.Worker.IrisContext().URLParamIntDefault("pageSize", 10)
-	userId, err := o.Worker.IrisContext().URLParamInt("userId")
+	userID, err := o.Worker.IrisContext().URLParamInt("userId")
 	if err != nil {
 		return &infra.JSONResponse{Error: err}
 	}
 
-	dtoItems, totalPage, err := o.OrderSrv.Items(userId, page, pageSize)
+	dtoItems, totalPage, err := o.OrderSrv.Items(userID, page, pageSize)
 	if err != nil {
 		return &infra.JSONResponse{Error: err}
 	}

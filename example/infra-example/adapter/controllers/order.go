@@ -12,6 +12,7 @@ func init() {
 	})
 }
 
+// OrderController .
 type OrderController struct {
 	Worker   freedom.Worker
 	OrderSev *domain.OrderService
@@ -19,11 +20,11 @@ type OrderController struct {
 
 // GetBy handles the GET: /order/:id route 通过id获取订单.
 func (c *OrderController) GetBy(goodsID int) freedom.Result {
-	userId, err := c.Worker.IrisContext().URLParamInt("userId")
+	userID, err := c.Worker.IrisContext().URLParamInt("userId")
 	if err != nil {
 		return &infra.JSONResponse{Error: err}
 	}
-	obj, err := c.OrderSev.Get(goodsID, userId)
+	obj, err := c.OrderSev.Get(goodsID, userID)
 	if err != nil {
 		return &infra.JSONResponse{Error: err}
 	}
@@ -31,13 +32,13 @@ func (c *OrderController) GetBy(goodsID int) freedom.Result {
 	return &infra.JSONResponse{Object: obj}
 }
 
-// GetBy handles the GET: /order route 获取全部订单.
+// Get handles the GET: /order route 获取全部订单.
 func (c *OrderController) Get() freedom.Result {
-	userId, err := c.Worker.IrisContext().URLParamInt("userId")
+	userID, err := c.Worker.IrisContext().URLParamInt("userId")
 	if err != nil {
 		return &infra.JSONResponse{Error: err}
 	}
-	objs, err := c.OrderSev.GetAll(userId)
+	objs, err := c.OrderSev.GetAll(userID)
 	if err != nil {
 		return &infra.JSONResponse{Error: err}
 	}

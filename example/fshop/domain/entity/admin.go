@@ -7,7 +7,7 @@ import (
 	"github.com/8treenet/freedom/example/fshop/domain/po"
 )
 
-// 管理员实体
+//Admin 管理员实体
 type Admin struct {
 	freedom.Entity
 	po.Admin
@@ -15,5 +15,5 @@ type Admin struct {
 
 // Identity 唯一
 func (admin *Admin) Identity() string {
-	return strconv.Itoa(admin.Id)
+	return strconv.Itoa(admin.ID)
 }

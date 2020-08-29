@@ -4,118 +4,60 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
-	"crypto/tls"
 	"encoding/xml"
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"net"
 	"net/http"
 	"net/url"
-	"time"
-
-	"golang.org/x/net/http2"
-	"golang.org/x/sync/singleflight"
 )
-
-var (
-	DefaultH2CClient *http.Client
-	h2cclientGroup   singleflight.Group
-)
-
-func init() {
-	NewH2cClient(10 * time.Second)
-}
-
-// Newh2cClient .
-func NewH2cClient(rwTimeout time.Duration, connectTimeout ...time.Duration) {
-	tran := &http2.Transport{
-		AllowHTTP: true,
-		DialTLS: func(network, addr string, cfg *tls.Config) (net.Conn, error) {
-			t := 2 * time.Second
-			if len(connectTimeout) > 0 {
-				t = connectTimeout[0]
-			}
-			fun := timeoutDialer(t)
-			return fun(network, addr)
-		},
-	}
-
-	DefaultH2CClient = &http.Client{
-		Transport: tran,
-		Timeout:   rwTimeout,
-	}
-}
-
-// timeoutDialer returns functions of connection dialer with timeout settings for http.Transport Dial field.
-func timeoutDialer(cTimeout time.Duration) func(net, addr string) (c net.Conn, err error) {
-	return func(netw, addr string) (net.Conn, error) {
-		conn, err := net.DialTimeout(netw, addr, cTimeout)
-		if err != nil {
-			return nil, err
-		}
-		return conn, err
-	}
-}
-
-func NewH2CRequest(rawurl string) Request {
-	result := new(H2CRequest)
-	req := &http.Request{
-		Header: make(http.Header),
-	}
-	result.resq = req
-	result.params = make(url.Values)
-	result.url = rawurl
-	result.stop = false
-	return result
-}
 
 // H2CRequest .
 type H2CRequest struct {
-	resq            *http.Request
-	resp            *http.Response
-	reqe            error
-	params          url.Values
+	StdRequest      *http.Request
+	StdResponse     *http.Response
+	Error           error
+	Params          url.Values
 	url             string
-	ctx             context.Context
-	singleflightKey string
-	responseError   error
+	SingleflightKey string
+	ResponseError   error
 	stop            bool
+	Client          *http.Client
 }
 
 // Post .
 func (h2cReq *H2CRequest) Post() Request {
-	h2cReq.resq.Method = "POST"
+	h2cReq.StdRequest.Method = "POST"
 	return h2cReq
 }
 
 // Put .
 func (h2cReq *H2CRequest) Put() Request {
-	h2cReq.resq.Method = "PUT"
+	h2cReq.StdRequest.Method = "PUT"
 	return h2cReq
 }
 
 // Get .
 func (h2cReq *H2CRequest) Get() Request {
-	h2cReq.resq.Method = "GET"
+	h2cReq.StdRequest.Method = "GET"
 	return h2cReq
 }
 
 // Delete .
 func (h2cReq *H2CRequest) Delete() Request {
-	h2cReq.resq.Method = "DELETE"
+	h2cReq.StdRequest.Method = "DELETE"
 	return h2cReq
 }
 
 // Head .
 func (h2cReq *H2CRequest) Head() Request {
-	h2cReq.resq.Method = "HEAD"
+	h2cReq.StdRequest.Method = "HEAD"
 	return h2cReq
 }
 
 // WithContext .
 func (h2cReq *H2CRequest) WithContext(ctx context.Context) Request {
-	h2cReq.resq = h2cReq.resq.WithContext(ctx)
+	h2cReq.StdRequest = h2cReq.StdRequest.WithContext(ctx)
 	return h2cReq
 }
 
@@ -123,21 +65,21 @@ func (h2cReq *H2CRequest) WithContext(ctx context.Context) Request {
 func (h2cReq *H2CRequest) SetJSONBody(obj interface{}) Request {
 	byts, e := Marshal(obj)
 	if e != nil {
-		h2cReq.reqe = e
+		h2cReq.Error = e
 		return h2cReq
 	}
 
-	h2cReq.resq.Body = ioutil.NopCloser(bytes.NewReader(byts))
-	h2cReq.resq.ContentLength = int64(len(byts))
-	h2cReq.resq.Header.Set("Content-Type", "application/json")
+	h2cReq.StdRequest.Body = ioutil.NopCloser(bytes.NewReader(byts))
+	h2cReq.StdRequest.ContentLength = int64(len(byts))
+	h2cReq.StdRequest.Header.Set("Content-Type", "application/json")
 	return h2cReq
 }
 
 // SetBody .
 func (h2cReq *H2CRequest) SetBody(byts []byte) Request {
-	h2cReq.resq.Body = ioutil.NopCloser(bytes.NewReader(byts))
-	h2cReq.resq.ContentLength = int64(len(byts))
-	h2cReq.resq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	h2cReq.StdRequest.Body = ioutil.NopCloser(bytes.NewReader(byts))
+	h2cReq.StdRequest.ContentLength = int64(len(byts))
+	h2cReq.StdRequest.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	return h2cReq
 }
 
@@ -187,25 +129,25 @@ func (h2cReq *H2CRequest) ToXML(v interface{}) (r Response) {
 
 // SetParam .
 func (h2cReq *H2CRequest) SetParam(key string, value interface{}) Request {
-	h2cReq.params.Add(key, fmt.Sprint(value))
+	h2cReq.Params.Add(key, fmt.Sprint(value))
 	return h2cReq
 }
 
 // SetHeader .
 func (h2cReq *H2CRequest) SetHeader(header http.Header) Request {
-	h2cReq.resq.Header = header
+	h2cReq.StdRequest.Header = header
 	return h2cReq
 }
 
 // AddHeader .
 func (h2cReq *H2CRequest) AddHeader(key, value string) Request {
-	h2cReq.resq.Header.Add(key, value)
+	h2cReq.StdRequest.Header.Add(key, value)
 	return h2cReq
 }
 
-// URI .
+// URL .
 func (h2cReq *H2CRequest) URL() string {
-	params := h2cReq.params.Encode()
+	params := h2cReq.Params.Encode()
 	if params != "" {
 		return h2cReq.url + "?" + params
 	}
@@ -213,13 +155,13 @@ func (h2cReq *H2CRequest) URL() string {
 }
 
 func (h2cReq *H2CRequest) singleflightDo() (r Response, body []byte) {
-	if h2cReq.singleflightKey == "" {
+	if h2cReq.SingleflightKey == "" {
 		r.Error = h2cReq.prepare()
 		if r.Error != nil {
 			return
 		}
 		handle(h2cReq)
-		r.Error = h2cReq.responseError
+		r.Error = h2cReq.ResponseError
 		if r.Error != nil {
 			return
 		}
@@ -228,14 +170,14 @@ func (h2cReq *H2CRequest) singleflightDo() (r Response, body []byte) {
 		return
 	}
 
-	data, _, _ := h2cclientGroup.Do(h2cReq.singleflightKey, func() (interface{}, error) {
+	data, _, _ := h2cclientGroup.Do(h2cReq.SingleflightKey, func() (interface{}, error) {
 		var res Response
 		res.Error = h2cReq.prepare()
 		if r.Error != nil {
 			return &singleflightData{Res: res}, nil
 		}
 		handle(h2cReq)
-		res.Error = h2cReq.responseError
+		res.Error = h2cReq.ResponseError
 		if res.Error != nil {
 			return &singleflightData{Res: res}, nil
 		}
@@ -249,83 +191,99 @@ func (h2cReq *H2CRequest) singleflightDo() (r Response, body []byte) {
 }
 
 func (h2cReq *H2CRequest) do() (e error) {
-	if h2cReq.reqe != nil {
-		return h2cReq.reqe
+	if h2cReq.Error != nil {
+		return h2cReq.Error
 	}
 	u, e := url.Parse(h2cReq.URL())
 	if e != nil {
 		return e
 	}
-	h2cReq.resq.URL = u
-	h2cReq.resp, e = DefaultH2CClient.Do(h2cReq.resq)
+	h2cReq.StdRequest.URL = u
+	h2cReq.StdResponse, e = h2cReq.Client.Do(h2cReq.StdRequest)
 	return
 }
 
 func (h2cReq *H2CRequest) body() (body []byte) {
-	defer h2cReq.resp.Body.Close()
-	if h2cReq.resp.Header.Get("Content-Encoding") == "gzip" {
-		reader, err := gzip.NewReader(h2cReq.resp.Body)
+	defer h2cReq.StdResponse.Body.Close()
+	if h2cReq.StdResponse.Header.Get("Content-Encoding") == "gzip" {
+		reader, err := gzip.NewReader(h2cReq.StdResponse.Body)
 		if err != nil {
 			return
 		}
 		body, _ = ioutil.ReadAll(reader)
 		return body
 	}
-	body, _ = ioutil.ReadAll(h2cReq.resp.Body)
+	body, _ = ioutil.ReadAll(h2cReq.StdResponse.Body)
 	return
 }
 
 func (h2cReq *H2CRequest) httpRespone(httpRespone *Response) {
-	httpRespone.StatusCode = h2cReq.resp.StatusCode
+	httpRespone.StatusCode = h2cReq.StdResponse.StatusCode
 	httpRespone.HTTP11 = false
-	if h2cReq.resp.ProtoMajor == 1 && h2cReq.resp.ProtoMinor == 1 {
+	if h2cReq.StdResponse.ProtoMajor == 1 && h2cReq.StdResponse.ProtoMinor == 1 {
 		httpRespone.HTTP11 = true
 	}
 
-	httpRespone.ContentLength = h2cReq.resp.ContentLength
-	httpRespone.ContentType = h2cReq.resp.Header.Get("Content-Type")
-	httpRespone.Header = h2cReq.resp.Header
+	httpRespone.ContentLength = h2cReq.StdResponse.ContentLength
+	httpRespone.ContentType = h2cReq.StdResponse.Header.Get("Content-Type")
+	httpRespone.Header = h2cReq.StdResponse.Header
 }
 
+// Singleflight .
 func (h2cReq *H2CRequest) Singleflight(key ...interface{}) Request {
-	h2cReq.singleflightKey = fmt.Sprint(key...)
+	h2cReq.SingleflightKey = fmt.Sprint(key...)
 	return h2cReq
 }
 
 func (h2cReq *H2CRequest) prepare() (e error) {
-	if h2cReq.reqe != nil {
-		return h2cReq.reqe
+	if h2cReq.Error != nil {
+		return h2cReq.Error
 	}
 
 	u, e := url.Parse(h2cReq.URL())
 	if e != nil {
 		return
 	}
-	h2cReq.resq.URL = u
+	h2cReq.StdRequest.URL = u
 	return
 }
 
+// Next .
 func (h2cReq *H2CRequest) Next() {
-	h2cReq.responseError = h2cReq.do()
+	h2cReq.ResponseError = h2cReq.do()
 }
 
+// Stop .
 func (h2cReq *H2CRequest) Stop(e ...error) {
 	h2cReq.stop = true
 	if len(e) > 0 {
-		h2cReq.responseError = e[0]
+		h2cReq.ResponseError = e[0]
 		return
 	}
-	h2cReq.responseError = errors.New("Middleware stop")
+	h2cReq.ResponseError = errors.New("Middleware stop")
 }
 
-func (h2cReq *H2CRequest) getStop() bool {
+// IsStopped .
+func (h2cReq *H2CRequest) IsStopped() bool {
 	return h2cReq.stop
 }
 
+// GetRequest .
 func (h2cReq *H2CRequest) GetRequest() *http.Request {
-	return h2cReq.resq
+	return h2cReq.StdRequest
 }
 
+// GetRespone .
 func (h2cReq *H2CRequest) GetRespone() (*http.Response, error) {
-	return h2cReq.resp, h2cReq.responseError
+	return h2cReq.StdResponse, h2cReq.ResponseError
+}
+
+// GetStdRequest .
+func (h2cReq *H2CRequest) GetStdRequest() interface{} {
+	return h2cReq.StdRequest
+}
+
+// Header .
+func (h2cReq *H2CRequest) Header() http.Header {
+	return h2cReq.StdRequest.Header
 }

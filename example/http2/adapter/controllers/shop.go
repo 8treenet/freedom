@@ -11,12 +11,13 @@ func init() {
 	})
 }
 
+// ShopController .
 type ShopController struct {
 	Worker   freedom.Worker
 	Shopping *domain.ShopService
 }
 
-// Get handles the GET: /shop/:id route.
+// GetBy handles the GET: /shop/:id route.
 func (s *ShopController) GetBy(id int) string {
 	s.Worker.Logger().Info("我是控制器 ShopController.GetByID")
 	return s.Shopping.Shopping(id)

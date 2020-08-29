@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-//NewMap
+//NewMap .
 func NewMap(dst interface{}) error {
 	dscValue := reflect.ValueOf(dst)
 	if dscValue.Elem().Kind() != reflect.Map {
@@ -73,6 +73,7 @@ func SliceDelete(arr interface{}, indexArr ...int) error {
 	return nil
 }
 
+// ConvertAssign .
 func ConvertAssign(dest, src interface{}) error {
 	// Common cases, without reflect.
 	switch s := src.(type) {
@@ -226,10 +227,9 @@ func ConvertAssign(dest, src interface{}) error {
 		if src == nil {
 			dv.Set(reflect.Zero(dv.Type()))
 			return nil
-		} else {
-			dv.Set(reflect.New(dv.Type().Elem()))
-			return ConvertAssign(dv.Interface(), src)
 		}
+		dv.Set(reflect.New(dv.Type().Elem()))
+		return ConvertAssign(dv.Interface(), src)
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		s := asString(src)
 		i64, err := strconv.ParseInt(s, 10, dv.Type().Bits())
@@ -288,16 +288,19 @@ func strconvErr(err error) error {
 	return err
 }
 
+// Scanner .
 type Scanner interface {
 	Scan(src interface{}) error
 }
 
+// JMap .
 type JMap struct {
 	_map     map[interface{}]interface{}
 	lock     sync.Mutex
 	openLock bool
 }
 
+// NewJMap .
 func NewJMap(openLock ...bool) *JMap {
 	m := new(JMap)
 	m._map = make(map[interface{}]interface{})
@@ -307,6 +310,7 @@ func NewJMap(openLock ...bool) *JMap {
 	return m
 }
 
+// SetOrStore .
 func (jm *JMap) SetOrStore(key interface{}, value interface{}) (v interface{}, set bool) {
 	if jm.openLock {
 		defer jm.lock.Unlock()
@@ -323,6 +327,7 @@ func (jm *JMap) SetOrStore(key interface{}, value interface{}) (v interface{}, s
 	return
 }
 
+// Set .
 func (jm *JMap) Set(key interface{}, value interface{}) {
 	if jm.openLock {
 		defer jm.lock.Unlock()
@@ -331,6 +336,7 @@ func (jm *JMap) Set(key interface{}, value interface{}) {
 	jm._map[key] = value
 }
 
+// Get .
 func (jm *JMap) Get(key interface{}, value interface{}) error {
 	if jm.openLock {
 		defer jm.lock.Unlock()
@@ -344,6 +350,7 @@ func (jm *JMap) Get(key interface{}, value interface{}) error {
 	return ConvertAssign(value, v)
 }
 
+// Exist .
 func (jm *JMap) Exist(key interface{}) bool {
 	if jm.openLock {
 		defer jm.lock.Unlock()
@@ -353,6 +360,7 @@ func (jm *JMap) Exist(key interface{}) bool {
 	return ok
 }
 
+// Interface .
 func (jm *JMap) Interface(key interface{}) interface{} {
 	if jm.openLock {
 		defer jm.lock.Unlock()
@@ -366,6 +374,7 @@ func (jm *JMap) Interface(key interface{}) interface{} {
 	return v
 }
 
+// Remove .
 func (jm *JMap) Remove(key interface{}) {
 	if jm.openLock {
 		defer jm.lock.Unlock()
@@ -374,6 +383,7 @@ func (jm *JMap) Remove(key interface{}) {
 	delete(jm._map, key)
 }
 
+// DelAll .
 func (jm *JMap) DelAll() {
 	all := jm.AllKey()
 	if jm.openLock {
@@ -385,13 +395,14 @@ func (jm *JMap) DelAll() {
 	}
 }
 
+// AllKey .
 func (jm *JMap) AllKey() []interface{} {
 	if jm.openLock {
 		defer jm.lock.Unlock()
 		jm.lock.Lock()
 	}
 	list := make([]interface{}, 0, len(jm._map))
-	for k, _ := range jm._map {
+	for k := range jm._map {
 		list = append(list, k)
 	}
 	return list
@@ -403,11 +414,10 @@ type rawBytes []byte
 func cloneBytes(b []byte) []byte {
 	if b == nil {
 		return nil
-	} else {
-		c := make([]byte, len(b))
-		copy(c, b)
-		return c
 	}
+	c := make([]byte, len(b))
+	copy(c, b)
+	return c
 }
 
 func asString(src interface{}) string {
@@ -519,6 +529,10 @@ func allFields(dest interface{}, call func(reflect.Value)) {
 	}
 
 	for index := 0; index < destVal.NumField(); index++ {
+		if destType.Field(index).Anonymous {
+			allFields(destVal.Field(index).Addr().Interface(), call)
+			continue
+		}
 		val := destVal.Field(index)
 		call(val)
 	}
@@ -532,6 +546,10 @@ func allFieldsFromValue(val reflect.Value, call func(reflect.Value)) {
 		return
 	}
 	for index := 0; index < destVal.NumField(); index++ {
+		if destType.Field(index).Anonymous {
+			allFieldsFromValue(destVal.Field(index).Addr(), call)
+			continue
+		}
 		val := destVal.Field(index)
 		call(val)
 	}

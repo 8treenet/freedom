@@ -4,7 +4,7 @@ import (
 	"github.com/8treenet/freedom"
 )
 
-// Transaction .
+// XA .
 type XA struct {
 	freedom.Infra
 }

@@ -8,8 +8,9 @@ import (
 	"github.com/kataras/iris/v12/context"
 )
 
-var _ UnitTest = new(UnitTestImpl)
+var _ UnitTest = (*UnitTestImpl)(nil)
 
+// UnitTest .
 type UnitTest interface {
 	GetService(service interface{})
 	GetRepository(repository interface{})
@@ -23,15 +24,18 @@ type UnitTest interface {
 	NewDomainEventInfra(call ...func(producer, topic string, data []byte, header map[string]string)) DomainEventInfra
 }
 
+// UnitTestImpl .
 type UnitTestImpl struct {
 	rt      *worker
 	request *http.Request
 }
 
+// GetService .
 func (u *UnitTestImpl) GetService(service interface{}) {
 	globalApp.GetService(u.rt.IrisContext(), service)
 }
 
+// GetRepository .
 func (u *UnitTestImpl) GetRepository(repository interface{}) {
 	value := reflect.ValueOf(repository).Elem()
 	ok, newfield := globalApp.rpool.get(value.Type())
@@ -48,6 +52,7 @@ func (u *UnitTestImpl) GetRepository(repository interface{}) {
 	value.Set(newfield)
 }
 
+// GetFactory .
 func (u *UnitTestImpl) GetFactory(factory interface{}) {
 	value := reflect.ValueOf(factory).Elem()
 	ok, newfield := globalApp.factoryPool.get(value.Type())
@@ -65,14 +70,17 @@ func (u *UnitTestImpl) GetFactory(factory interface{}) {
 	value.Set(newfield)
 }
 
+// InstallDB .
 func (u *UnitTestImpl) InstallDB(f func() (db interface{})) {
 	globalApp.InstallDB(f)
 }
 
+// InstallRedis .
 func (u *UnitTestImpl) InstallRedis(f func() (client redis.Cmdable)) {
 	globalApp.InstallRedis(f)
 }
 
+// Run .
 func (u *UnitTestImpl) Run() {
 	for index := 0; index < len(prepares); index++ {
 		prepares[index](globalApp)
@@ -95,10 +103,12 @@ func (u *UnitTestImpl) newRuntime() *worker {
 	return rt
 }
 
+// SetRequest .
 func (u *UnitTestImpl) SetRequest(request *http.Request) {
 	u.request = request
 }
 
+// InstallDomainEventInfra .
 func (u *UnitTestImpl) InstallDomainEventInfra(eventInfra DomainEventInfra) {
 	globalApp.InstallDomainEventInfra(eventInfra)
 }
@@ -121,6 +131,7 @@ func (log *logEvent) DomainEvent(producer, topic string, data []byte, Worker Wor
 	Worker.Logger().Infof("Domain event:  %s   %s   %v", topic, string(data), header, h)
 }
 
+// NewDomainEventInfra .
 func (u *UnitTestImpl) NewDomainEventInfra(call ...func(producer, topic string, data []byte, header map[string]string)) DomainEventInfra {
 	result := new(logEvent)
 	if len(call) > 0 {
@@ -129,6 +140,7 @@ func (u *UnitTestImpl) NewDomainEventInfra(call ...func(producer, topic string, 
 	return result
 }
 
+// InjectBaseEntity .
 func (u *UnitTestImpl) InjectBaseEntity(entity interface{}) {
 	injectBaseEntity(u.rt, entity)
 	return

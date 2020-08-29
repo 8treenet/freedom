@@ -24,18 +24,18 @@ type CartFactory struct {
 }
 
 // NewCartAddCmd 创建添加聚合根
-func (factory *CartFactory) NewCartAddCmd(goodsId, userId int) (*CartAddCmd, error) {
-	user, e := factory.UserRepo.Get(userId)
+func (factory *CartFactory) NewCartAddCmd(goodsID, userID int) (*CartAddCmd, error) {
+	user, e := factory.UserRepo.Get(userID)
 	if e != nil {
-		user.GetWorker().Logger().Error(e, "userId", userId)
+		user.GetWorker().Logger().Error(e, "userId", userID)
 		//用户不存在
 		return nil, e
 	}
 
-	goods, e := factory.GoodsRepo.Get(goodsId)
+	goods, e := factory.GoodsRepo.Get(goodsID)
 	if e != nil {
 		//商品不存在
-		goods.GetWorker().Logger().Error(e, "userId", userId, "goodsId", goodsId)
+		goods.GetWorker().Logger().Error(e, "userId", userID, "goodsId", goodsID)
 		return nil, e
 	}
 	cmd := &CartAddCmd{
@@ -47,10 +47,10 @@ func (factory *CartFactory) NewCartAddCmd(goodsId, userId int) (*CartAddCmd, err
 }
 
 // NewCartItemQuery 创建查询聚合根
-func (factory *CartFactory) NewCartItemQuery(userId int) (*CartItemQuery, error) {
-	user, e := factory.UserRepo.Get(userId)
+func (factory *CartFactory) NewCartItemQuery(userID int) (*CartItemQuery, error) {
+	user, e := factory.UserRepo.Get(userID)
 	if e != nil {
-		user.GetWorker().Logger().Error(e, "userId", userId)
+		user.GetWorker().Logger().Error(e, "userId", userID)
 		//用户不存在
 		return nil, e
 	}
@@ -59,13 +59,13 @@ func (factory *CartFactory) NewCartItemQuery(userId int) (*CartItemQuery, error)
 	query.User = *user
 	query.goodsMap = make(map[int]*entity.Goods)
 
-	query.allCart, e = factory.CartRepo.FindAll(query.User.Id)
+	query.allCart, e = factory.CartRepo.FindAll(query.User.ID)
 	for i := 0; i < len(query.allCart); i++ {
-		goodsEntity, e := factory.GoodsRepo.Get(query.allCart[i].GoodsId)
+		goodsEntity, e := factory.GoodsRepo.Get(query.allCart[i].GoodsID)
 		if e != nil {
 			return nil, e
 		}
-		query.goodsMap[goodsEntity.Id] = goodsEntity
+		query.goodsMap[goodsEntity.ID] = goodsEntity
 	}
 	return query, nil
 }

@@ -19,13 +19,15 @@ func init() {
 	})
 }
 
+// GetDomainEventInfra .
 func GetDomainEventInfra() freedom.DomainEventInfra {
 	return producer
 }
 
 var producer *ProducerImpl = new(ProducerImpl)
-var _ Producer = new(ProducerImpl)
+var _ Producer = (*ProducerImpl)(nil)
 
+// Producer .
 type Producer interface {
 	NewMsg(topic string, content []byte, producerName ...string) *Msg
 }
@@ -38,13 +40,13 @@ type ProducerImpl struct {
 }
 
 // StartUp .
-func (c *ProducerImpl) StartUp(f func()) {
-	c.startUpCallBack = append(c.startUpCallBack, f)
+func (pi *ProducerImpl) StartUp(f func()) {
+	pi.startUpCallBack = append(pi.startUpCallBack, f)
 }
 
 // Booting .
-func (p *ProducerImpl) Booting(sb freedom.SingleBoot) {
-	p.saramaProducerMap = make(map[string]sarama.SyncProducer)
+func (pi *ProducerImpl) Booting(sb freedom.SingleBoot) {
+	pi.saramaProducerMap = make(map[string]sarama.SyncProducer)
 
 	conf := kafkaConf{}
 	freedom.Configure(&conf, "infra/kafka.toml", true)
@@ -68,22 +70,22 @@ func (p *ProducerImpl) Booting(sb freedom.SingleBoot) {
 		freedom.Logger().Debug("[freedom]Producer connect servers: ", conf.Producers[index].Servers)
 
 		if conf.Producers[index].Name == "" {
-			p.defaultProducer = syncp
+			pi.defaultProducer = syncp
 		}
-		p.saramaProducerMap[conf.Producers[index].Name] = syncp
+		pi.saramaProducerMap[conf.Producers[index].Name] = syncp
 	}
 
-	sb.Closeing(func() {
-		p.close()
+	sb.RegisterShutdown(func() {
+		pi.close()
 	})
 
-	for i := 0; i < len(p.startUpCallBack); i++ {
-		p.startUpCallBack[i]()
+	for i := 0; i < len(pi.startUpCallBack); i++ {
+		pi.startUpCallBack[i]()
 	}
 }
 
-func (p *ProducerImpl) close() {
-	for _, producer := range p.saramaProducerMap {
+func (pi *ProducerImpl) close() {
+	for _, producer := range pi.saramaProducerMap {
 		if err := producer.Close(); err != nil {
 			freedom.Logger().Error(err)
 		} else {
@@ -93,12 +95,12 @@ func (p *ProducerImpl) close() {
 }
 
 // getSaramaProducer .
-func (p *ProducerImpl) getSaramaProducer(name string) sarama.SyncProducer {
+func (pi *ProducerImpl) getSaramaProducer(name string) sarama.SyncProducer {
 	if name == "" {
-		return p.defaultProducer
+		return pi.defaultProducer
 	}
 
-	result, ok := p.saramaProducerMap[name]
+	result, ok := pi.saramaProducerMap[name]
 	if !ok {
 		panic("[freedom]The instance does not exist name:" + name)
 	}
@@ -106,13 +108,13 @@ func (p *ProducerImpl) getSaramaProducer(name string) sarama.SyncProducer {
 }
 
 // generateMessageKey
-func (p *ProducerImpl) generateMessageKey() string {
+func (pi *ProducerImpl) generateMessageKey() string {
 	u, _ := uuid.NewV1()
 	return strings.ToUpper(strings.ReplaceAll(u.String(), "-", ""))
 }
 
 // NewMsg .
-func (p *ProducerImpl) NewMsg(topic string, content []byte, producerName ...string) *Msg {
+func (pi *ProducerImpl) NewMsg(topic string, content []byte, producerName ...string) *Msg {
 	pName := ""
 	if len(producerName) > 0 {
 		pName = producerName[0]
@@ -126,8 +128,8 @@ func (p *ProducerImpl) NewMsg(topic string, content []byte, producerName ...stri
 }
 
 // DomainEvent .
-func (p *ProducerImpl) DomainEvent(producer, topic string, data []byte, worker freedom.Worker, header ...map[string]string) {
-	msg := p.NewMsg(topic, data, producer)
+func (pi *ProducerImpl) DomainEvent(producer, topic string, data []byte, worker freedom.Worker, header ...map[string]string) {
+	msg := pi.NewMsg(topic, data, producer)
 	if len(header) > 0 {
 		msg = msg.SetHeaders(header[0])
 	}

@@ -1,5 +1,6 @@
 package aggregate
 
+// ShopType .
 type ShopType interface {
 	//返回购买的类型 单独商品 或购物车
 	GetType() int
@@ -7,6 +8,7 @@ type ShopType interface {
 	GetDirectGoods() (int, int)
 }
 
+// ShopCmd .
 type ShopCmd interface {
 	Shop() error
 }

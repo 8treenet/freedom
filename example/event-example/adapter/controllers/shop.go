@@ -14,12 +14,13 @@ func init() {
 	})
 }
 
+// ShopController .
 type ShopController struct {
 	Worker   freedom.Worker
 	Producer kafka.Producer
 }
 
-// Get handles the GET: /shop/:id route.
+// GetBy handles the GET: /shop/:id route.
 func (s *ShopController) GetBy(id int) string {
 	data, _ := json.Marshal(dto.Goods{
 		ID:     id,

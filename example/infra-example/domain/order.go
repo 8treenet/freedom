@@ -27,39 +27,41 @@ type OrderService struct {
 	Tx        transaction.Transaction
 }
 
-func (srv *OrderService) Get(id, userId int) (result dto.OrderRep, e error) {
-	obj, e := srv.OrderRepo.Get(id, userId)
+// Get .
+func (srv *OrderService) Get(ID, userID int) (result dto.OrderRep, e error) {
+	obj, e := srv.OrderRepo.Get(ID, userID)
 	if e != nil {
 		return
 	}
-	goodsObj, e := srv.GoodsRepo.Get(obj.GoodsId)
+	goodsObj, e := srv.GoodsRepo.Get(obj.GoodsID)
 	if e != nil {
 		return
 	}
-	result.Id = obj.Id
-	result.GoodsId = obj.GoodsId
+	result.ID = obj.ID
+	result.GoodsID = obj.GoodsID
 	result.Num = obj.Num
 	result.DateTime = obj.Created.Format("2006-01-02 15:04:05")
 	result.GoodsName = goodsObj.Name
 	return
 }
 
-func (srv *OrderService) GetAll(userId int) (result []dto.OrderRep, e error) {
-	objs, e := srv.OrderRepo.GetAll(userId)
+// GetAll .
+func (srv *OrderService) GetAll(userID int) (result []dto.OrderRep, e error) {
+	objs, e := srv.OrderRepo.GetAll(userID)
 	if e != nil {
 		return
 	}
 
 	for _, obj := range objs {
-		goodsObj, err := srv.GoodsRepo.Get(obj.GoodsId)
+		goodsObj, err := srv.GoodsRepo.Get(obj.GoodsID)
 		if err != nil {
 			e = err
 			return
 		}
 
 		result = append(result, dto.OrderRep{
-			Id:        obj.Id,
-			GoodsId:   obj.GoodsId,
+			ID:        obj.ID,
+			GoodsID:   obj.GoodsID,
 			GoodsName: goodsObj.Name,
 			Num:       obj.Num,
 			DateTime:  obj.Created.Format("2006-01-02 15:04:05"),
@@ -68,7 +70,8 @@ func (srv *OrderService) GetAll(userId int) (result []dto.OrderRep, e error) {
 	return
 }
 
-func (srv *OrderService) Add(goodsID, num, userId int) (resp string, e error) {
+// Add .
+func (srv *OrderService) Add(goodsID, num, userID int) (resp string, e error) {
 	goodsObj, e := srv.GoodsRepo.Get(goodsID)
 	if e != nil {
 		return
@@ -84,7 +87,7 @@ func (srv *OrderService) Add(goodsID, num, userId int) (resp string, e error) {
 			return err
 		}
 
-		return srv.OrderRepo.Create(goodsObj.Id, num, userId)
+		return srv.OrderRepo.Create(goodsObj.ID, num, userID)
 	})
 	return
 }

@@ -6,12 +6,15 @@ import (
 )
 
 const (
-	OrderStatusPAID       = "PAID"
+	//OrderStatusPAID 已支付
+	OrderStatusPAID = "PAID"
+	//OrderStatusNonPayment 未支付
 	OrderStatusNonPayment = "NON_PAYMENT"
-	OrderStatusShipment   = "SHIPMENT"
+	//OrderStatusShipment 已发货
+	OrderStatusShipment = "SHIPMENT"
 )
 
-// 订单实体
+//Order 订单实体
 type Order struct {
 	freedom.Entity
 	po.Order

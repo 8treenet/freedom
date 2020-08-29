@@ -49,10 +49,10 @@ func TestGoodsPutTag(t *testing.T) {
 // 购买商品
 func TestGoodsShop(t *testing.T) {
 	obj := dto.GoodsShopReq{
-		UserId: 1, //用户id
-		Id:     1, //商品id
+		UserID: 1, //用户id
+		ID:     1, //商品id
 		Num:    2, //商品数量
 	}
-	str, err := requests.NewHttpRequest("http://127.0.0.1:8000/goods/shop").Post().SetJSONBody(obj).ToString()
+	str, err := requests.NewHTTPRequest("http://127.0.0.1:8000/goods/shop").Post().SetJSONBody(obj).ToString()
 	t.Log(str, err)
 }

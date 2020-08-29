@@ -28,9 +28,9 @@ type User struct {
 }
 
 // ChangePassword 修改密码
-func (s *User) ChangePassword(userId int, newPassword, oldPassword string) (e error) {
+func (s *User) ChangePassword(userID int, newPassword, oldPassword string) (e error) {
 	//使用用户仓库读取用户实体
-	userEntity, e := s.UserRepo.Get(userId)
+	userEntity, e := s.UserRepo.Get(userID)
 	if e != nil {
 		return
 	}
@@ -52,19 +52,19 @@ func (s *User) Register(user dto.RegisterUserReq) (result dto.UserInfoRes, e err
 	if e != nil {
 		return
 	}
-	result.Id = userEntity.Id
+	result.ID = userEntity.ID
 	result.Money = userEntity.Money
 	result.Name = userEntity.Name
 	return
 }
 
 // Get .
-func (s *User) Get(userId int) (result dto.UserInfoRes, e error) {
-	userEntity, e := s.UserRepo.Get(userId)
+func (s *User) Get(userID int) (result dto.UserInfoRes, e error) {
+	userEntity, e := s.UserRepo.Get(userID)
 	if e != nil {
 		return
 	}
-	result.Id = userEntity.Id
+	result.ID = userEntity.ID
 	result.Money = userEntity.Money
 	result.Name = userEntity.Name
 	return

@@ -26,14 +26,14 @@ type OrderFactory struct {
 }
 
 // NewOrderPayCmd 创建订单支付聚合根
-func (factory *OrderFactory) NewOrderPayCmd(orderNo string, userId int) (*OrderPayCmd, error) {
+func (factory *OrderFactory) NewOrderPayCmd(orderNo string, userID int) (*OrderPayCmd, error) {
 	factory.Worker.Logger().Info("创建订单支付聚合根")
-	orderEntity, err := factory.OrderRepo.Find(orderNo, userId)
+	orderEntity, err := factory.OrderRepo.Find(orderNo, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	userEntity, err := factory.UserRepo.Get(userId)
+	userEntity, err := factory.UserRepo.Get(userID)
 	if err != nil {
 		return nil, err
 	}
@@ -48,13 +48,13 @@ func (factory *OrderFactory) NewOrderPayCmd(orderNo string, userId int) (*OrderP
 }
 
 // NewOrderDeliveryCmd 创建订单发货聚合根
-func (factory *OrderFactory) NewOrderDeliveryCmd(orderNo string, adminId int) (*DeliveryCmd, error) {
+func (factory *OrderFactory) NewOrderDeliveryCmd(orderNo string, adminID int) (*DeliveryCmd, error) {
 	//factory.Worker.Logger().Info("创建订单发货聚合根")
 	orderEntity, err := factory.OrderRepo.Get(orderNo)
 	if err != nil {
 		return nil, err
 	}
-	adminEntity, err := factory.AdminRepo.Get(adminId)
+	adminEntity, err := factory.AdminRepo.Get(adminID)
 	if err != nil {
 		return nil, err
 	}

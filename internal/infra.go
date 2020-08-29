@@ -13,29 +13,29 @@ type Infra struct {
 }
 
 // BeginRequest .子实现多态
-func (c *Infra) BeginRequest(rt Worker) {
-	c.Worker = rt
+func (infra *Infra) BeginRequest(rt Worker) {
+	infra.Worker = rt
 }
 
-// DB .
-func (c *Infra) SourceDB() (db interface{}) {
+// SourceDB .
+func (infra *Infra) SourceDB() (db interface{}) {
 	return globalApp.Database.db
 }
 
 // Redis .
-func (c *Infra) Redis() redis.Cmdable {
+func (infra *Infra) Redis() redis.Cmdable {
 	return globalApp.Cache.client
 }
 
-// GetOther .
+// Other .
 func (infra *Infra) Other(obj interface{}) {
 	globalApp.other.get(obj)
 	return
 }
 
-// NewHttpRequest, transferBus : Whether to pass the context, turned on by default. Typically used for tracking internal services.
-func (infra *Infra) NewHttpRequest(url string, transferBus ...bool) requests.Request {
-	req := requests.NewHttpRequest(url)
+// NewHTTPRequest transferBus : Whether to pass the context, turned on by default. Typically used for tracking internal services.
+func (infra *Infra) NewHTTPRequest(url string, transferBus ...bool) requests.Request {
+	req := requests.NewHTTPRequest(url)
 	if len(transferBus) > 0 && !transferBus[0] {
 		return req
 	}
@@ -43,7 +43,7 @@ func (infra *Infra) NewHttpRequest(url string, transferBus ...bool) requests.Req
 	return req
 }
 
-// NewH2CRequest, transferBus : Whether to pass the context, turned on by default. Typically used for tracking internal services.
+// NewH2CRequest transferBus : Whether to pass the context, turned on by default. Typically used for tracking internal services.
 func (infra *Infra) NewH2CRequest(url string, transferBus ...bool) requests.Request {
 	req := requests.NewH2CRequest(url)
 	if len(transferBus) > 0 && !transferBus[0] {
@@ -59,7 +59,7 @@ func (infra *Infra) InjectBaseEntity(entity Entity) {
 	return
 }
 
-// InjectBaseEntity .
+// InjectBaseEntitys .
 func (infra *Infra) InjectBaseEntitys(entitys interface{}) {
 	entitysValue := reflect.ValueOf(entitys)
 	if entitysValue.Kind() != reflect.Slice {

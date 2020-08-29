@@ -9,6 +9,7 @@ func newBus(head http.Header) *Bus {
 	return result
 }
 
+// Bus message bus, using http header to pass through data.
 type Bus struct {
 	http.Header
 }
@@ -28,15 +29,17 @@ func (b *Bus) Set(key, obj string) {
 	b.Header.Set(key, obj)
 }
 
-// Set .
+// Del .
 func (b *Bus) Del(key string) {
 	b.Header.Del(key)
 }
 
+//BusHandler The middleware type of the message bus. .
 type BusHandler func(Worker)
 
 var busMiddlewares []BusHandler
 
+// HandleBusMiddleware .
 func HandleBusMiddleware(worker Worker) {
 	for i := 0; i < len(busMiddlewares); i++ {
 		busMiddlewares[i](worker)

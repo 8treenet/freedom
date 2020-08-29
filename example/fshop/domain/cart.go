@@ -31,9 +31,9 @@ type Cart struct {
 }
 
 // Add 购物车增加商品
-func (c *Cart) Add(userId, goodsId, goodsNum int) (e error) {
+func (c *Cart) Add(userID, goodsID, goodsNum int) (e error) {
 	//创建购物车增加商品聚合根
-	cmd, e := c.CartFactory.NewCartAddCmd(goodsId, goodsNum)
+	cmd, e := c.CartFactory.NewCartAddCmd(goodsID, goodsNum)
 	if e != nil {
 		return
 	}
@@ -41,16 +41,16 @@ func (c *Cart) Add(userId, goodsId, goodsNum int) (e error) {
 }
 
 // Items 购物车全部商品项
-func (c *Cart) Items(userId int) (items dto.CartItemRes, e error) {
+func (c *Cart) Items(userID int) (items dto.CartItemRes, e error) {
 	//创建购物车查询聚合根
-	query, e := c.CartFactory.NewCartItemQuery(userId)
+	query, e := c.CartFactory.NewCartItemQuery(userID)
 	if e != nil {
 		return
 	}
 	query.VisitAllItem(func(id, goodsId int, goodsName string, goodsNum, totalPrice int) {
 		items.Items = append(items.Items, struct {
-			Id         int
-			GoodsId    int
+			ID         int
+			GoodsID    int
 			GoodsName  string
 			GoodsNum   int
 			TotalPrice int
@@ -67,16 +67,16 @@ func (c *Cart) Items(userId int) (items dto.CartItemRes, e error) {
 }
 
 // DeleteAll 清空购物车
-func (c *Cart) DeleteAll(userId int) (e error) {
-	return c.CartRepo.DeleteAll(userId)
+func (c *Cart) DeleteAll(userID int) (e error) {
+	return c.CartRepo.DeleteAll(userID)
 }
 
 // Shop 购物车全部购买
-func (c *Cart) Shop(userId int) (e error) {
+func (c *Cart) Shop(userID int) (e error) {
 	//使用抽象工厂 创建购物车类型
 	shopType := c.ShopFactory.NewCartShopType()
 	//使用抽象工厂 创建抽象聚合根
-	cmd, e := c.ShopFactory.NewShopCmd(userId, shopType)
+	cmd, e := c.ShopFactory.NewShopCmd(userID, shopType)
 	if e != nil {
 		return
 	}

@@ -8,7 +8,7 @@ import (
 	"github.com/8treenet/freedom/infra/transaction"
 )
 
-// 订单发货聚合根
+//DeliveryCmd 订单发货聚合根
 type DeliveryCmd struct {
 	entity.Order
 	adminEntity  *entity.Admin
@@ -31,7 +31,7 @@ func (cmd *DeliveryCmd) Run(trackingNumber string) error {
 
 	//设置发货数据
 	deliveryEntity.SetOrderNo(cmd.OrderNo)
-	deliveryEntity.SetAdminId(cmd.adminEntity.Id)
+	deliveryEntity.SetAdminID(cmd.adminEntity.ID)
 	deliveryEntity.SetTrackingNumber(trackingNumber)
 
 	//调用订单父类发货

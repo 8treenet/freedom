@@ -8,6 +8,7 @@ import (
 )
 
 const (
+	// WorkerKey .
 	WorkerKey = "freedom-worker-ctx"
 )
 

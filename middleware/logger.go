@@ -21,15 +21,15 @@ func init() {
 	}
 }
 
-func newFreedomLogger(traceName, traceId string) *freedomLogger {
+func newFreedomLogger(traceName, traceID string) *freedomLogger {
 	logger := loggerPool.New().(*freedomLogger)
-	logger.traceId = traceId
+	logger.traceID = traceID
 	logger.traceName = traceName
 	return logger
 }
 
 type freedomLogger struct {
-	traceId   string
+	traceID   string
 	traceName string
 }
 
@@ -157,7 +157,7 @@ func (l *freedomLogger) Debugf(format string, args ...interface{}) {
 
 // traceField
 func (l *freedomLogger) traceField() golog.Fields {
-	return golog.Fields{l.traceName: l.traceId}
+	return golog.Fields{l.traceName: l.traceID}
 }
 
 // callerField

@@ -6,6 +6,7 @@ import (
 )
 
 const (
+	// EventSell .
 	EventSell = "event-sell"
 )
 
@@ -27,11 +28,12 @@ func init() {
 	})
 }
 
+// StoreController .
 type StoreController struct {
 	Worker freedom.Worker
 }
 
-// PostSellGoodsBy. The event method starts with Post, and the parameter is the event id.
+// PostSellGoodsBy The event method starts with Post, and the parameter is the event id.
 func (s *StoreController) PostSellGoodsBy(eventID string) error {
 	//rawData, err := ioutil.ReadAll(s.Worker.Ctx().Request().Body)
 	var goods dto.Goods

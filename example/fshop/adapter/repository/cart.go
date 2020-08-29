@@ -21,7 +21,7 @@ func init() {
 }
 
 //实现领域模型内的依赖倒置
-var _ dependency.CartRepo = new(Cart)
+var _ dependency.CartRepo = (*Cart)(nil)
 
 // Cart .
 type Cart struct {
@@ -29,14 +29,14 @@ type Cart struct {
 }
 
 // FindAll 获取用户购物车实体
-func (repo *Cart) FindAll(userId int) (entitys []*entity.Cart, e error) {
-	e = findCartList(repo, po.Cart{UserId: userId}, &entitys)
+func (repo *Cart) FindAll(userID int) (entitys []*entity.Cart, e error) {
+	e = findCartList(repo, po.Cart{UserID: userID}, &entitys)
 	return
 }
 
-// FindByGoodsId 获取用户某商品的购物车
-func (repo *Cart) FindByGoodsId(userId, goodsId int) (cartEntity *entity.Cart, e error) {
-	cartEntity = &entity.Cart{Cart: po.Cart{UserId: userId, GoodsId: goodsId}}
+// FindByGoodsID 获取用户某商品的购物车
+func (repo *Cart) FindByGoodsID(userID, goodsID int) (cartEntity *entity.Cart, e error) {
+	cartEntity = &entity.Cart{Cart: po.Cart{UserID: userID, GoodsID: goodsID}}
 	e = findCart(repo, cartEntity)
 	if e != nil {
 		return
@@ -52,8 +52,8 @@ func (repo *Cart) Save(entity *entity.Cart) error {
 }
 
 // New 新增购物车
-func (repo *Cart) New(userId, goodsId, num int) (cartEntity *entity.Cart, e error) {
-	cart := po.Cart{UserId: userId, GoodsId: goodsId, Num: num, Created: time.Now(), Updated: time.Now()}
+func (repo *Cart) New(userID, goodsID, num int) (cartEntity *entity.Cart, e error) {
+	cart := po.Cart{UserID: userID, GoodsID: goodsID, Num: num, Created: time.Now(), Updated: time.Now()}
 
 	_, e = createCart(repo, &cart)
 	if e != nil {
@@ -65,8 +65,8 @@ func (repo *Cart) New(userId, goodsId, num int) (cartEntity *entity.Cart, e erro
 }
 
 // DeleteAll 删除全部购物车
-func (repo *Cart) DeleteAll(userId int) (e error) {
-	e = repo.db().Where(po.Cart{UserId: userId}).Delete(po.Cart{}).Error
+func (repo *Cart) DeleteAll(userID int) (e error) {
+	e = repo.db().Where(po.Cart{UserID: userID}).Delete(po.Cart{}).Error
 	return
 }
 

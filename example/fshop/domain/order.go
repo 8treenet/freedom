@@ -30,8 +30,8 @@ type Order struct {
 }
 
 // Pay 订单支付 .
-func (o *Order) Pay(orderNo string, userId int) (e error) {
-	cmd, e := o.OrderFactory.NewOrderPayCmd(orderNo, userId)
+func (o *Order) Pay(orderNo string, userID int) (e error) {
+	cmd, e := o.OrderFactory.NewOrderPayCmd(orderNo, userID)
 	if e != nil {
 		return
 	}
@@ -39,8 +39,8 @@ func (o *Order) Pay(orderNo string, userId int) (e error) {
 }
 
 // Items 订单列表.
-func (o *Order) Items(userId int, page, pageSize int) (result []dto.OrderItemRes, totalPage int, e error) {
-	items, totalPage, e := o.OrderRepo.Finds(userId, page, pageSize)
+func (o *Order) Items(userID int, page, pageSize int) (result []dto.OrderItemRes, totalPage int, e error) {
+	items, totalPage, e := o.OrderRepo.Finds(userID, page, pageSize)
 	if e != nil {
 		return
 	}
@@ -52,11 +52,11 @@ func (o *Order) Items(userId int, page, pageSize int) (result []dto.OrderItemRes
 		}
 		for j := 0; j < len(items[i].Details); j++ {
 			goodsItem := struct {
-				GoodsId   int    // 商品id
+				GoodsID   int    // 商品id
 				Num       int    // 数量
 				GoodsName string // 商品名称
 			}{
-				items[i].Details[j].GoodsId,
+				items[i].Details[j].GoodsID,
 				items[i].Details[j].Num,
 				items[i].Details[j].GoodsName,
 			}
@@ -71,7 +71,7 @@ func (o *Order) Items(userId int, page, pageSize int) (result []dto.OrderItemRes
 // Delivery 管理员发货服务
 func (o *Order) Delivery(req dto.DeliveryReq) (e error) {
 	//创建订单发货聚合根
-	cmd, e := o.OrderFactory.NewOrderDeliveryCmd(req.OrderNo, req.AdminId)
+	cmd, e := o.OrderFactory.NewOrderDeliveryCmd(req.OrderNo, req.AdminID)
 	if e != nil {
 		return e
 	}

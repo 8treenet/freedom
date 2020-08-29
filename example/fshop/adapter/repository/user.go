@@ -22,16 +22,17 @@ func init() {
 }
 
 //实现领域模型内的依赖倒置
-var _ dependency.UserRepo = new(User)
+var _ dependency.UserRepo = (*User)(nil)
 
 // User .
 type User struct {
 	freedom.Repository
 }
 
-func (repo *User) Get(id int) (userEntity *entity.User, e error) {
+// Get .
+func (repo *User) Get(ID int) (userEntity *entity.User, e error) {
 	userEntity = &entity.User{}
-	userEntity.Id = id
+	userEntity.ID = ID
 	e = findUser(repo, userEntity)
 	if e != nil {
 		return
@@ -42,6 +43,7 @@ func (repo *User) Get(id int) (userEntity *entity.User, e error) {
 	return
 }
 
+// FindByName .
 func (repo *User) FindByName(userName string) (userEntity *entity.User, e error) {
 	userEntity = &entity.User{User: po.User{Name: userName}}
 	e = findUser(repo, userEntity)
@@ -53,11 +55,13 @@ func (repo *User) FindByName(userName string) (userEntity *entity.User, e error)
 	return
 }
 
+// Save .
 func (repo *User) Save(entity *entity.User) error {
 	_, e := saveUser(repo, &entity.User)
 	return e
 }
 
+// New .
 func (repo *User) New(userDto dto.RegisterUserReq, money int) (entityUser *entity.User, e error) {
 	user := po.User{Name: userDto.Name, Money: money, Password: userDto.Password, Created: time.Now(), Updated: time.Now()}
 

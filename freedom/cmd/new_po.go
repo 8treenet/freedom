@@ -16,20 +16,24 @@ import (
 
 var (
 	packageName = "po"
-	Conf        = "./server/conf/db.toml"
-	OutObj      = "./domain/po"
-	OutFunc     = "./adapter/repository"
-	NewCRUDCmd  = &cobra.Command{
+	// Conf .
+	Conf = "./server/conf/db.toml"
+	// OutObj .
+	OutObj = "./domain/po"
+	// OutFunc .
+	OutFunc = "./adapter/repository"
+	// NewCRUDCmd .
+	NewCRUDCmd = &cobra.Command{
 		Use:   "new-po",
 		Short: "Create the model code for the CRUD.",
 		Long:  `Create the model code for the CRUD, You can view subcommands and customize builds`,
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			os.MkdirAll(OutObj, os.ModePerm)
 			os.MkdirAll(OutFunc, os.ModePerm)
-			tl := crud.CrudTemplate()
+			tl := crud.PoDefContent()
 			funTempl := crud.FunTemplate()
 			s2 := crud.NewTable2Struct()
-			dc := DBConf{}
+			dc := dbConf{}
 			if err = configure(&dc, Conf); err != nil {
 				return
 			}
@@ -109,7 +113,7 @@ var (
 		}}
 )
 
-type DBConf struct {
+type dbConf struct {
 	Addr string `toml:"addr"`
 }
 

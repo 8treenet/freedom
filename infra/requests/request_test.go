@@ -8,7 +8,7 @@ import (
 
 func TestMiddlewares(t *testing.T) {
 	UseMiddleware(NewTestMiddlewares())
-	value, rep := NewHttpRequest("http://127.0.0.1:8000/hello").Get().ToString()
+	value, rep := NewHTTPRequest("http://127.0.0.1:8000/hello").Get().ToString()
 	t.Log(value, rep)
 }
 
@@ -68,7 +68,7 @@ func TestH1cPress(t *testing.T) {
 	for i := 0; i < 300; i++ {
 		wait.Add(1)
 		go func() {
-			value, _ := NewHttpRequest("http://127.0.0.1:8000/hello").Get().ToString()
+			value, _ := NewHTTPRequest("http://127.0.0.1:8000/hello").Get().ToString()
 			if value != "hello" {
 				panic("fuck")
 			}
@@ -84,7 +84,7 @@ func TestH1SingleflightPress(t *testing.T) {
 	for i := 0; i < 20000; i++ {
 		wait.Add(1)
 		go func() {
-			value, _ := NewHttpRequest("http://127.0.0.1:8000/hello").Get().Singleflight("fuck").ToString()
+			value, _ := NewHTTPRequest("http://127.0.0.1:8000/hello").Get().Singleflight("fuck").ToString()
 			if value != "hello" {
 				panic("fuck")
 			}

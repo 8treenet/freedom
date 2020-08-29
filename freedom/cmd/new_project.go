@@ -15,6 +15,7 @@ import (
 )
 
 var (
+	// NewProjectCmd .
 	NewProjectCmd = &cobra.Command{
 		Use:   "new-project [project_name]",
 		Short: "New a microservice project based on freedom",

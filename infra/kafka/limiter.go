@@ -10,36 +10,39 @@ func newLimiter(maximum int32) *Limiter {
 	return &Limiter{processing: 0, maximum: maximum}
 }
 
+// Limiter .
 type Limiter struct {
 	processing int32
 	maximum    int32
 }
 
-func (s *Limiter) Open(deltas ...int32) {
+// Open .
+func (l *Limiter) Open(deltas ...int32) {
 	var delta int32 = 1
 	if len(deltas) > 0 {
 		delta = deltas[0]
 	}
-	atomic.AddInt32(&s.processing, delta)
+	atomic.AddInt32(&l.processing, delta)
 	for index := 0; index < 5; index++ {
-		num := atomic.LoadInt32(&s.processing)
-		if num > s.maximum {
-			Sleep(index, 500*time.Millisecond, 1500*time.Millisecond)
+		num := atomic.LoadInt32(&l.processing)
+		if num > l.maximum {
+			sleep(index, 500*time.Millisecond, 1500*time.Millisecond)
 			continue
 		}
 		break
 	}
 }
 
-func (s *Limiter) Close(deltas ...int32) {
+// Close .
+func (l *Limiter) Close(deltas ...int32) {
 	var delta int32 = 1
 	if len(deltas) > 0 {
 		delta = deltas[0]
 	}
-	atomic.AddInt32(&s.processing, -delta)
+	atomic.AddInt32(&l.processing, -delta)
 }
 
-func Sleep(retry int, minBackoff time.Duration, maxBackoff time.Duration) {
+func sleep(retry int, minBackoff time.Duration, maxBackoff time.Duration) {
 	if retry < 0 {
 		retry = 0
 	}

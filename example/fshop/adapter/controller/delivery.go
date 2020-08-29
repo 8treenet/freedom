@@ -16,6 +16,7 @@ func init() {
 	})
 }
 
+// Delivery .
 type Delivery struct {
 	Worker   freedom.Worker
 	OrderSrv *domain.Order  //订单领域服务

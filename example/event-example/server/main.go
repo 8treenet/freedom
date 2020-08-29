@@ -29,6 +29,8 @@ func main() {
 
 	// Obtain and install the kafka infrastructure for domain events
 	app.InstallDomainEventInfra(kafka.GetDomainEventInfra())
+	//app.InstallParty("/event-example")
+	liveness(app)
 	app.Run(addrRunner, *conf.Get().App)
 }
 
@@ -45,4 +47,10 @@ func installMiddleware(app freedom.Application) {
 	requests.InstallPrometheus(conf.Get().App.Other["service_name"].(string), freedom.Prometheus())
 	//总线中间件，处理上下游透传的Header
 	app.InstallBusMiddleware(middleware.NewBusFilter())
+}
+
+func liveness(app freedom.Application) {
+	app.Iris().Get("/ping", func(ctx freedom.Context) {
+		ctx.WriteString("pong")
+	})
 }

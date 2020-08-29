@@ -129,7 +129,7 @@ type Starter interface {
 |Initiator.Starter|触发回调|
 |infra.Booting|触发组件方法|
 |http.Run|开启监听服务|
-|infra.Closeing|触发回调|
+|infra.RegisterShutdown|触发回调|
 |Application.Close|程序关闭|
 
 #### 请求生命周期

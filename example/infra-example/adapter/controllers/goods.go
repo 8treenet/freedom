@@ -13,6 +13,7 @@ func init() {
 	})
 }
 
+// GoodsController .
 type GoodsController struct {
 	Worker   freedom.Worker
 	GoodsSev *domain.GoodsService
@@ -28,7 +29,7 @@ func (goods *GoodsController) GetBy(goodsID int) freedom.Result {
 	return &infra.JSONResponse{Object: obj}
 }
 
-// GetBy handles the GET: /goods/:id route 获取商品列表.
+// Get handles the GET: /goods/:id route 获取商品列表.
 func (goods *GoodsController) Get() freedom.Result {
 	objs, err := goods.GoodsSev.GetAll()
 	if err != nil {
@@ -38,7 +39,7 @@ func (goods *GoodsController) Get() freedom.Result {
 	return &infra.JSONResponse{Object: objs}
 }
 
-// GetBy handles the PUT: /goods/stock route 增加商品库存.
+// PutStock handles the PUT: /goods/stock route 增加商品库存.
 func (goods *GoodsController) PutStock() freedom.Result {
 	var request struct {
 		GoodsID int `json:"goodsId" validate:"required"` //商品id

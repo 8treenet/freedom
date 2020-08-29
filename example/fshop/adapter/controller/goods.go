@@ -14,6 +14,7 @@ func init() {
 	})
 }
 
+// Goods .
 type Goods struct {
 	GoodsSev *application.Goods //商品领域服务
 	Worker   freedom.Worker     //运行时，一个请求绑定一个运行时
@@ -46,7 +47,7 @@ func (g *Goods) Post() freedom.Result {
 	return &infra.JSONResponse{Error: e}
 }
 
-// PutStock 增加库存, PUT: /goods/stock/:id/:num
+// PutStockByBy 增加库存, PUT: /goods/stock/:id/:num
 func (g *Goods) PutStockByBy(id, num int) freedom.Result {
 	e := g.GoodsSev.AddStock(id, num)
 	return &infra.JSONResponse{Error: e}
@@ -60,7 +61,7 @@ func (g *Goods) PutTag() freedom.Result {
 		return &infra.JSONResponse{Error: e}
 	}
 
-	e = g.GoodsSev.MarkedTag(req.Id, req.Tag)
+	e = g.GoodsSev.MarkedTag(req.ID, req.Tag)
 	return &infra.JSONResponse{Error: e}
 }
 
@@ -72,6 +73,6 @@ func (g *Goods) PostShop() freedom.Result {
 		return &infra.JSONResponse{Error: e}
 	}
 
-	e = g.GoodsSev.Shop(req.Id, req.Num, req.UserId)
+	e = g.GoodsSev.Shop(req.ID, req.Num, req.UserID)
 	return &infra.JSONResponse{Error: e}
 }

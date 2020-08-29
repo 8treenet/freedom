@@ -23,42 +23,56 @@ func init() {
 }
 
 type (
-	// Worker .
+	//Worker .
 	Worker = internal.Worker
 
-	// Initiator .
+	//Initiator .
 	Initiator = internal.Initiator
 
-	// Repository .
+	//Repository .
 	Repository = internal.Repository
 
-	// Infra .
+	//Infra .
 	Infra = internal.Infra
 
-	// SingleBoot .
+	//SingleBoot .
 	SingleBoot = internal.SingleBoot
 
+	//Result is the controller return type.
 	Result = hero.Result
 
+	//Context is the context type.
 	Context = iris.Context
 
+	//Entity is the entity's father interface.
 	Entity = internal.Entity
 
+	//DomainEventInfra is a dependency inverted interface for domain events.
 	DomainEventInfra = internal.DomainEventInfra
 
+	//UnitTest is a unit test tool.
 	UnitTest = internal.UnitTest
 
+	//Starter is the startup interface.
 	Starter = internal.Starter
 
+	//Bus is the bus message type.
 	Bus = internal.Bus
 
+	//BusHandler is the bus message middleware type.
 	BusHandler = internal.BusHandler
 
-	Configuration    = iris.Configuration
+	//Configuration is the configuration type of the app.
+	Configuration = iris.Configuration
+
+	//BeforeActivation is Is the start-up pre-processing of the action..
 	BeforeActivation = mvc.BeforeActivation
 
+	//LogFields is the column type of the log.
 	LogFields = golog.Fields
-	LogRow    = golog.Log
+
+	//LogRow is the log per line callback.
+	LogRow = golog.Log
 )
 
 // NewApplication .
@@ -66,6 +80,7 @@ func NewApplication() Application {
 	return app
 }
 
+// NewUnitTest .
 func NewUnitTest() UnitTest {
 	return new(internal.UnitTestImpl)
 }
@@ -87,6 +102,7 @@ func Prometheus() *internal.Prometheus {
 
 var path string
 
+// Configurer .
 type Configurer interface {
 	Configure(obj interface{}, file string, must bool, metaData ...interface{})
 }
@@ -168,6 +184,7 @@ type Application interface {
 	CallService(fun interface{}, worker ...Worker)
 }
 
+//ToWorker the context is converted to a worker.
 func ToWorker(ctx Context) Worker {
 	if result, ok := ctx.Values().Get(internal.WorkerKey).(Worker); ok {
 		return result
@@ -175,10 +192,12 @@ func ToWorker(ctx Context) Worker {
 	return nil
 }
 
+//DefaultConfiguration the default profile.
 func DefaultConfiguration() Configuration {
 	return iris.DefaultConfiguration()
 }
 
+//HandleBusMiddleware middleware processing.
 func HandleBusMiddleware(worker Worker) {
 	internal.HandleBusMiddleware(worker)
 }

@@ -7,7 +7,7 @@ import (
 	"github.com/8treenet/freedom/example/fshop/domain/po"
 )
 
-// 购物车项实体
+//Cart 购物车项实体
 type Cart struct {
 	freedom.Entity
 	po.Cart
@@ -15,5 +15,5 @@ type Cart struct {
 
 // Identity 唯一
 func (c *Cart) Identity() string {
-	return strconv.Itoa(c.Id)
+	return strconv.Itoa(c.ID)
 }

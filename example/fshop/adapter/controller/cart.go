@@ -14,6 +14,7 @@ func init() {
 	})
 }
 
+// Cart .
 type Cart struct {
 	Worker  freedom.Worker
 	CartSev *domain.Cart   //购物车领域服务
@@ -22,12 +23,12 @@ type Cart struct {
 
 // GetItems 获取购物车商品列表, GET: /cart/items route.
 func (c *Cart) GetItems() freedom.Result {
-	userId, err := c.Worker.IrisContext().URLParamInt("userId")
+	userID, err := c.Worker.IrisContext().URLParamInt("userId")
 	if err != nil {
 		return &infra.JSONResponse{Error: err}
 	}
 
-	dto, err := c.CartSev.Items(userId)
+	dto, err := c.CartSev.Items(userID)
 	if err != nil {
 		return &infra.JSONResponse{Error: err}
 	}
@@ -42,17 +43,17 @@ func (c *Cart) Post() freedom.Result {
 		return &infra.JSONResponse{Error: e}
 	}
 
-	c.CartSev.Add(req.UserId, req.GoodsId, req.GoodsNum)
+	c.CartSev.Add(req.UserID, req.GoodsID, req.GoodsNum)
 	return &infra.JSONResponse{Error: e}
 }
 
 // DeleteAll 删除购物车全部商品, DELETE: /cart/all route.
 func (c *Cart) DeleteAll() freedom.Result {
-	userId, err := c.Worker.IrisContext().URLParamInt("userId")
+	userID, err := c.Worker.IrisContext().URLParamInt("userId")
 	if err != nil {
 		return &infra.JSONResponse{Error: err}
 	}
-	err = c.CartSev.DeleteAll(userId)
+	err = c.CartSev.DeleteAll(userID)
 	return &infra.JSONResponse{Error: err}
 }
 
@@ -64,6 +65,6 @@ func (c *Cart) PostShop() freedom.Result {
 		return &infra.JSONResponse{Error: e}
 	}
 
-	e = c.CartSev.Shop(req.UserId)
+	e = c.CartSev.Shop(req.UserID)
 	return &infra.JSONResponse{Error: e}
 }

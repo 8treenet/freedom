@@ -9,7 +9,7 @@ import (
 	"github.com/8treenet/freedom/infra/transaction"
 )
 
-// 支付订单聚合根
+//OrderPayCmd 支付订单聚合根
 type OrderPayCmd struct {
 	entity.Order
 	userEntity *entity.User
