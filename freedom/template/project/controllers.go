@@ -94,6 +94,7 @@ func controllerTemplate() string {
 		var query struct {
 			Token string $$waveurl:"token" validate:"required"$$wave
 			ID    int64  $$waveurl:"id" validate:"required"$$wave
+			IP    []int64 $$waveurl:"ip"$$wave
 		}
 		if err := c.Request.ReadQuery(&query); err != nil {
 			return &infra.JSONResponse{Error: err}
@@ -102,10 +103,12 @@ func controllerTemplate() string {
 			Name  string
 			Token string
 			ID    int64
+			IP    []int64
 		}
 		data.ID = query.ID
 		data.Token = query.Token
 		data.Name = username
+		data.IP = query.IP
 		return &infra.JSONResponse{Object: data}
 	}
 	

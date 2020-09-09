@@ -49,12 +49,12 @@ func TestPutStock(t *testing.T) {
 
 //查看指定订单
 func TestGetOrder(t *testing.T) {
-	str, resp := requests.NewHTTPRequest("http://127.0.0.1:8000/order/1").Get().SetParam("userId", 1001).ToString()
+	str, resp := requests.NewHTTPRequest("http://127.0.0.1:8000/order/1").Get().SetQueryParam("userId", 1001).ToString()
 	t.Log(str, resp)
 }
 
 //查看全部订单
 func TestGetOrders(t *testing.T) {
-	str, resp := requests.NewHTTPRequest("http://127.0.0.1:8000/order").Get().SetParam("userId", 1001).ToString()
+	str, resp := requests.NewHTTPRequest("http://127.0.0.1:8000/order").Get().SetQueryParam("userId", 1001).ToString()
 	t.Log(str, resp)
 }

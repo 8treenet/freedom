@@ -105,7 +105,7 @@ func (repo *Order) Find(orderNo string, userID int) (orderEntity *entity.Order, 
 
 // Finds .
 func (repo *Order) Finds(userID int, page, pageSize int) (entitys []*entity.Order, totalPage int, e error) {
-	pager := NewORMDescBuilder("ID").NewPageBuilder(page, pageSize)
+	pager := NewDescPager("id").SetPage(page, pageSize)
 
 	e = findOrderList(repo, po.Order{UserID: userID}, &entitys, pager)
 	if e != nil {

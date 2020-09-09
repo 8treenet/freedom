@@ -29,30 +29,25 @@ type Request interface {
 	Get() Request
 	Delete() Request
 	Head() Request
+	Options() Request
 	SetJSONBody(obj interface{}) Request
 	SetBody(byts []byte) Request
-	ToJSON(obj interface{}) Response
-	ToString() (string, Response)
-	ToBytes() ([]byte, Response)
-	ToXML(v interface{}) Response
-	SetParam(key string, value interface{}) Request
+	ToJSON(obj interface{}) *Response
+	ToString() (string, *Response)
+	ToBytes() ([]byte, *Response)
+	ToXML(v interface{}) *Response
+	SetQueryParam(key string, value interface{}) Request
+	SetQueryParams(map[string]interface{}) Request
 	URL() string
+	Context() context.Context
 	WithContext(context.Context) Request
 	Singleflight(key ...interface{}) Request
 	SetHeader(header http.Header) Request
 	AddHeader(key, value string) Request
 	Header() http.Header
-	GetStdRequest() interface{}
-}
-
-// Response .
-type Response struct {
-	Error         error
-	Header        http.Header
-	ContentLength int64
-	ContentType   string
-	StatusCode    int
-	HTTP11        bool
+	GetStdRequest() *http.Request
+	AddCookie(*http.Cookie) Request
+	EnableTrace() Request
 }
 
 // NewHTTPRequest .
@@ -71,7 +66,7 @@ func NewHTTPRequest(rawurl string) Request {
 
 // NewH2CRequest .
 func NewH2CRequest(rawurl string) Request {
-	result := new(H2CRequest)
+	result := new(HTTPRequest)
 	req := &http.Request{
 		Header: make(http.Header),
 	}

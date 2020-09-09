@@ -68,3 +68,17 @@ func TestGoodsEntity(t *testing.T) {
 	}
 	t.Log("ok", goodsEnity)
 }
+
+// TestGoodsEntity 商品列表测试
+func TestGoodssEntity(t *testing.T) {
+	//获取单测工具
+	unitTest := getUnitTest()
+	unitTest.Run()
+
+	var repo *Goods
+	//获取资源库
+	unitTest.GetRepository(&repo)
+	goodsEnitys, err := repo.FindsByPage(1, 3, "")
+
+	t.Log("ok", goodsEnitys, err)
+}

@@ -94,8 +94,9 @@ func (c *Default) CustomHello() freedom.Result {
 // GetUserBy handles the GET: /user/{username:string} route.
 func (c *Default) GetUserBy(username string) freedom.Result {
 	var query struct {
-		Token string `url:"token" validate:"required"`
-		ID    int64  `url:"id" validate:"required"`
+		Token string  `url:"token" validate:"required"`
+		ID    int64   `url:"id" validate:"required"`
+		IP    []int64 `url:"ip"`
 	}
 	if err := c.Request.ReadQuery(&query); err != nil {
 		return &infra.JSONResponse{Error: err}
@@ -104,10 +105,12 @@ func (c *Default) GetUserBy(username string) freedom.Result {
 		Name  string
 		Token string
 		ID    int64
+		IP    []int64
 	}
 	data.ID = query.ID
 	data.Token = query.Token
 	data.Name = username
+	data.IP = query.IP
 	return &infra.JSONResponse{Object: data}
 }
 

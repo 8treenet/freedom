@@ -82,11 +82,16 @@ func (repo *Goods) Finds(IDs []int) (entitys []*entity.Goods, e error) {
 
 // FindsByPage .
 func (repo *Goods) FindsByPage(page, pageSize int, tag string) (entitys []*entity.Goods, e error) {
-	build := NewORMDescBuilder("ID").NewPageBuilder(page, pageSize)
-	e = findGoodsList(repo, po.Goods{Tag: tag}, &entitys, build)
+	pager := NewDescPager("id").SetPage(page, pageSize)
+	e = findGoodsList(repo, po.Goods{Tag: tag}, &entitys, pager)
 	if e != nil {
 		return
 	}
+	repo.Worker.Logger().Info("FindsByPage", freedom.LogFields{
+		"page":      page,
+		"pageSize":  pageSize,
+		"totalPage": pager.TotalPage(),
+	})
 	//注入基础Entity 包含运行时和领域事件的producer
 	repo.InjectBaseEntitys(entitys)
 	return

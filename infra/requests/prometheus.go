@@ -42,10 +42,10 @@ func InstallPrometheus(serviceName string, p prom) {
 		middle.Next()
 		domain := middle.GetRequest().URL.Host
 		method := middle.GetRequest().Method
-		rep, err := middle.GetRespone()
+		rep := middle.GetRespone()
 		code := ""
 		protocol := ""
-		if err == nil && rep != nil {
+		if rep.Error != nil {
 			protocol = rep.Proto
 			code = fmt.Sprint(rep.StatusCode)
 		} else {

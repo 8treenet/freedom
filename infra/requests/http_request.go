@@ -10,19 +10,21 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"reflect"
 )
 
 // HTTPRequest .
 type HTTPRequest struct {
 	StdRequest      *http.Request
-	StdResponse     *http.Response
-	Error           error
+	Response        Response
 	Params          url.Values
 	url             string
 	SingleflightKey string
-	ResponseError   error
 	stop            bool
 	Client          *http.Client
+	nextIndex       int
+	responeBody     []byte
+	connTrace       *requestConnTrace
 }
 
 // Post .
@@ -55,9 +57,15 @@ func (req *HTTPRequest) Head() Request {
 	return req
 }
 
-// WithContext .
-func (req *HTTPRequest) WithContext(ctx context.Context) Request {
-	req.StdRequest = req.StdRequest.WithContext(ctx)
+// Options .
+func (req *HTTPRequest) Options() Request {
+	req.StdRequest.Method = "OPTIONS"
+	return req
+}
+
+// AddCookie .
+func (req *HTTPRequest) AddCookie(c *http.Cookie) Request {
+	req.StdRequest.AddCookie(c)
 	return req
 }
 
@@ -65,7 +73,7 @@ func (req *HTTPRequest) WithContext(ctx context.Context) Request {
 func (req *HTTPRequest) SetJSONBody(obj interface{}) Request {
 	byts, e := Marshal(obj)
 	if e != nil {
-		req.Error = e
+		req.Response.Error = e
 		return req
 	}
 
@@ -84,52 +92,74 @@ func (req *HTTPRequest) SetBody(byts []byte) Request {
 }
 
 // ToJSON .
-func (req *HTTPRequest) ToJSON(obj interface{}) (r Response) {
+func (req *HTTPRequest) ToJSON(obj interface{}) *Response {
 	var body []byte
-	r, body = req.singleflightDo()
-	if r.Error != nil {
-		return
+	body = req.singleflightDo(true)
+	if req.Response.Error != nil {
+		return &req.Response
 	}
-	r.Error = Unmarshal(body, obj)
-	if r.Error != nil {
-		r.Error = fmt.Errorf("%s, body:%s", r.Error.Error(), string(body))
+	req.Response.Error = Unmarshal(body, obj)
+	if req.Response.Error != nil {
+		req.Response.Error = fmt.Errorf("%s, body:%s", req.Response.Error.Error(), string(body))
 	}
-	return
+	return &req.Response
 }
 
 // ToString .
-func (req *HTTPRequest) ToString() (value string, r Response) {
+func (req *HTTPRequest) ToString() (string, *Response) {
 	var body []byte
-	r, body = req.singleflightDo()
-	if r.Error != nil {
-		return
+	body = req.singleflightDo(true)
+	if req.Response.Error != nil {
+		return "", &req.Response
 	}
-	value = string(body)
-	return
+	value := string(body)
+	return value, &req.Response
 }
 
 // ToBytes .
-func (req *HTTPRequest) ToBytes() (value []byte, r Response) {
-	r, value = req.singleflightDo()
-	return
+func (req *HTTPRequest) ToBytes() ([]byte, *Response) {
+	value := req.singleflightDo(false)
+	return value, &req.Response
 }
 
 // ToXML .
-func (req *HTTPRequest) ToXML(v interface{}) (r Response) {
+func (req *HTTPRequest) ToXML(v interface{}) *Response {
 	var body []byte
-	r, body = req.singleflightDo()
-	if r.Error != nil {
-		return
+	body = req.singleflightDo(true)
+	if req.Response.Error != nil {
+		return &req.Response
 	}
 
-	req.httpRespone(&r)
-	r.Error = xml.Unmarshal(body, v)
-	return
+	req.Response.Error = xml.Unmarshal(body, v)
+	return &req.Response
 }
 
-// SetParam .
-func (req *HTTPRequest) SetParam(key string, value interface{}) Request {
-	req.Params.Add(key, fmt.Sprint(value))
+// SetQueryParam .
+func (req *HTTPRequest) SetQueryParam(key string, value interface{}) Request {
+	reflectValue := reflect.ValueOf(value)
+	if reflectValue.Kind() != reflect.Slice && reflectValue.Kind() != reflect.Array {
+		req.Params.Add(key, fmt.Sprint(value))
+		return req
+	}
+
+	for i := 0; i < reflectValue.Len(); i++ {
+		req.Params.Add(key, fmt.Sprint(reflectValue.Index(i).Interface()))
+	}
+	return req
+}
+
+// SetQueryParams .
+func (req *HTTPRequest) SetQueryParams(m map[string]interface{}) Request {
+	for k, v := range m {
+		reflectValue := reflect.ValueOf(v)
+		if reflectValue.Kind() != reflect.Slice && reflectValue.Kind() != reflect.Array {
+			req.Params.Add(k, fmt.Sprint(v))
+			continue
+		}
+		for i := 0; i < reflectValue.Len(); i++ {
+			req.Params.Add(k, fmt.Sprint(reflectValue.Index(i).Interface()))
+		}
+	}
 	return req
 }
 
@@ -159,79 +189,106 @@ type singleflightData struct {
 	Body []byte
 }
 
-func (req *HTTPRequest) singleflightDo() (r Response, body []byte) {
+func (req *HTTPRequest) singleflightDo(noCopy bool) (body []byte) {
 	if req.SingleflightKey == "" {
-		r.Error = req.prepare()
-		if r.Error != nil {
+		req.Next()
+		if req.Response.Error != nil {
 			return
 		}
-		handle(req)
-		r.Error = req.ResponseError
-		if r.Error != nil {
-			return
-		}
-		body = req.body()
-		req.httpRespone(&r)
+		body = req.responeBody
 		return
 	}
 
-	data, _, _ := httpclientGroup.Do(req.SingleflightKey, func() (interface{}, error) {
-		var res Response
-		res.Error = req.prepare()
-		if r.Error != nil {
-			return &singleflightData{Res: res}, nil
+	data, _, shared := httpclientGroup.Do(req.SingleflightKey, func() (interface{}, error) {
+		req.Next()
+		if req.Response.Error != nil {
+			return &singleflightData{Res: *req.Response.Clone(), Body: []byte{}}, nil
 		}
-		handle(req)
-		res.Error = req.ResponseError
-		if res.Error != nil {
-			return &singleflightData{Res: res}, nil
+		if noCopy {
+			return &singleflightData{Res: *req.Response.Clone(), Body: req.responeBody}, nil
 		}
 
-		req.httpRespone(&res)
-		return &singleflightData{Res: res, Body: req.body()}, nil
+		bodyBuffer := make([]byte, len(req.responeBody))
+		copy(bodyBuffer, req.responeBody)
+		return &singleflightData{Res: *req.Response.Clone(), Body: bodyBuffer}, nil
 	})
+	if !shared {
+		return req.responeBody
+	}
 
 	sfdata := data.(*singleflightData)
-	return sfdata.Res, sfdata.Body
+	req.Response = *sfdata.Res.Clone()
+	if noCopy {
+		return sfdata.Body
+	}
+	copyData := make([]byte, len(sfdata.Body))
+	copy(copyData, sfdata.Body)
+	return copyData
 }
 
-func (req *HTTPRequest) do() (e error) {
-	if req.Error != nil {
-		return req.Error
+func (req *HTTPRequest) do() {
+	if req.Response.Error != nil {
+		return
+	}
+	if req.Response.Error = req.prepare(); req.Response.Error != nil {
+		return
 	}
 	u, e := url.Parse(req.URL())
 	if e != nil {
-		return e
+		req.Response.Error = e
+		return
 	}
 	req.StdRequest.URL = u
-	req.StdResponse, e = req.Client.Do(req.StdRequest)
+	req.Response.stdResponse, req.Response.Error = req.Client.Do(req.StdRequest)
+	if req.Response.Error != nil {
+		return
+	}
+	req.readBody()
+	req.fillingRespone()
 	return
 }
 
-func (req *HTTPRequest) body() (body []byte) {
-	defer req.StdResponse.Body.Close()
-	if req.StdResponse.Header.Get("Content-Encoding") == "gzip" {
-		reader, err := gzip.NewReader(req.StdResponse.Body)
+func (req *HTTPRequest) readBody() {
+	defer func() {
+		req.Response.stdResponse.Body.Close()
+		if req.connTrace != nil {
+			req.connTrace.done()
+		}
+
+	}()
+	if req.Response.Header.Get("Content-Encoding") == "gzip" {
+		reader, err := gzip.NewReader(req.Response.stdResponse.Body)
 		if err != nil {
 			return
 		}
-		body, _ = ioutil.ReadAll(reader)
-		return body
+		req.responeBody, _ = ioutil.ReadAll(reader)
 	}
-	body, _ = ioutil.ReadAll(req.StdResponse.Body)
+	req.responeBody, req.Response.Error = ioutil.ReadAll(req.Response.stdResponse.Body)
 	return
 }
 
-func (req *HTTPRequest) httpRespone(httpRespone *Response) {
-	httpRespone.StatusCode = req.StdResponse.StatusCode
-	httpRespone.HTTP11 = false
-	if req.StdResponse.ProtoMajor == 1 && req.StdResponse.ProtoMinor == 1 {
-		httpRespone.HTTP11 = true
-	}
+func (req *HTTPRequest) fillingRespone() {
+	if req.Response.Error != nil {
+		return
 
-	httpRespone.ContentLength = req.StdResponse.ContentLength
-	httpRespone.ContentType = req.StdResponse.Header.Get("Content-Type")
-	httpRespone.Header = req.StdResponse.Header
+	}
+	std := req.Response.stdResponse
+	req.Response.Status = std.Status
+	req.Response.StatusCode = std.StatusCode
+	req.Response.Proto = std.Proto
+	req.Response.ProtoMajor = std.ProtoMajor
+	req.Response.ProtoMinor = std.ProtoMinor
+	req.Response.Header = std.Header
+	req.Response.ContentLength = std.ContentLength
+	req.Response.Uncompressed = std.Uncompressed
+	req.Response.HTTP11 = false
+	if req.Response.ProtoMajor == 1 && req.Response.ProtoMinor == 1 {
+		req.Response.HTTP11 = true
+	}
+	req.Response.ContentType = std.Header.Get("Content-Type")
+	if req.connTrace != nil {
+		req.Response.traceInfo = req.connTrace.traceInfo()
+	}
 }
 
 // Singleflight .
@@ -241,12 +298,13 @@ func (req *HTTPRequest) Singleflight(key ...interface{}) Request {
 }
 
 func (req *HTTPRequest) prepare() (e error) {
-	if req.Error != nil {
-		return req.Error
+	if req.Response.Error != nil {
+		return req.Response.Error
 	}
 
 	u, e := url.Parse(req.URL())
 	if e != nil {
+		req.Response.Error = e
 		return
 	}
 	req.StdRequest.URL = u
@@ -255,17 +313,31 @@ func (req *HTTPRequest) prepare() (e error) {
 
 // Next .
 func (req *HTTPRequest) Next() {
-	req.ResponseError = req.do()
+	if len(middlewares) == 0 {
+		req.do()
+		return
+	}
+	if req.IsStopped() {
+		return
+	}
+
+	if req.nextIndex == len(middlewares) {
+		req.do()
+		return
+	}
+
+	req.nextIndex = req.nextIndex + 1
+	middlewares[req.nextIndex-1](req)
 }
 
 // Stop .
 func (req *HTTPRequest) Stop(e ...error) {
 	req.stop = true
 	if len(e) > 0 {
-		req.ResponseError = e[0]
+		req.Response.Error = e[0]
 		return
 	}
-	req.ResponseError = errors.New("Middleware stop")
+	req.Response.Error = errors.New("Middleware stop")
 }
 
 // IsStopped .
@@ -279,16 +351,52 @@ func (req *HTTPRequest) GetRequest() *http.Request {
 }
 
 // GetRespone .
-func (req *HTTPRequest) GetRespone() (*http.Response, error) {
-	return req.StdResponse, req.ResponseError
+func (req *HTTPRequest) GetRespone() *Response {
+	return &req.Response
 }
 
 // GetStdRequest .
-func (req *HTTPRequest) GetStdRequest() interface{} {
+func (req *HTTPRequest) GetStdRequest() *http.Request {
 	return req.StdRequest
 }
 
 // Header .
 func (req *HTTPRequest) Header() http.Header {
 	return req.StdRequest.Header
+}
+
+// GetResponeBody .
+func (req *HTTPRequest) GetResponeBody() []byte {
+	return req.responeBody
+}
+
+// Context .
+func (req *HTTPRequest) Context() context.Context {
+	return req.StdRequest.Context()
+}
+
+// EnableTrace .
+func (req *HTTPRequest) EnableTrace() Request {
+	if req.connTrace != nil {
+		return req
+	}
+	req.connTrace = &requestConnTrace{}
+	req.StdRequest = req.StdRequest.WithContext(req.connTrace.createContext(req.StdRequest.Context()))
+	return req
+}
+
+// EnableTraceFromMiddleware .
+func (req *HTTPRequest) EnableTraceFromMiddleware() {
+	req.EnableTrace()
+}
+
+// WithContext .
+func (req *HTTPRequest) WithContext(ctx context.Context) Request {
+	req.StdRequest = req.StdRequest.WithContext(ctx)
+	return req
+}
+
+// WithContextFromMiddleware .
+func (req *HTTPRequest) WithContextFromMiddleware(ctx context.Context) {
+	req.WithContext(ctx)
 }

@@ -1,95 +1,130 @@
-package requests
+package requests_test
 
 import (
+	"context"
 	"fmt"
 	"sync"
 	"testing"
+	"time"
+
+	"github.com/8treenet/freedom/infra/requests"
 )
 
-func TestMiddlewares(t *testing.T) {
-	UseMiddleware(NewTestMiddlewares())
-	value, rep := NewHTTPRequest("http://127.0.0.1:8000/hello").Get().ToString()
-	t.Log(value, rep)
+func newRequest(url string) requests.Request {
+	//return requests.NewH2CRequest(url)
+	return requests.NewHTTPRequest(url)
 }
 
-func NewTestMiddlewares() Handler {
-	return func(middle Middleware) {
-		//普罗米修斯等耗时拦截器
+func NewMiddleware() requests.Handler {
+	return func(middle requests.Middleware) {
+		fmt.Println("begin")
 		middle.Next()
+		fmt.Println("end")
+	}
+}
+func NewEnableTraceMiddleware() requests.Handler {
+	return func(middle requests.Middleware) {
+		fmt.Println("begin EnableTrace")
+		middle.EnableTraceFromMiddleware()
+		middle.Next()
+		fmt.Println("end EnableTrace", middle.GetRespone().TraceInfo())
 	}
 }
 
-func NewTestStopMiddlewares() Handler {
-	return func(middle Middleware) {
-		fmt.Println("开始")
-		req := middle.GetRequest()
-		fmt.Println(req)
-		//在这里可以拦截
-		middle.Stop()
-		fmt.Println("结束")
-	}
+func TestGet(t *testing.T) {
+	//添加中间件
+	requests.UseMiddleware(NewMiddleware())
+	requests.UseMiddleware(NewEnableTraceMiddleware())
+
+	value, rep := newRequest("http://127.0.0.1:8000/hello").Get().ToString()
+	t.Log(value, rep.Error)
+
+	var data interface{}
+	rep = newRequest("http://127.0.0.1:8000").Get().ToJSON(&data)
+	t.Log(data, rep.Error)
+
+	bytes, rep := newRequest("http://127.0.0.1:8000").Get().ToBytes()
+	t.Log(string(bytes), rep.Error)
 }
 
-func TestH2cPress(t *testing.T) {
-	UseMiddleware(NewTestMiddlewares())
-	var wait sync.WaitGroup
-	for i := 0; i < 10000; i++ {
-		wait.Add(1)
+func TestQueryParamGet(t *testing.T) {
+	var repData struct {
+		Code  int    `json:"code"`
+		Error string `json:"error"`
+		Data  struct {
+			Name  string
+			Token string
+			ID    int64
+			IP    []int64
+		} `json:"data"`
+	}
+
+	rep := newRequest("http://127.0.0.1:8000/user/8treenet").Get().SetQueryParam("token", "ALFAJSJD13").SetQueryParam("id", 123444).ToJSON(&repData)
+	t.Log(repData, rep.Error)
+
+	rep = newRequest("http://127.0.0.1:8000/user/8treenet").Get().SetQueryParams(map[string]interface{}{"token": "ALFAJSJD13", "id": 123321}).ToJSON(&repData)
+	t.Log(repData, rep.Error)
+
+	ip := []int{192, 168, 1, 1} //支持slice
+	resultString, rep := newRequest("http://127.0.0.1:8000/user/8treenet").Get().SetQueryParam("ip", ip).SetQueryParam("token", "ALFAJSJD13").SetQueryParam("id", 123444).ToString()
+	t.Log(resultString, rep.Error)
+
+	param := map[string]interface{}{
+		"token": "ALFAJSJD13",
+		"id":    123321,
+		"ip":    []int{225, 231, 11, 110}, //支持slice
+	}
+	rep = newRequest("http://127.0.0.1:8000/user/8treenet").Get().SetQueryParams(param).ToJSON(&repData)
+	t.Log(repData, rep.Error)
+}
+
+func TestPost(t *testing.T) {
+	requests.UseMiddleware(NewMiddleware())
+
+	var postBody struct {
+		UserName     string `json:"userName"`
+		UserPassword string `json:"userPassword"`
+	}
+	postBody.UserName = "8treenet"
+	postBody.UserPassword = "LALSDL13A15PfDAWE"
+
+	var repData struct {
+		Code  int    `json:"code"`
+		Error string `json:"error"`
+		Data  string `json:"data"`
+	}
+
+	rep := newRequest("http://127.0.0.1:8000/hello").Post().SetJSONBody(postBody).ToJSON(&repData)
+	t.Log(repData, rep.Error)
+
+	rep = newRequest("http://127.0.0.1:8000/hello").Put().ToJSON(&repData)
+	t.Log(repData, rep.Error)
+}
+
+func TestFeature(t *testing.T) {
+	requests.UseMiddleware(NewMiddleware())
+	resultString, rep := newRequest("http://127.0.0.1:8000/hello").Get().EnableTrace().ToString()
+	t.Log(resultString, rep.Error, rep.TraceInfo())
+
+	req := newRequest("http://127.0.0.1:8000/hello").Get()
+	ctx, cancel := context.WithTimeout(req.Context(), time.Millisecond*200)
+	defer cancel()
+	resultString, rep = req.WithContext(ctx).ToString()
+	t.Log(resultString, rep.Error)
+}
+
+func TestSingleflight(t *testing.T) {
+	requests.UseMiddleware(NewMiddleware())
+	requests.UseMiddleware(NewEnableTraceMiddleware())
+
+	group := sync.WaitGroup{}
+	for i := 0; i < 100; i++ {
+		group.Add(1)
 		go func() {
-			value, _ := NewH2CRequest("http://127.0.0.1:8000/hello").Get().ToString()
-			if value != "hello" {
-				panic("fuck")
-			}
-			wait.Done()
+			resultString, rep := newRequest("http://127.0.0.1:8000/hello").Get().Singleflight("xxxxxxx").ToString()
+			t.Log(resultString, rep.Error)
+			group.Done()
 		}()
 	}
-	wait.Wait()
-}
-
-func TestH2cSingleflightPress(t *testing.T) {
-	UseMiddleware(NewTestMiddlewares())
-	var wait sync.WaitGroup
-	for i := 0; i < 20000; i++ {
-		wait.Add(1)
-		go func() {
-			value, _ := NewH2CRequest("http://127.0.0.1:8000/hello").Get().Singleflight("fuck").ToString()
-			if value != "hello" {
-				panic("fuck")
-			}
-			wait.Done()
-		}()
-	}
-	wait.Wait()
-}
-
-func TestH1cPress(t *testing.T) {
-	UseMiddleware(NewTestMiddlewares())
-	var wait sync.WaitGroup
-	for i := 0; i < 300; i++ {
-		wait.Add(1)
-		go func() {
-			value, _ := NewHTTPRequest("http://127.0.0.1:8000/hello").Get().ToString()
-			if value != "hello" {
-				panic("fuck")
-			}
-			wait.Done()
-		}()
-	}
-	wait.Wait()
-}
-
-func TestH1SingleflightPress(t *testing.T) {
-	UseMiddleware(NewTestMiddlewares())
-	var wait sync.WaitGroup
-	for i := 0; i < 20000; i++ {
-		wait.Add(1)
-		go func() {
-			value, _ := NewHTTPRequest("http://127.0.0.1:8000/hello").Get().Singleflight("fuck").ToString()
-			if value != "hello" {
-				panic("fuck")
-			}
-			wait.Done()
-		}()
-	}
-	wait.Wait()
+	group.Wait()
 }

@@ -251,7 +251,11 @@ func (cache *EntityCacheImpl) getCall(name string, result freedom.Entity) ([]byt
 			return nil, err
 		}
 		if shared {
-			err = json.Unmarshal(entityData.([]byte), result)
+			entityByte, _ := entityData.([]byte)
+			err = json.Unmarshal(entityByte, result)
+			resultByte := make([]byte, len(entityByte))
+			copy(resultByte, entityByte)
+			return resultByte, err
 		}
 		return entityData.([]byte), err
 	}
