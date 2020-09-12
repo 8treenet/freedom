@@ -6,7 +6,7 @@ func init() {
 
 func modTemplate() string {
 	return `
-module {{.PackageName}}
+module {{.PackagePath}}
 
 go 1.13
 

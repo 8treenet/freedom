@@ -28,7 +28,7 @@ $ freedom new-project [project-name]
 ## 脚手架生成增删查改和持久化对象
 ####
 ```sh
-# 编辑 [project-name]/cmd/conf/db.toml 填入数据库地址
+# 编辑 [project-name]/server/conf/db.toml 填入数据库地址
 # freedom new-po -h 查看更多
 $ cd [project-name]
 $ freedom new-po

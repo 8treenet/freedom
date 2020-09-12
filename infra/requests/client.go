@@ -82,3 +82,13 @@ func timeoutDialer(cTimeout time.Duration) func(net, addr string) (c net.Conn, e
 		return conn, err
 	}
 }
+
+// InstallHTTPClient .
+func InstallHTTPClient(client *http.Client) {
+	DefaultHTTPClient = client
+}
+
+// InstallH2CClient .
+func InstallH2CClient(client *http.Client) {
+	DefaultH2CClient = client
+}
