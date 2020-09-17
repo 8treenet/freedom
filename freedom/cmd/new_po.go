@@ -59,16 +59,14 @@ var (
 					"NumberFields": list[index].NumberFields,
 					"Import":       "",
 				}
+				pdata["Import"] = "import (\n"
 				if strings.Contains(list[index].Content, "time.Time") {
-					pdata["Import"] = "import (" + "\n" + `"time"`
+					pdata["Import"] = pdata["Import"].(string) + `"time"` + "\n"
 				}
 				if len(list[index].NumberFields) > 0 {
-					pdata["Import"] = pdata["Import"].(string) + "\n" + `"github.com/jinzhu/gorm"`
+					pdata["Import"] = pdata["Import"].(string) + `"github.com/jinzhu/gorm"` + "\n"
 				}
-
-				if pdata["Import"].(string) != "" {
-					pdata["Import"] = pdata["Import"].(string) + "\n)"
-				}
+				pdata["Import"] = pdata["Import"].(string) + ")"
 
 				var pf *os.File
 				pf, err = os.Create(OutObj + "/" + list[index].TableRealName + ".go")

@@ -28,6 +28,9 @@ func (repo *Repository) FetchDB(db interface{}) error {
 	if transactionData != nil {
 		resultDB = transactionData
 	}
+	if resultDB == nil {
+		return errors.New("DB not found, please install")
+	}
 	if !fetchValue(db, resultDB) {
 		return errors.New("DB not found, please install")
 	}
@@ -39,6 +42,9 @@ func (repo *Repository) FetchDB(db interface{}) error {
 // FetchSourceDB .
 func (repo *Repository) FetchSourceDB(db interface{}) error {
 	resultDB := globalApp.Database.db
+	if resultDB == nil {
+		return errors.New("DB not found, please install")
+	}
 	if !fetchValue(db, resultDB) {
 		return errors.New("DB not found, please install")
 	}
