@@ -50,8 +50,8 @@ var typeForMysqlToGo = map[string]string{
 	"varbinary":          "string",
 }
 
-// Table2Struct .
-type Table2Struct struct {
+// MysqlStruct .
+type MysqlStruct struct {
 	dsn            string
 	db             *sql.DB
 	table          string
@@ -61,31 +61,31 @@ type Table2Struct struct {
 	tagKey         string // tag字段的key值,默认是orm
 }
 
-// NewTable2Struct .
-func NewTable2Struct() *Table2Struct {
-	return &Table2Struct{}
+// NewMysqlStruct .
+func NewMysqlStruct() *MysqlStruct {
+	return &MysqlStruct{}
 }
 
 // Dsn .
-func (t *Table2Struct) Dsn(d string) *Table2Struct {
+func (t *MysqlStruct) Dsn(d string) *MysqlStruct {
 	t.dsn = d
 	return t
 }
 
 // TagKey .
-func (t *Table2Struct) TagKey(r string) *Table2Struct {
+func (t *MysqlStruct) TagKey(r string) *MysqlStruct {
 	t.tagKey = r
 	return t
 }
 
 // RealNameMethod .
-func (t *Table2Struct) RealNameMethod(r string) *Table2Struct {
+func (t *MysqlStruct) RealNameMethod(r string) *MysqlStruct {
 	t.realNameMethod = r
 	return t
 }
 
 // DB .
-func (t *Table2Struct) DB(d *sql.DB) *Table2Struct {
+func (t *MysqlStruct) DB(d *sql.DB) *MysqlStruct {
 	t.db = d
 	return t
 }
@@ -109,7 +109,7 @@ type SturctContent struct {
 }
 
 // Run .
-func (t *Table2Struct) Run() (result []SturctContent, e error) {
+func (t *MysqlStruct) Run() (result []SturctContent, e error) {
 	// 链接mysql, 获取db对象
 	t.dialMysql()
 	if t.err != nil {
@@ -201,7 +201,7 @@ func (t *Table2Struct) Run() (result []SturctContent, e error) {
 	return
 }
 
-func (t *Table2Struct) dialMysql() {
+func (t *MysqlStruct) dialMysql() {
 	if t.db == nil {
 		if t.dsn == "" {
 			t.err = errors.New("dsn数据库配置缺失")
@@ -223,7 +223,7 @@ type column struct {
 }
 
 // Function for fetching schema definition of passed table
-func (t *Table2Struct) getColumns(table ...string) (tableColumns map[string][]column, err error) {
+func (t *MysqlStruct) getColumns(table ...string) (tableColumns map[string][]column, err error) {
 	tableColumns = make(map[string][]column)
 	// sql
 	var sqlStr = `SELECT COLUMN_NAME,DATA_TYPE,IS_NULLABLE,TABLE_NAME,COLUMN_COMMENT,COLUMN_KEY
@@ -265,7 +265,7 @@ func (t *Table2Struct) getColumns(table ...string) (tableColumns map[string][]co
 	return
 }
 
-func (t *Table2Struct) camelCase(str string) string {
+func (t *MysqlStruct) camelCase(str string) string {
 	// 是否有表前缀, 设置了就先去除表前缀
 	if t.prefix != "" {
 		str = strings.Replace(str, t.prefix, "", 1)

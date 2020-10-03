@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"errors"
 	"go/build"
 	"io/ioutil"
 	"os"
@@ -16,6 +17,7 @@ import (
 
 var (
 	packageName = "po"
+	Driver      = "mysql"
 	// Conf .
 	Conf = "./server/conf/db.toml"
 	// OutObj .
@@ -32,12 +34,11 @@ var (
 			os.MkdirAll(OutFunc, os.ModePerm)
 			tl := crud.PoDefContent()
 			funTempl := crud.FunTemplate()
-			s2 := crud.NewTable2Struct()
 			dc := dbConf{}
 			if err = configure(&dc, Conf); err != nil {
 				return
 			}
-			list, err := s2.Dsn(dc.Addr).Run()
+			list, err := GetStruct(Driver, dc.Addr)
 			if err != nil {
 				return err
 			}
@@ -124,7 +125,16 @@ func configure(obj interface{}, fileName string) error {
 	return nil
 }
 
+func GetStruct(driver, addr string) ([]crud.SturctContent, error) {
+	if driver != "mysql" {
+		return nil, errors.New("Database driven, support mysql and postgres, default mysql")
+	}
+	cmd := crud.NewMysqlStruct()
+	return cmd.Dsn(addr).Run()
+}
+
 func init() {
-	NewCRUDCmd.Flags().StringVarP(&Conf, "conf", "c", "./server/conf/db.toml", "mysql profile path")
+	NewCRUDCmd.Flags().StringVarP(&Conf, "conf", "c", "./server/conf/db.toml", "Database configuration file path.")
+	NewCRUDCmd.Flags().StringVarP(&Driver, "driver", "d", "mysql", "Database driven, support mysql and postgres.")
 	AddCommand(NewCRUDCmd)
 }
