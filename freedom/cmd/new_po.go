@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"bytes"
-	"errors"
 	"go/build"
 	"io/ioutil"
 	"os"
@@ -17,9 +16,10 @@ import (
 
 var (
 	packageName = "po"
-	Driver      = "mysql"
 	// Conf .
 	Conf = "./server/conf/db.toml"
+	//Dsn .
+	Dsn = "root:123123@tcp(127.0.0.1:3306)/xxx?charset=utf8"
 	// OutObj .
 	OutObj = "./domain/po"
 	// OutFunc .
@@ -34,11 +34,7 @@ var (
 			os.MkdirAll(OutFunc, os.ModePerm)
 			tl := crud.PoDefContent()
 			funTempl := crud.FunTemplate()
-			dc := dbConf{}
-			if err = configure(&dc, Conf); err != nil {
-				return
-			}
-			list, err := GetStruct(Driver, dc.Addr)
+			list, err := GetStruct()
 			if err != nil {
 				return err
 			}
@@ -53,18 +49,18 @@ var (
 
 			for index := 0; index < len(list); index++ {
 				pdata := map[string]interface{}{
-					"Name":         list[index].Name,
-					"Content":      list[index].Content,
-					"Time":         false,
-					"Fields":       list[index].Fields,
-					"NumberFields": list[index].NumberFields,
-					"Import":       "",
+					"Name":       list[index].Name,
+					"Content":    list[index].Content,
+					"Time":       false,
+					"SetMethods": list[index].SetMethods,
+					"AddMethods": list[index].AddMethods,
+					"Import":     "",
 				}
 				pdata["Import"] = "import (\n"
 				if strings.Contains(list[index].Content, "time.Time") {
 					pdata["Import"] = pdata["Import"].(string) + `"time"` + "\n"
 				}
-				if len(list[index].NumberFields) > 0 {
+				if len(list[index].AddMethods) > 0 {
 					pdata["Import"] = pdata["Import"].(string) + `"github.com/jinzhu/gorm"` + "\n"
 				}
 				pdata["Import"] = pdata["Import"].(string) + ")"
@@ -125,16 +121,13 @@ func configure(obj interface{}, fileName string) error {
 	return nil
 }
 
-func GetStruct(driver, addr string) ([]crud.SturctContent, error) {
-	if driver != "mysql" {
-		return nil, errors.New("Database driven, support mysql and postgres, default mysql")
-	}
+// GetStruct .
+func GetStruct() ([]crud.ObjectContent, error) {
 	cmd := crud.NewMysqlStruct()
-	return cmd.Dsn(addr).Run()
+	return cmd.Dsn(Dsn).Run()
 }
 
 func init() {
-	NewCRUDCmd.Flags().StringVarP(&Conf, "conf", "c", "./server/conf/db.toml", "Database configuration file path.")
-	NewCRUDCmd.Flags().StringVarP(&Driver, "driver", "d", "mysql", "Database driven, support mysql and postgres.")
+	NewCRUDCmd.Flags().StringVarP(&Dsn, "dsn", "d", "", `The address of the data source "root:123123@tcp(127.0.0.1:3306)/xxx?charset=utf8"`)
 	AddCommand(NewCRUDCmd)
 }

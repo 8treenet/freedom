@@ -90,26 +90,31 @@ func (t *MysqlStruct) DB(d *sql.DB) *MysqlStruct {
 	return t
 }
 
-// Field .
-type Field struct {
-	Column     string
-	Type       string
-	Value      string
-	Arg        string
-	StructName string
+// Method .
+//func (obj *{{.ObjectName}}) Set{{.Name}} ({{.Variable}} {{.VariableType}}) {
+//	obj.{{.Name}} = {{.Variable}}
+//	obj.setChanges("{{.Column}}", {{.Variable}})
+//}
+//{{ end }}
+type Method struct {
+	ObjectName   string //结构体名称
+	Name         string //方法名称 GoodsName
+	VariableType string //类型 int|string
+	Variable     string //goodsName
+	Column       string //列名 Column id | goods_name
 }
 
-// SturctContent .
-type SturctContent struct {
-	Name          string
-	TableRealName string
-	Content       string
-	Fields        []Field
-	NumberFields  []Field
+// ObjectContent .
+type ObjectContent struct {
+	Name          string   //结构体名称
+	TableRealName string   //表名
+	Content       string   //结构体内容
+	SetMethods    []Method //set的方法
+	AddMethods    []Method //add的方法
 }
 
 // Run .
-func (t *MysqlStruct) Run() (result []SturctContent, e error) {
+func (t *MysqlStruct) Run() (result []ObjectContent, e error) {
 	// 链接mysql, 获取db对象
 	t.dialMysql()
 	if t.err != nil {
@@ -131,9 +136,9 @@ func (t *MysqlStruct) Run() (result []SturctContent, e error) {
 			tableRealName = tableRealName[len(t.prefix):]
 		}
 		tableName := tableRealName
-		sc := SturctContent{
+		sc := ObjectContent{
 			TableRealName: tableName,
-			Fields:        make([]Field, 0),
+			SetMethods:    make([]Method, 0),
 		}
 
 		switch len(tableName) {
@@ -170,16 +175,16 @@ func (t *MysqlStruct) Run() (result []SturctContent, e error) {
 			if v.Primary == "PRI" {
 				continue
 			}
-			fieldItem := Field{
-				Column:     column,
-				Type:       v.Type,
-				Value:      v.ColumnName,
-				StructName: tableName,
-				Arg:        lowerCamelCase(v.ColumnName),
+			fieldItem := Method{
+				Column:       column,
+				VariableType: v.Type,
+				Name:         v.ColumnName,
+				ObjectName:   tableName,
+				Variable:     lowerCamelCase(v.ColumnName),
 			}
-			sc.Fields = append(sc.Fields, fieldItem)
+			sc.SetMethods = append(sc.SetMethods, fieldItem)
 			if v.Type == "int" || v.Type == "float64" {
-				sc.NumberFields = append(sc.NumberFields, fieldItem)
+				sc.AddMethods = append(sc.AddMethods, fieldItem)
 			}
 		}
 		structContent += tab(depth-1) + "}\n\n"

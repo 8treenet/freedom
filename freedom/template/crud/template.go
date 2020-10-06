@@ -31,19 +31,19 @@ func (obj *{{.Name}}) setChanges(name string, value interface{}) {
 	obj.changes[name] = value
 }
 
-{{range .Fields}}
-// Set{{.Value}} .
-func (obj *{{.StructName}}) Set{{.Value}} ({{.Arg}} {{.Type}}) {
-	obj.{{.Value}} = {{.Arg}} 
-	obj.setChanges("{{.Column}}", {{.Arg}})
+{{range .SetMethods}}
+// Set{{.Name}} .
+func (obj *{{.ObjectName}}) Set{{.Name}} ({{.Variable}} {{.VariableType}}) {
+	obj.{{.Name}} = {{.Variable}} 
+	obj.setChanges("{{.Column}}", {{.Variable}})
 }
 {{ end }}
 
-{{range .NumberFields}}
-// Add{{.Value}} .
-func (obj *{{.StructName}}) Add{{.Value}} ({{.Arg}} {{.Type}}) {
-	obj.{{.Value}} += {{.Arg}} 
-	obj.setChanges("{{.Column}}", gorm.Expr("{{.Column}} + ?", {{.Arg}}))
+{{range .AddMethods}}
+// Add{{.Name}} .
+func (obj *{{.ObjectName}}) Add{{.Name}} ({{.Variable}} {{.VariableType}}) {
+	obj.{{.Name}} += {{.Variable}} 
+	obj.setChanges("{{.Column}}", gorm.Expr("{{.Column}} + ?", {{.Variable}}))
 }
 {{ end }}
 `
