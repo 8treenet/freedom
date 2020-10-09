@@ -29,10 +29,14 @@ $ freedom new-project [project-name]
 ## 脚手架生成增删查改和持久化对象
 ####
 ```sh
-# 编辑 [project-name]/server/conf/db.toml 填入数据库地址
 # freedom new-po -h 查看更多
 $ cd [project-name]
-$ freedom new-po
+
+# 数据库数据源方式
+$ freedom new-po --dsn "root:123123@tcp(127.0.0.1:3306)/learning_user?charset=utf8"
+
+# JSON 数据源方式
+$ freedom new-po --json ./domain/po/shcema.json
 ```
 
 ## Example

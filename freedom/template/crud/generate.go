@@ -2,8 +2,10 @@ package crud
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"strings"
 	"unicode"
 
@@ -50,43 +52,29 @@ var typeForMysqlToGo = map[string]string{
 	"varbinary":          "string",
 }
 
-// MysqlStruct .
-type MysqlStruct struct {
+// Generate .
+type Generate struct {
 	dsn            string
 	db             *sql.DB
 	table          string
 	prefix         string
-	err            error
 	realNameMethod string
-	tagKey         string // tag字段的key值,默认是orm
 }
 
-// NewMysqlStruct .
-func NewMysqlStruct() *MysqlStruct {
-	return &MysqlStruct{}
+// NewGenerate .
+func NewGenerate() *Generate {
+	return &Generate{}
 }
 
 // Dsn .
-func (t *MysqlStruct) Dsn(d string) *MysqlStruct {
+func (t *Generate) Dsn(d string) *Generate {
 	t.dsn = d
 	return t
 }
 
-// TagKey .
-func (t *MysqlStruct) TagKey(r string) *MysqlStruct {
-	t.tagKey = r
-	return t
-}
-
-// RealNameMethod .
-func (t *MysqlStruct) RealNameMethod(r string) *MysqlStruct {
-	t.realNameMethod = r
-	return t
-}
-
-// DB .
-func (t *MysqlStruct) DB(d *sql.DB) *MysqlStruct {
-	t.db = d
+// SetPrefix .
+func (t *Generate) SetPrefix(prefix string) *Generate {
+	t.prefix = prefix
 	return t
 }
 
@@ -113,12 +101,9 @@ type ObjectContent struct {
 	AddMethods    []Method //add的方法
 }
 
-// Run .
-func (t *MysqlStruct) Run() (result []ObjectContent, e error) {
-	// 链接mysql, 获取db对象
-	t.dialMysql()
-	if t.err != nil {
-		e = t.err
+// RunDsn .
+func (t *Generate) RunDsn() (result []ObjectContent, e error) {
+	if e = t.dialMysql(); e != nil {
 		return
 	}
 
@@ -129,16 +114,39 @@ func (t *MysqlStruct) Run() (result []ObjectContent, e error) {
 		return
 	}
 
+	return t.shcema(tableColumns), nil
+}
+
+// RunJSON .
+func (t *Generate) RunJSON(jsonFileName string) (result []ObjectContent, e error) {
+	buffer, err := ioutil.ReadFile(jsonFileName)
+	if err != nil {
+		e = err
+		return
+	}
+	var tables []interface{}
+	json.Unmarshal(buffer, &tables)
+
+	// 获取表和字段的shcema
+	tableColumns, err := t.getJSONColumns(tables)
+	if err != nil {
+		e = err
+		return
+	}
+	return t.shcema(tableColumns), nil
+}
+
+func (t *Generate) shcema(tableColumns map[string][]column) (result []ObjectContent) {
 	for tableRealName, item := range tableColumns {
 		var structContent string
-		// 去除前缀
-		if t.prefix != "" {
-			tableRealName = tableRealName[len(t.prefix):]
-		}
 		tableName := tableRealName
 		sc := ObjectContent{
 			TableRealName: tableName,
 			SetMethods:    make([]Method, 0),
+		}
+		// 去除前缀
+		if t.prefix != "" {
+			tableName = tableRealName[len(t.prefix):]
 		}
 
 		switch len(tableName) {
@@ -202,17 +210,15 @@ func (t *MysqlStruct) Run() (result []ObjectContent, e error) {
 		sc.Content = structContent
 		result = append(result, sc)
 	}
-
 	return
 }
 
-func (t *MysqlStruct) dialMysql() {
+func (t *Generate) dialMysql() (e error) {
 	if t.db == nil {
 		if t.dsn == "" {
-			t.err = errors.New("dsn数据库配置缺失")
-			return
+			return errors.New("dsn数据库配置缺失")
 		}
-		t.db, t.err = sql.Open("mysql", t.dsn)
+		t.db, e = sql.Open("mysql", t.dsn)
 	}
 	return
 }
@@ -220,7 +226,6 @@ func (t *MysqlStruct) dialMysql() {
 type column struct {
 	ColumnName    string
 	Type          string
-	Nullable      string
 	TableName     string
 	ColumnComment string
 	Tag           string
@@ -228,7 +233,7 @@ type column struct {
 }
 
 // Function for fetching schema definition of passed table
-func (t *MysqlStruct) getColumns(table ...string) (tableColumns map[string][]column, err error) {
+func (t *Generate) getColumns(table ...string) (tableColumns map[string][]column, err error) {
 	tableColumns = make(map[string][]column)
 	// sql
 	var sqlStr = `SELECT COLUMN_NAME,DATA_TYPE,IS_NULLABLE,TABLE_NAME,COLUMN_COMMENT,COLUMN_KEY
@@ -251,7 +256,8 @@ func (t *MysqlStruct) getColumns(table ...string) (tableColumns map[string][]col
 
 	for rows.Next() {
 		col := column{}
-		err = rows.Scan(&col.ColumnName, &col.Type, &col.Nullable, &col.TableName, &col.ColumnComment, &col.Primary)
+		var Nullable string
+		err = rows.Scan(&col.ColumnName, &col.Type, &Nullable, &col.TableName, &col.ColumnComment, &col.Primary)
 
 		if err != nil {
 			fmt.Println(err.Error())
@@ -270,7 +276,41 @@ func (t *MysqlStruct) getColumns(table ...string) (tableColumns map[string][]col
 	return
 }
 
-func (t *MysqlStruct) camelCase(str string) string {
+// Function for fetching schema definition of passed table
+func (t *Generate) getJSONColumns(jsonData []interface{}) (tableColumns map[string][]column, err error) {
+	tableColumns = make(map[string][]column)
+	for _, tableObjData := range jsonData {
+		tableObj := tableObjData.(map[string]interface{})
+		tableName := tableObj["tableName"].(string)
+		primaryKey, _ := tableObj["primaryKey"].(string)
+
+		for key, value := range tableObj {
+			if !strings.Contains(key, "columns") {
+				continue
+			}
+			columnType := strings.Split(key, ":")[1]
+			if newType, ok := typeForMysqlToGo[columnType]; ok {
+				columnType = newType
+			}
+
+			for _, columnInterface := range value.([]interface{}) {
+				columnName := columnInterface.(string)
+				col := column{}
+				col.Tag = columnName
+				col.ColumnName = t.camelCase(columnName)
+				col.Type = columnType
+				col.TableName = tableName
+				if columnName == primaryKey {
+					col.Primary = "PRI"
+				}
+				tableColumns[tableName] = append(tableColumns[tableName], col)
+			}
+		}
+	}
+	return
+}
+
+func (t *Generate) camelCase(str string) string {
 	// 是否有表前缀, 设置了就先去除表前缀
 	if t.prefix != "" {
 		str = strings.Replace(str, t.prefix, "", 1)
@@ -414,4 +454,16 @@ func lowerCamelCase(field string) string {
 		}
 	}
 	return lowerStr
+}
+
+func isNumber(columnType string) bool {
+	switch columnType {
+	case "uint8", "uint16", "uint32", "uint64", "uint":
+		return true
+	case "int8", "int16", "int32", "int64", "int":
+		return true
+	case "float32", "float64":
+		return true
+	}
+	return false
 }

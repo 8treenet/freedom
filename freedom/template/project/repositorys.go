@@ -29,7 +29,7 @@ func repositoryTemplate() string {
 	
 	// GetIP .
 	func (repo *Default) GetIP() string {
-		//repo.DB().Find()
+		//repo.db().Find()
 		repo.Worker.Logger().Info("我是Repository GetIP")
 		return repo.Worker.IrisContext().RemoteAddr()
 	}

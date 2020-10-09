@@ -89,16 +89,22 @@ func controllerTemplate() string {
 		return &infra.JSONResponse{Object: method + "CustomHello"}
 	}
 	
-	//GetUserBy handles the GET: /user/{username:string} route.
+	//GetUserBy handles the GET: /user/{username:string}?token=ftoken123&id=1&ip=192&ip=168&ip=1&ip=1 route.
 	func (c *Default) GetUserBy(username string) freedom.Result {
 		var query struct {
+			/*
+				Equal
+				c.Worker.IrisContext().URLParam("token")
+				c.Worker.IrisContext().URLParamInt64("id")
+			*/
 			Token string $$waveurl:"token" validate:"required"$$wave
 			ID    int64  $$waveurl:"id" validate:"required"$$wave
-			IP    []int64 $$waveurl:"ip"$$wave
+			IP    []int64 $$waveurl:"ip"$$wave //Support array parameters
 		}
 		if err := c.Request.ReadQuery(&query); err != nil {
 			return &infra.JSONResponse{Error: err}
 		}
+
 		var data struct {
 			Name  string
 			Token string

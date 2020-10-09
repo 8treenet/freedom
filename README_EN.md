@@ -28,10 +28,14 @@ $ freedom new-project [project-name]
 
 ## Build Persistent Objects(PO)
 ```sh
-# Vim [project-name]/cmd/conf/db.toml -- Fill in database address
 # Configurable address and output directory, using 'freedom new-po -h' to see more
 $ cd [project-name]
-$ freedom new-po
+
+# DB shcema
+$ freedom new-po --dsn "root:123123@tcp(127.0.0.1:3306)/learning_user?charset=utf8"
+
+# JSON shcema
+$ freedom new-po --json ./domain/po/shcema.json
 ```
 
 ## Example
