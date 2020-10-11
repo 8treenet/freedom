@@ -33,7 +33,7 @@ $ freedom new-project [project-name]
 $ cd [project-name]
 
 # 数据库数据源方式
-$ freedom new-po --dsn "root:123123@tcp(127.0.0.1:3306)/learning_user?charset=utf8"
+$ freedom new-po --dsn "root:123123@tcp(127.0.0.1:3306)/freedom?charset=utf8"
 
 # JSON 数据源方式
 $ freedom new-po --json ./domain/po/shcema.json

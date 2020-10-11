@@ -32,7 +32,7 @@ $ freedom new-project [project-name]
 $ cd [project-name]
 
 # DB shcema
-$ freedom new-po --dsn "root:123123@tcp(127.0.0.1:3306)/learning_user?charset=utf8"
+$ freedom new-po --dsn "root:123123@tcp(127.0.0.1:3306)/freedom?charset=utf8"
 
 # JSON shcema
 $ freedom new-po --json ./domain/po/shcema.json
