@@ -5,15 +5,15 @@
 ###### Freedom是一个基于六边形架构的框架，可以支撑充血的领域模型范式。
 
 ## Overview
-- 集成iris v12
+- 集成Iris v12
 - 集成普罗米修斯
 - 无侵入式Trace
 - 基于组件式的基础设施扩展
-- http2 server & client
+- HTTP/H2C Server & Client
 - 依赖注入 & 依赖倒置
 - CRUD & PO 代码生成
 - DDD & 六边形架构
-- 消息事件 & 事件重试 & 领域事件
+- 消息事件 & 领域事件
 - 一级缓存 & 二级缓存 & 防击穿
 
 ## 安装
