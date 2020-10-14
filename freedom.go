@@ -104,7 +104,7 @@ var path string
 
 // Configurer .
 type Configurer interface {
-	Configure(obj interface{}, file string, must bool, metaData ...interface{})
+	Configure(obj interface{}, file string, metaData ...interface{}) error
 }
 
 var configurer Configurer
@@ -115,10 +115,9 @@ func SetConfigurer(confer Configurer) {
 }
 
 // Configure .
-func Configure(obj interface{}, file string, must bool, metaData ...interface{}) {
+func Configure(obj interface{}, file string, metaData ...interface{}) error {
 	if configurer != nil {
-		configurer.Configure(obj, file, must)
-		return
+		return configurer.Configure(obj, file)
 	}
 	if path == "" {
 		path = os.Getenv("FREEDOM_PROJECT_CONFIG")
@@ -160,9 +159,7 @@ func Configure(obj interface{}, file string, must bool, metaData ...interface{})
 		panic("No profile directory found:" + "'$FREEDOM_PROJECT_CONFIG' or './conf' or './server/conf' or '" + callerProjectDir + "'")
 	}
 	_, err := toml.DecodeFile(path+"/"+file, obj)
-	if err != nil && !must {
-		panic(err)
-	}
+	return err
 }
 
 // Application .

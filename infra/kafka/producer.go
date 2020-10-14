@@ -49,7 +49,9 @@ func (pi *ProducerImpl) Booting(sb freedom.SingleBoot) {
 	pi.saramaProducerMap = make(map[string]sarama.SyncProducer)
 
 	conf := kafkaConf{}
-	freedom.Configure(&conf, "infra/kafka.toml", true)
+	if err := freedom.Configure(&conf, "infra/kafka.toml"); err != nil {
+		panic(err)
+	}
 	if !conf.Producer.Open {
 		freedom.Logger().Debug("[freedom]'infra/kafka.toml' '[[producer.open]]' is false")
 		return

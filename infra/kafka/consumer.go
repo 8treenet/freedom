@@ -41,7 +41,9 @@ func (c *Consumer) StartUp(f func()) {
 func (c *Consumer) Booting(sb freedom.SingleBoot) {
 	c.limiter = newLimiter(int32(runtime.NumCPU() * 2048))
 	c.topicPath = sb.EventsPath(c)
-	freedom.Configure(&c.conf, "infra/kafka.toml", true)
+	if err := freedom.Configure(&c.conf, "infra/kafka.toml"); err != nil {
+		panic(err)
+	}
 	if !c.conf.Consumer.Open {
 		freedom.Logger().Debug("[freedom]'infra/kafka.toml' '[[consumer.open]]' is false")
 		return

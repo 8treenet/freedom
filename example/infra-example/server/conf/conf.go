@@ -56,13 +56,13 @@ func newAppConf() *freedom.Configuration {
 	result := freedom.DefaultConfiguration()
 	result.Other["listen_addr"] = ":8000"
 	result.Other["service_name"] = "default"
-	freedom.Configure(&result, "app.toml", false)
+	freedom.Configure(&result, "app.toml")
 	return &result
 }
 
 func newDBConf() *DBConf {
 	result := &DBConf{}
-	freedom.Configure(result, "db.toml", false)
+	freedom.Configure(result, "db.toml")
 	return result
 }
 
@@ -75,6 +75,6 @@ func newRedisConf() *RedisConf {
 		IdleTimeout:        300,
 		IdleCheckFrequency: 60,
 	}
-	freedom.Configure(result, "redis.toml", true)
+	freedom.Configure(result, "redis.toml")
 	return result
 }
