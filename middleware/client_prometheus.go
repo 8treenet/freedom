@@ -1,9 +1,10 @@
-package requests
+package middleware
 
 import (
 	"fmt"
 	"time"
 
+	"github.com/8treenet/freedom/infra/requests"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -17,8 +18,8 @@ type prom interface {
 	RegisterCounter(conter *prometheus.CounterVec)
 }
 
-// InstallPrometheus .
-func InstallPrometheus(serviceName string, p prom) {
+// NewClientPrometheus .
+func NewClientPrometheus(serviceName string, p prom) requests.Handler {
 	httpClientReqs := prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name:        httpClientReqsName,
@@ -37,7 +38,7 @@ func InstallPrometheus(serviceName string, p prom) {
 	)
 	p.RegisterHistogram(httpClientLatency)
 
-	UseMiddleware(func(middle Middleware) {
+	return func(middle requests.Middleware) {
 		now := time.Now()
 		middle.Next()
 		domain := middle.GetRequest().URL.Host
@@ -45,7 +46,7 @@ func InstallPrometheus(serviceName string, p prom) {
 		rep := middle.GetRespone()
 		code := ""
 		protocol := ""
-		if rep.Error != nil {
+		if rep.Error == nil {
 			protocol = rep.Proto
 			code = fmt.Sprint(rep.StatusCode)
 		} else {
@@ -53,5 +54,5 @@ func InstallPrometheus(serviceName string, p prom) {
 		}
 		httpClientReqs.WithLabelValues(domain, code, protocol, method).Inc()
 		httpClientLatency.WithLabelValues(domain, code, protocol, method).Observe(float64(time.Since(now).Nanoseconds()) / 1000000000)
-	})
+	}
 }

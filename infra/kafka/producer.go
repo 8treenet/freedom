@@ -52,6 +52,18 @@ func (pi *ProducerImpl) Booting(sb freedom.SingleBoot) {
 	if err := freedom.Configure(&conf, "infra/kafka.toml"); err != nil {
 		panic(err)
 	}
+	pi.dial(conf)
+
+	sb.RegisterShutdown(func() {
+		pi.close()
+	})
+
+	for i := 0; i < len(pi.startUpCallBack); i++ {
+		pi.startUpCallBack[i]()
+	}
+}
+
+func (pi *ProducerImpl) dial(conf kafkaConf) {
 	if !conf.Producer.Open {
 		freedom.Logger().Debug("[freedom]'infra/kafka.toml' '[[producer.open]]' is false")
 		return
@@ -75,14 +87,6 @@ func (pi *ProducerImpl) Booting(sb freedom.SingleBoot) {
 			pi.defaultProducer = syncp
 		}
 		pi.saramaProducerMap[conf.Producers[index].Name] = syncp
-	}
-
-	sb.RegisterShutdown(func() {
-		pi.close()
-	})
-
-	for i := 0; i < len(pi.startUpCallBack); i++ {
-		pi.startUpCallBack[i]()
 	}
 }
 
@@ -122,9 +126,9 @@ func (pi *ProducerImpl) NewMsg(topic string, content []byte, producerName ...str
 		pName = producerName[0]
 	}
 	return &Msg{
-		topic:        topic,
+		Topic:        topic,
 		key:          producer.generateMessageKey(),
-		content:      content,
+		Content:      content,
 		producerName: pName,
 	}
 }
@@ -133,7 +137,7 @@ func (pi *ProducerImpl) NewMsg(topic string, content []byte, producerName ...str
 func (pi *ProducerImpl) DomainEvent(producer, topic string, data []byte, worker freedom.Worker, header ...map[string]string) {
 	msg := pi.NewMsg(topic, data, producer)
 	if len(header) > 0 {
-		msg = msg.SetHeaders(header[0])
+		msg = msg.SetHeader(header[0])
 	}
 	msg.SetWorker(worker).Publish()
 }

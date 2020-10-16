@@ -95,16 +95,42 @@ group_id = "freedom"
 ```
 
 
-#### 领域事件风格
+#### 领域事件&消息中间件
 ```go
 /*
-    1.先要安装领域事件的基础设施，freedom 已经实现了kafka。可自行定义其他，但领域事件只支持唯一的安装。
+    1.先要安装领域事件的基础设施，freedom 已经实现了kafka。可自行定义其他。
     2.安装以后 entity 可以直接使用 DomanEvent 方法触发。
 */
 func main() {
-	//获取领域事件的kafka基础设施并安装
-	app.InstallDomainEventInfra(kafka.GetDomainEventInfra())
-	app.Run(addrRunner, *conf.Get().App)
+    //获取领域事件的kafka基础设施并安装
+    app.InstallDomainEventInfra(kafka.GetDomainEventInfra())
+    //安装自定义消息中间件
+    kafka.InstallMiddleware(newProducerMiddleware())
+    app.Run(addrRunner, *conf.Get().App)
+}
+
+// 自定义一个消息日志中间件
+func newProducerMiddleware() kafka.ProducerHandler {
+    return func(msg *kafka.Msg) {
+        now := time.Now()
+        msg.Next()
+        diff := time.Now().Sub(now)
+        
+        if err := msg.GetExecution(); err != nil {
+            freedom.Logger().Error(string(msg.Content), freedom.LogFields{
+                "topic":    msg.GetTopic(),
+                "duration": diff.Milliseconds(),
+                "error":    err.Error(),
+                "title":    "producer",
+            })
+            return
+        }
+        freedom.Logger().Info(string(msg.Content), freedom.LogFields{
+            "topic":    msg.GetTopic(),
+            "duration": diff.Milliseconds(),
+            "title":    "producer",
+        })
+    }
 }
 ```
 

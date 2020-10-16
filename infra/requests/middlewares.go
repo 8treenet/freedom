@@ -23,7 +23,7 @@ var middlewares []Handler
 // Handler .
 type Handler func(Middleware)
 
-// UseMiddleware .
-func UseMiddleware(handle ...Handler) {
+// InstallMiddleware .
+func InstallMiddleware(handle ...Handler) {
 	middlewares = append(middlewares, handle...)
 }

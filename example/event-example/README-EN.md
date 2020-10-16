@@ -95,7 +95,7 @@ group_id = "freedom"
 ```
 
 
-#### Domain Event
+#### Domain Event & Message Middleware
 ```go
 /*
    1) First install the infrastructure of domain events. Freedom has implemented kafka. You can define others by yourself, but domain events only support unique installations.
@@ -103,8 +103,34 @@ group_id = "freedom"
 */
 func main() {
 	// Obtain and install the kafka infrastructure for domain events
-	app.InstallDomainEventInfra(kafka.GetDomainEventInfra())
-	app.Run(addrRunner, *conf.Get().App)
+    app.InstallDomainEventInfra(kafka.GetDomainEventInfra())
+    // Install the message middleware.
+    kafka.InstallMiddleware(newProducerMiddleware())
+    app.Run(addrRunner, *conf.Get().App)
+}
+
+// Customize a message log middleware.
+func newProducerMiddleware() kafka.ProducerHandler {
+    return func(msg *kafka.Msg) {
+        now := time.Now()
+        msg.Next()
+        diff := time.Now().Sub(now)
+        
+        if err := msg.GetExecution(); err != nil {
+            freedom.Logger().Error(string(msg.Content), freedom.LogFields{
+                "topic":    msg.GetTopic(),
+                "duration": diff.Milliseconds(),
+                "error":    err.Error(),
+                "title":    "producer",
+            })
+            return
+        }
+        freedom.Logger().Info(string(msg.Content), freedom.LogFields{
+            "topic":    msg.GetTopic(),
+            "duration": diff.Milliseconds(),
+            "title":    "producer",
+        })
+    }
 }
 ```
 

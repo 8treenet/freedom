@@ -15,6 +15,7 @@ import (
 	"github.com/go-redis/redis"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 func main() {
@@ -49,11 +50,17 @@ func installMiddleware(app freedom.Application) {
 
 	//日志中间件，每个请求一个logger
 	app.InstallMiddleware(middleware.NewRequestLogger("x-request-id", loggerConfig))
-
 	//logRow中间件，每一行日志都会触发回调。如果返回true，将停止中间件遍历回调。
 	app.Logger().Handle(middleware.DefaultLogRowHandle)
+
 	//HttpClient 普罗米修斯中间件，监控下游的API请求。
-	requests.InstallPrometheus(conf.Get().App.Other["service_name"].(string), freedom.Prometheus())
+	middle := middleware.NewClientPrometheus(conf.Get().App.Other["service_name"].(string), freedom.Prometheus())
+	requests.InstallMiddleware(middle)
+
+	//安装事件监控中间件
+	eventMiddle := NewEventPrometheus(conf.Get().App.Other["service_name"].(string))
+	kafka.InstallMiddleware(eventMiddle)
+
 	//总线中间件，处理上下游透传的Header
 	app.InstallBusMiddleware(middleware.NewBusFilter())
 }
@@ -102,4 +109,30 @@ func liveness(app freedom.Application) {
 	app.Iris().Get("/ping", func(ctx freedom.Context) {
 		ctx.WriteString("pong")
 	})
+}
+
+// NewEventPrometheus 事件监控中间件
+func NewEventPrometheus(serviceName string) kafka.ProducerHandler {
+	eventPublishReqs := prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name:        "event_publish_total",
+			Help:        "",
+			ConstLabels: prometheus.Labels{"service": serviceName},
+		},
+		[]string{"event", "error"},
+	)
+	freedom.Prometheus().RegisterCounter(eventPublishReqs)
+
+	return func(msg *kafka.Msg) {
+		if msg.IsStopped() {
+			return
+		}
+		msg.Next()
+
+		if msg.GetExecution() != nil {
+			eventPublishReqs.WithLabelValues(msg.Topic, msg.GetExecution().Error()).Inc()
+			return
+		}
+		eventPublishReqs.WithLabelValues(msg.Topic, "").Inc()
+	}
 }

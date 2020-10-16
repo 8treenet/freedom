@@ -27,6 +27,6 @@ func (s *ShopController) GetBy(id int) string {
 		Amount: 10,
 	})
 	msg := s.Producer.NewMsg(EventSell, data)
-	msg.SetHeaders(map[string]string{"x-action": "Buy"}).SetWorker(s.Worker).Publish()
+	msg.SetHeader(map[string]string{"x-action": "Buy"}).SetWorker(s.Worker).Publish()
 	return "ok"
 }

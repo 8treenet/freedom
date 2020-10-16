@@ -95,8 +95,11 @@ func mainTemplate() string {
 		app.InstallMiddleware(middleware.NewRequestLogger("x-request-id"))
 		//logRow中间件，每一行日志都会触发回调。如果返回true，将停止中间件遍历回调。
 		app.Logger().Handle(middleware.DefaultLogRowHandle)
-		//HttpClient 普罗米修斯中间件，监控下游的API请求。
-		requests.InstallPrometheus(conf.Get().App.Other["service_name"].(string), freedom.Prometheus())
+
+		//HttpClient 普罗米修斯中间件，监控ClientAPI的请求。
+		middle := middleware.NewClientPrometheus(conf.Get().App.Other["service_name"].(string), freedom.Prometheus())
+		requests.InstallMiddleware(middle)
+				
 		//总线中间件，处理上下游透传的Header
 		app.InstallBusMiddleware(middleware.NewBusFilter())
 	}

@@ -138,6 +138,15 @@ type Starter interface {
 ---
 #### main
 ```go
+
+import (
+    "github.com/8treenet/freedom"
+    _ "github.com/8treenet/freedom/example/base/adapter/controller" //引入输入适配器 http路由
+    _ "github.com/8treenet/freedom/example/base/adapter/repository" //引入输出适配器 repository资源库
+    "github.com/8treenet/freedom/infra/requests"
+    "github.com/8treenet/freedom/middleware"
+)
+
 func main() {
     app := freedom.NewApplication() //创建应用
     installDatabase(app)
@@ -160,8 +169,11 @@ func installMiddleware(app freedom.Application) {
     app.InstallMiddleware(middleware.NewRequestLogger("x-request-id"))
     //logRow中间件，每一行日志都会触发回调。如果返回true，将停止中间件遍历回调。
     app.Logger().Handle(middleware.DefaultLogRowHandle)
-    //HttpClient 普罗米修斯中间件，监控下游的API请求。
-    requests.InstallPrometheus(conf.Get().App.Other["service_name"].(string), freedom.Prometheus())
+
+    //HttpClient 普罗米修斯中间件，监控ClientAPI的请求。
+    middle := middleware.NewClientPrometheus(conf.Get().App.Other["service_name"].(string), freedom.Prometheus())
+    requests.InstallMiddleware(middle)
+
     //总线中间件，处理上下游透传的Header
     app.InstallBusMiddleware(middleware.NewBusFilter())
 }
@@ -334,26 +346,28 @@ import (
 
 func init() {
 	freedom.Prepare(func(initiator freedom.Initiator) {
-        //绑定 Default Repository
-		initiator.BindRepository(func() *Default {
-			return &Default{}
-		})
+            //绑定 Default Repository
+            initiator.BindRepository(func() *Default {
+                return &Default{}
+            })
 	})
 }
 
 // Default .
 type Default struct {
     //继承 freedom.Repository
-	freedom.Repository
+    freedom.Repository
 }
 
 // GetIP .
 func (repo *Default) GetIP() string {
     //只有继承资源库后才有DB、Redis、NewHttp、Other 访问权限, 并且可以直接获取 Worker
-    repo.DB()
+    repo.FetchDB(&db)
+    repo.FetchSourceDB(&db)
     repo.Redis()
     repo.Other()
     repo.NewHttpRequest()
+    repo.NewH2CRequest()
     repo.Worker.Logger().Infof("我是Repository GetIP")
     return repo.Worker.IrisContext().RemoteAddr()
 }

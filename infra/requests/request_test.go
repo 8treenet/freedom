@@ -33,8 +33,8 @@ func NewEnableTraceMiddleware() requests.Handler {
 
 func TestGet(t *testing.T) {
 	//添加中间件
-	requests.UseMiddleware(NewMiddleware())
-	requests.UseMiddleware(NewEnableTraceMiddleware())
+	requests.InstallMiddleware(NewMiddleware())
+	requests.InstallMiddleware(NewEnableTraceMiddleware())
 
 	value, rep := newRequest("http://127.0.0.1:8000/hello").Get().ToString()
 	t.Log(value, rep.Error)
@@ -79,7 +79,7 @@ func TestQueryParamGet(t *testing.T) {
 }
 
 func TestPost(t *testing.T) {
-	requests.UseMiddleware(NewMiddleware())
+	requests.InstallMiddleware(NewMiddleware())
 
 	var postBody struct {
 		UserName     string `json:"userName"`
@@ -102,7 +102,7 @@ func TestPost(t *testing.T) {
 }
 
 func TestFeature(t *testing.T) {
-	requests.UseMiddleware(NewMiddleware())
+	requests.InstallMiddleware(NewMiddleware())
 	resultString, rep := newRequest("http://127.0.0.1:8000/hello").Get().EnableTrace().ToString()
 	t.Log(resultString, rep.Error, rep.TraceInfo())
 
@@ -114,8 +114,8 @@ func TestFeature(t *testing.T) {
 }
 
 func TestSingleflight(t *testing.T) {
-	requests.UseMiddleware(NewMiddleware())
-	requests.UseMiddleware(NewEnableTraceMiddleware())
+	requests.InstallMiddleware(NewMiddleware())
+	requests.InstallMiddleware(NewEnableTraceMiddleware())
 
 	group := sync.WaitGroup{}
 	for i := 0; i < 100; i++ {
