@@ -38,7 +38,7 @@ func injectBaseEntity(run Worker, entityObject interface{}) {
 	e.entityObject = entityObject
 	eValue := reflect.ValueOf(e)
 	if entityField.Kind() != reflect.Interface || !eValue.Type().Implements(entityField.Type()) {
-		globalApp.Logger().Fatalf("[freedom]InjectBaseEntity: This is not a legitimate entity, %v", entityObjectValue.Type())
+		globalApp.Logger().Fatalf("[Freedom] InjectBaseEntity: This is not a legitimate entity, %v", entityObjectValue.Type())
 	}
 	entityField.Set(eValue)
 	return
@@ -54,7 +54,7 @@ type entity struct {
 
 func (e *entity) DomainEvent(fun string, object interface{}, header ...map[string]string) {
 	if globalApp.eventInfra == nil {
-		globalApp.Logger().Fatalf("[freedom]DomainEvent: Unrealized Domain Event Infrastructure, %v", reflect.TypeOf(object))
+		globalApp.Logger().Fatalf("[Freedom] DomainEvent: Unrealized Domain Event Infrastructure, %v", reflect.TypeOf(object))
 	}
 	json, err := globalApp.marshal(object)
 	if err != nil {
@@ -82,7 +82,7 @@ func (e *entity) SetProducer(producer string) {
 func (e *entity) Marshal() []byte {
 	data, err := globalApp.marshal(e.entityObject)
 	if err != nil {
-		e.worker.Logger().Errorf("[freedom]Entity.Marshal: serialization failed, %v, error:%v", reflect.TypeOf(e.entityObject), err)
+		e.worker.Logger().Errorf("[Freedom] Entity.Marshal: serialization failed, %v, error:%v", reflect.TypeOf(e.entityObject), err)
 	}
 	return data
 }

@@ -122,14 +122,14 @@ func (msg *Msg) do() error {
 	syncProducer := producer.getSaramaProducer(msg.producerName)
 	if syncProducer == nil {
 		errMsg := fmt.Sprintf("This '%s', no producer found, please check 'infra/kafka.toml'.", msg.Topic)
-		freedom.Logger().Error("[freedom]" + errMsg)
+		freedom.Logger().Error("[Freedom] " + errMsg)
 		return nil
 	}
 	_, _, err := syncProducer.SendMessage(saramaMsg)
-	freedom.Logger().Debug("[freedom]Produce topic: ", saramaMsg.Topic)
+	freedom.Logger().Debug("[Freedom] Produce topic: ", saramaMsg.Topic)
 	if err == nil {
 		return nil
 	}
-	freedom.Logger().Error("[freedom]Failed to send message,", "topic:"+msg.Topic, "content:"+string(msg.Content), "error:"+err.Error())
+	freedom.Logger().Error("[Freedom] Failed to send message,", "topic:"+msg.Topic, "content:"+string(msg.Content), "error:"+err.Error())
 	return err
 }

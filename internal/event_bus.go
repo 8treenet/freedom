@@ -22,7 +22,7 @@ type EventBus struct {
 
 func (msgBus *EventBus) addEvent(objectMethod, eventName string, infraCom ...interface{}) {
 	if _, ok := msgBus.eventsAddr[eventName]; ok {
-		globalApp.Logger().Fatalf("[freedom]ListenEvent: Event already bound :%v", eventName)
+		globalApp.Logger().Fatalf("[Freedom] ListenEvent: Event already bound :%v", eventName)
 	}
 	msgBus.eventsAddr[eventName] = objectMethod
 	if len(infraCom) > 0 {
@@ -61,10 +61,10 @@ func (msgBus *EventBus) building() {
 			}
 			ft := method.Func.Type()
 			if ft.NumIn() != 2 {
-				globalApp.Logger().Fatalf("[freedom]ListenEvent: Event routing parameters must be 'eventID string', MainHandlerName:%v", t.Elem().String()+"."+method.Name)
+				globalApp.Logger().Fatalf("[Freedom] ListenEvent: Event routing parameters must be 'eventID string', MainHandlerName:%v", t.Elem().String()+"."+method.Name)
 			}
 			if ft.In(1).Kind() != reflect.String {
-				globalApp.Logger().Fatalf("[freedom]ListenEvent: Event routing parameters must be 'eventID string', MainHandlerName:%v", t.Elem().String()+"."+method.Name)
+				globalApp.Logger().Fatalf("[Freedom] ListenEvent: Event routing parameters must be 'eventID string', MainHandlerName:%v", t.Elem().String()+"."+method.Name)
 			}
 			eventsRoute[eventName] = t.Elem().String() + "." + method.Name
 		}
@@ -75,7 +75,7 @@ func (msgBus *EventBus) building() {
 				continue
 			}
 			if r.Method != "POST" {
-				globalApp.Logger().Fatalf("[freedom]ListenEvent: Event routing must be 'post', MainHandlerName:%v", r.MainHandlerName)
+				globalApp.Logger().Fatalf("[Freedom] ListenEvent: Event routing must be 'post', MainHandlerName:%v", r.MainHandlerName)
 			}
 			msgBus.eventsPath[eventName] = r.Path
 		}

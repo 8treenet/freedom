@@ -17,8 +17,8 @@ func main() {
 	app := freedom.NewApplication()
 	installDatabase(app)
 	installMiddleware(app)
-	addrRunner := app.CreateRunner(conf.Get().App.Other["listen_addr"].(string))
-	//app.InstallParty("/http2")
+	addrRunner := app.NewRunner(conf.Get().App.Other["listen_addr"].(string))
+	//app.InstallParty("/example")
 	liveness(app)
 	app.Run(addrRunner, *conf.Get().App)
 }

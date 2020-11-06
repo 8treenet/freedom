@@ -22,12 +22,16 @@ func main() {
 		installDatabase(app)
 		installRedis(app)
 
-		http2 h2c service
-		h2caddrRunner := app.CreateH2CRunner(conf.Get().App.Other["listen_addr"].(string))
+		HTTP/2 h2c Runner
+		runner := app.NewH2CRunner(conf.Get().App.Other["listen_addr"].(string))
+		HTTP/2 AutoTLS Runner
+		runner := app.NewAutoTLSRunner(":443", "freedom.com www.freedom.com", "freedom@163.com")))
+		HTTP/2 TLS Runner
+		runner := app.NewTLSRunner(":443", "certFile", "keyFile")))
 	*/
 
 	installMiddleware(app)
-	addrRunner := app.CreateRunner(conf.Get().App.Other["listen_addr"].(string))
+	addrRunner := app.NewRunner(conf.Get().App.Other["listen_addr"].(string))
 	//app.InstallParty("/base")
 	liveness(app)
 	app.Run(addrRunner, *conf.Get().App)

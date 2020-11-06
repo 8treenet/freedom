@@ -14,7 +14,7 @@ func main() {
 	installMiddleware(app)
 
 	//http2 h2c 服务
-	h2caddrRunner := app.CreateH2CRunner(conf.Get().App.Other["listen_addr"].(string))
+	h2caddrRunner := app.NewH2CRunner(conf.Get().App.Other["listen_addr"].(string))
 	//app.InstallParty("/http2")
 	liveness(app)
 	app.Run(h2caddrRunner, *conf.Get().App)

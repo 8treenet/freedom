@@ -35,7 +35,7 @@ func (pool *ServicePool) get(rt *worker, service interface{}) {
 	var newService interface{}
 	newService = pool.malloc(ptr.Type())
 	if newService == nil {
-		globalApp.IrisApp.Logger().Fatalf("[freedom]No dependency injection was found for the service object,%v", ptr.Type())
+		globalApp.IrisApp.Logger().Fatalf("[Freedom] No dependency injection was found for the service object,%v", ptr.Type())
 	}
 
 	ptr.Set(reflect.ValueOf(newService))
@@ -47,7 +47,7 @@ func (pool *ServicePool) get(rt *worker, service interface{}) {
 func (pool *ServicePool) pop(rt Worker, service reflect.Type) interface{} {
 	newService := pool.malloc(service)
 	if newService == nil {
-		globalApp.IrisApp.Logger().Fatalf("[freedom]No dependency injection was found for the service object,%v", service)
+		globalApp.IrisApp.Logger().Fatalf("[Freedom] No dependency injection was found for the service object,%v", service)
 	}
 
 	pool.objBeginRequest(rt, newService)
@@ -84,7 +84,7 @@ func (pool *ServicePool) bind(t reflect.Type, f interface{}) {
 		New: func() interface{} {
 			values := reflect.ValueOf(f).Call([]reflect.Value{})
 			if len(values) == 0 {
-				globalApp.Logger().Fatalf("[freedom]BindService: func return to empty, %v", reflect.TypeOf(f))
+				globalApp.Logger().Fatalf("[Freedom] BindService: func return to empty, %v", reflect.TypeOf(f))
 			}
 
 			newService := values[0].Interface()
@@ -109,7 +109,7 @@ func (pool *ServicePool) malloc(t reflect.Type) interface{} {
 	// Get 其实是在 BindService 时注入的 生成 service 对象的函数
 	newSercice := syncpool.Get()
 	if newSercice == nil {
-		globalApp.Logger().Fatalf("[freedom]BindService: func return to empty, %v", t)
+		globalApp.Logger().Fatalf("[Freedom] BindService: func return to empty, %v", t)
 	}
 	return newSercice
 }

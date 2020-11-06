@@ -36,10 +36,13 @@ type Application interface {
     InstallBusMiddleware(handle ...BusHandler)
     //Install Global Party http://domian/relativePath/controllerParty
     InstallParty(relativePath string)
-    // Create H2C Runner
-    CreateH2CRunner(addr string, configurators ...host.Configurator) iris.Runner
-    // Create HTTP Runner 
-    CreateRunner(addr string, configurators ...host.Configurator) iris.Runner
+
+    //New Runner
+    NewRunner(addr string, configurators ...host.Configurator) iris.Runner
+    NewH2CRunner(addr string, configurators ...host.Configurator) iris.Runner
+    NewAutoTLSRunner(addr string, domain string, email string, configurators ...host.Configurator) iris.Runner
+    NewTLSRunner(addr string, certFile, keyFile string, configurators ...host.Configurator) iris.Runner
+
     // Return Iris Application
     Iris() *iris.Application
     // Logger
@@ -149,9 +152,9 @@ func main() {
     installMiddleware(app)
 
     // Create HTTP Listener
-    addrRunner := app.CreateRunner(conf.Get().App.Other["listen_addr"].(string))
+    addrRunner := app.NewRunner(conf.Get().App.Other["listen_addr"].(string))
     // Create HTTP2.0 H2C Listener
-    addrRunner = app.CreateH2CRunner(conf.Get().App.Other["listen_addr"].(string))
+    addrRunner = app.NewH2CRunner(conf.Get().App.Other["listen_addr"].(string))
     app.Run(addrRunner, *conf.Get().App)
 }
 

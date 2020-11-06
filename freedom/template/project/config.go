@@ -13,11 +13,12 @@ func confTemplate() string {
 
 	import (
 		"runtime"
-
+		"os"
 		"github.com/8treenet/freedom"
 	)
 
 	func init() {
+		entryPoint()
 		cfg = &Configuration{
 			DB:    newDBConf(),
 			App:   newAppConf(),
@@ -72,7 +73,9 @@ func confTemplate() string {
 
 	func newDBConf() *DBConf {
 		result := &DBConf{}
-		freedom.Configure(result, "db.toml")
+		if err := freedom.Configure(result, "db.toml"); err != nil {
+			panic(err)
+		}
 		return result
 	}
 
@@ -85,9 +88,26 @@ func confTemplate() string {
 			IdleTimeout:        300,
 			IdleCheckFrequency: 60,
 		}
-		freedom.Configure(result, "redis.toml")
+		if err := freedom.Configure(result, "redis.toml"); err != nil {
+			panic(err)
+		}
 		return result
-	}	`
+	}
+
+	func entryPoint() {
+		// [./{{.PackagePath}} -c ./server/conf]
+		for i := 0; i < len(os.Args); i++ {
+			if os.Args[i] != "-c" {
+				continue
+			}
+			if i+1 >= len(os.Args) {
+				break
+			}
+			os.Setenv(freedom.ProfileENV, os.Args[i+1])
+		}
+	}	
+	
+	`
 
 	result = strings.ReplaceAll(result, "$$wave", "`")
 	return result

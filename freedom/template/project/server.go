@@ -76,14 +76,18 @@ func mainTemplate() string {
 			installDatabase(app) //安装数据库
 			installRedis(app) //安装redis
 
-			http2 h2c 服务
-			h2caddrRunner := app.CreateH2CRunner(conf.Get().App.Other["listen_addr"].(string))
+			HTTP/2 h2c Runner
+			runner := app.NewH2CRunner(conf.Get().App.Other["listen_addr"].(string))
+			HTTP/2 AutoTLS Runner
+			runner := app.NewAutoTLSRunner(":443", "freedom.com www.freedom.com", "freedom@163.com")
+			HTTP/2 TLS Runner
+			runner := app.NewTLSRunner(":443", "certFile", "keyFile")
 		*/
 		installMiddleware(app)
-		addrRunner := app.CreateRunner(conf.Get().App.Other["listen_addr"].(string))
+		runner := app.NewRunner(conf.Get().App.Other["listen_addr"].(string))
 		//app.InstallParty("/{{.PackagePath}}")
 		liveness(app)
-		app.Run(addrRunner, *conf.Get().App)
+		app.Run(runner, *conf.Get().App)
 	}
 
 	func installMiddleware(app freedom.Application) {

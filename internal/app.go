@@ -117,7 +117,7 @@ func (app *Application) GetService(ctx iris.Context, service interface{}) {
 func (app *Application) BindService(f interface{}) {
 	outType, err := parsePoolFunc(f)
 	if err != nil {
-		globalApp.Logger().Fatalf("[freedom]BindService: The binding function is incorrect, %v : %s", f, err.Error())
+		globalApp.Logger().Fatalf("[Freedom] BindService: The binding function is incorrect, %v : %s", f, err.Error())
 	}
 	app.pool.bind(outType, f)
 }
@@ -126,7 +126,7 @@ func (app *Application) BindService(f interface{}) {
 func (app *Application) BindRepository(f interface{}) {
 	outType, err := parsePoolFunc(f)
 	if err != nil {
-		globalApp.Logger().Fatalf("[freedom]BindRepository: The binding function is incorrect, %v : %s", f, err.Error())
+		globalApp.Logger().Fatalf("[Freedom] BindRepository: The binding function is incorrect, %v : %s", f, err.Error())
 	}
 	app.rpool.bind(outType, f)
 }
@@ -135,7 +135,7 @@ func (app *Application) BindRepository(f interface{}) {
 func (app *Application) BindFactory(f interface{}) {
 	outType, err := parsePoolFunc(f)
 	if err != nil {
-		globalApp.Logger().Fatalf("[freedom]BindFactory: The binding function is incorrect, %v : %s", f, err.Error())
+		globalApp.Logger().Fatalf("[Freedom] BindFactory: The binding function is incorrect, %v : %s", f, err.Error())
 	}
 	app.factoryPool.bind(outType, f)
 }
@@ -155,13 +155,13 @@ func (app *Application) BindInfra(single bool, com interface{}) {
 	if !single {
 		outType, err := parsePoolFunc(com)
 		if err != nil {
-			globalApp.Logger().Fatalf("[freedom]BindInfra: The binding function is incorrect, %v : %s", reflect.TypeOf(com), err.Error())
+			globalApp.Logger().Fatalf("[Freedom] BindInfra: The binding function is incorrect, %v : %s", reflect.TypeOf(com), err.Error())
 		}
 		app.comPool.bind(single, outType, com)
 		return
 	}
 	if reflect.TypeOf(com).Kind() != reflect.Ptr {
-		globalApp.Logger().Fatalf("[freedom]BindInfra: This is not a single-case object, %v", reflect.TypeOf(com))
+		globalApp.Logger().Fatalf("[Freedom] BindInfra: This is not a single-case object, %v", reflect.TypeOf(com))
 	}
 	app.comPool.bind(single, reflect.TypeOf(com), com)
 }
@@ -226,8 +226,85 @@ func (app *Application) Run(serve iris.Runner, irisConf iris.Configuration) {
 	app.IrisApp.Run(serve, iris.WithConfiguration(irisConf))
 }
 
-//CreateH2CRunner .
-func (app *Application) CreateH2CRunner(addr string, configurators ...host.Configurator) iris.Runner {
+// NewRunner can be used as an argument for the `Run` method.
+// It accepts a host address which is used to build a server
+// and a listener which listens on that host and port.
+//
+// Addr should have the form of [host]:port, i.e localhost:8080 or :8080.
+//
+// Second argument is optional, it accepts one or more
+// `func(*host.Configurator)` that are being executed
+// on that specific host that this function will create to start the server.
+// Via host configurators you can configure the back-end host supervisor,
+// i.e to add events for shutdown, serve or error.
+func (app *Application) NewRunner(addr string, configurators ...host.Configurator) iris.Runner {
+	return iris.Addr(addr, configurators...)
+}
+
+// CreateRunner become invalid after a specified date.
+func (app *Application) CreateRunner(addr string, configurators ...host.Configurator) iris.Runner {
+	return app.NewRunner(addr, configurators...)
+}
+
+// NewAutoTLSRunner can be used as an argument for the `Run` method.
+// It will start the Application's secure server using
+// certifications created on the fly by the "autocert" golang/x package,
+// so localhost may not be working, use it at "production" machine.
+//
+// Addr should have the form of [host]:port, i.e mydomain.com:443.
+//
+// The whitelisted domains are separated by whitespace in "domain" argument,
+// i.e "8tree.net", can be different than "addr".
+// If empty, all hosts are currently allowed. This is not recommended,
+// as it opens a potential attack where clients connect to a server
+// by IP address and pretend to be asking for an incorrect host name.
+// Manager will attempt to obtain a certificate for that host, incorrectly,
+// eventually reaching the CA's rate limit for certificate requests
+// and making it impossible to obtain actual certificates.
+//
+// For an "e-mail" use a non-public one, letsencrypt needs that for your own security.
+//
+// Note: `AutoTLS` will start a new server for you
+// which will redirect all http versions to their https, including subdomains as well.
+//
+// Last argument is optional, it accepts one or more
+// `func(*host.Configurator)` that are being executed
+// on that specific host that this function will create to start the server.
+// Via host configurators you can configure the back-end host supervisor,
+// i.e to add events for shutdown, serve or error.
+// Look at the `ConfigureHost` too.
+func (app *Application) NewAutoTLSRunner(addr string, domain string, email string, configurators ...host.Configurator) iris.Runner {
+	return func(irisApp *iris.Application) error {
+		return irisApp.NewHost(&http.Server{Addr: addr}).
+			Configure(configurators...).
+			ListenAndServeAutoTLS(domain, email, "letscache")
+	}
+}
+
+// NewTLSRunner can be used as an argument for the `Run` method.
+// It will start the Application's secure server.
+//
+// Use it like you used to use the http.ListenAndServeTLS function.
+//
+// Addr should have the form of [host]:port, i.e localhost:443 or :443.
+// CertFile & KeyFile should be filenames with their extensions.
+//
+// Second argument is optional, it accepts one or more
+// `func(*host.Configurator)` that are being executed
+// on that specific host that this function will create to start the server.
+// Via host configurators you can configure the back-end host supervisor,
+// i.e to add events for shutdown, serve or error.
+// An example of this use case can be found at:
+func (app *Application) NewTLSRunner(addr string, certFile, keyFile string, configurators ...host.Configurator) iris.Runner {
+	return func(irisApp *iris.Application) error {
+		return irisApp.NewHost(&http.Server{Addr: addr}).
+			Configure(configurators...).
+			ListenAndServeTLS(certFile, keyFile)
+	}
+}
+
+//NewH2CRunner .
+func (app *Application) NewH2CRunner(addr string, configurators ...host.Configurator) iris.Runner {
 	h2cSer := &http2.Server{}
 	ser := &http.Server{
 		Addr:    addr,
@@ -238,11 +315,6 @@ func (app *Application) CreateH2CRunner(addr string, configurators ...host.Confi
 	}
 }
 
-// CreateRunner .
-func (app *Application) CreateRunner(addr string, configurators ...host.Configurator) iris.Runner {
-	return iris.Addr(addr, configurators...)
-}
-
 func (app *Application) shutdown(timeout int64) {
 	iris.RegisterOnInterrupt(func() {
 		//读取配置的关闭最长时间
@@ -250,7 +322,7 @@ func (app *Application) shutdown(timeout int64) {
 		defer cancel()
 		close := func() {
 			if err := recover(); err != nil {
-				app.IrisApp.Logger().Errorf("[freedom]An error was encountered during the program shutdown, %v", err)
+				app.IrisApp.Logger().Errorf("[Freedom] An error was encountered during the program shutdown, %v", err)
 			}
 			app.comPool.shutdown()
 		}
@@ -313,7 +385,7 @@ func (app *Application) Start(f func(starter Starter)) {
 // GetSingleInfra .
 func (app *Application) GetSingleInfra(com interface{}) {
 	if !app.comPool.GetSingleInfra(reflect.ValueOf(com).Elem()) {
-		app.IrisApp.Logger().Errorf("[freedom]GetSingleInfra: Gets an unimplemented component, %v", com)
+		app.IrisApp.Logger().Errorf("[Freedom] GetSingleInfra: Gets an unimplemented component, %v", com)
 	}
 }
 

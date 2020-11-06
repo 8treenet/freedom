@@ -65,11 +65,11 @@ func (pi *ProducerImpl) Booting(sb freedom.SingleBoot) {
 
 func (pi *ProducerImpl) dial(conf kafkaConf) {
 	if !conf.Producer.Open {
-		freedom.Logger().Debug("[freedom]'infra/kafka.toml' '[[producer.open]]' is false")
+		freedom.Logger().Debug("[Freedom] 'infra/kafka.toml' '[[producer.open]]' is false")
 		return
 	}
 	if len(conf.Producers) == 0 {
-		freedom.Logger().Error("[freedom]'infra/kafka.toml' file under '[[producer_clients]]' error")
+		freedom.Logger().Error("[Freedom] 'infra/kafka.toml' file under '[[producer_clients]]' error")
 		return
 	}
 	for index := 0; index < len(conf.Producers); index++ {
@@ -81,7 +81,7 @@ func (pi *ProducerImpl) dial(conf kafkaConf) {
 		if err != nil {
 			panic(err)
 		}
-		freedom.Logger().Debug("[freedom]Producer connect servers: ", conf.Producers[index].Servers)
+		freedom.Logger().Debug("[Freedom] Producer connect servers: ", conf.Producers[index].Servers)
 
 		if conf.Producers[index].Name == "" {
 			pi.defaultProducer = syncp
@@ -95,7 +95,7 @@ func (pi *ProducerImpl) close() {
 		if err := producer.Close(); err != nil {
 			freedom.Logger().Error(err)
 		} else {
-			freedom.Logger().Debug("[freedom]Producer close complete")
+			freedom.Logger().Debug("[Freedom]Producer close complete")
 		}
 	}
 }
@@ -108,7 +108,7 @@ func (pi *ProducerImpl) getSaramaProducer(name string) sarama.SyncProducer {
 
 	result, ok := pi.saramaProducerMap[name]
 	if !ok {
-		panic("[freedom]The instance does not exist name:" + name)
+		panic("[Freedom] The instance does not exist name:" + name)
 	}
 	return result
 }

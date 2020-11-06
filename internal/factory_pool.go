@@ -26,7 +26,7 @@ func (pool *FactoryPool) get(t reflect.Type) (ok bool, result reflect.Value) {
 
 	values := reflect.ValueOf(fun).Call([]reflect.Value{})
 	if len(values) == 0 {
-		globalApp.IrisApp.Logger().Fatalf("[freedom]BindFactory func return to empty, %v", t)
+		globalApp.IrisApp.Logger().Fatalf("[Freedom] BindFactory func return to empty, %v", t)
 	}
 
 	return true, values[0]
@@ -60,7 +60,7 @@ func (pool *FactoryPool) diFactoryFromValue(value reflect.Value) {
 			return
 		}
 		if !value.CanSet() {
-			globalApp.IrisApp.Logger().Fatalf("[freedom]This use factory object must be a capital variable: %v" + value.Type().String())
+			globalApp.IrisApp.Logger().Fatalf("[Freedom] This use factory object must be a capital variable: %v" + value.Type().String())
 		}
 		//创建实例并且注入基础设施组件和资源库
 		value.Set(newfield)
@@ -84,7 +84,7 @@ func (pool *FactoryPool) diFactoryFromValue(value reflect.Value) {
 				continue
 			}
 			if !value.CanSet() {
-				globalApp.IrisApp.Logger().Fatalf("[freedom]This use factory object must be a capital variable: %v", value.Type().String())
+				globalApp.IrisApp.Logger().Fatalf("[Freedom] This use factory object must be a capital variable: %v", value.Type().String())
 			}
 			//创建实例并且注入基础设施组件和资源库
 			value.Set(newfield)

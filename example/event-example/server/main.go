@@ -26,7 +26,7 @@ func main() {
 	})
 	app := freedom.NewApplication()
 	installMiddleware(app)
-	addrRunner := app.CreateH2CRunner(conf.Get().App.Other["listen_addr"].(string))
+	addrRunner := app.NewH2CRunner(conf.Get().App.Other["listen_addr"].(string))
 
 	// Obtain and install the kafka infrastructure for domain events
 	app.InstallDomainEventInfra(kafka.GetDomainEventInfra())

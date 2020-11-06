@@ -15,7 +15,7 @@ $  go run domain/main.go
 //创建应用
 app := freedom.NewApplication()
 //创建 http2.0 H2cRunner
-h2caddrRunner := app.CreateH2CRunner(conf.Get().App.Other["listen_addr"].(string))
+h2caddrRunner := app.NewH2CRunner(conf.Get().App.Other["listen_addr"].(string))
 app.Run(h2caddrRunner, *conf.Get().App)
 
 // 安装中间件

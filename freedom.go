@@ -2,8 +2,6 @@ package freedom
 
 import (
 	"os"
-	"runtime"
-	"strings"
 
 	"github.com/8treenet/freedom/internal"
 	"github.com/kataras/iris/v12/core/host"
@@ -114,19 +112,15 @@ func SetConfigurer(confer Configurer) {
 	configurer = confer
 }
 
+// ProfileENV The name of the environment variable for the profile directory
+var ProfileENV = "FREEDOM_PROJECT_CONFIG"
+
 // Configure .
 func Configure(obj interface{}, file string, metaData ...interface{}) error {
 	if configurer != nil {
 		return configurer.Configure(obj, file)
 	}
-	if path == "" {
-		path = os.Getenv("FREEDOM_PROJECT_CONFIG")
-		_, err := os.Stat(path)
-		if err != nil {
-			path = ""
-		}
-	}
-
+	path = os.Getenv(ProfileENV)
 	if path == "" {
 		path = "./conf"
 		_, err := os.Stat(path)
@@ -142,23 +136,12 @@ func Configure(obj interface{}, file string, metaData ...interface{}) error {
 			path = ""
 		}
 	}
-	callerProjectDir := ""
-	if path == "" {
-		_, filego, _, _ := runtime.Caller(1)
-		list := strings.Split(filego, "/infra/config")
-		if len(list) == 2 {
-			callerProjectDir = list[0] + "/server/conf"
-			path = callerProjectDir
-			_, err := os.Stat(path)
-			if err != nil {
-				path = ""
-			}
-		}
-	}
-	if path == "" {
-		panic("No profile directory found:" + "'$FREEDOM_PROJECT_CONFIG' or './conf' or './server/conf' or '" + callerProjectDir + "'")
-	}
 	_, err := toml.DecodeFile(path+"/"+file, obj)
+	if err != nil {
+		Logger().Errorf("[Freedom] configure decode error: %s", err.Error())
+	} else {
+		Logger().Infof("[Freedom] configure decode: %s", path+"/"+file)
+	}
 	return err
 }
 
@@ -169,8 +152,11 @@ type Application interface {
 	InstallOther(f func() interface{})
 	InstallMiddleware(handler iris.Handler)
 	InstallParty(relativePath string)
-	CreateH2CRunner(addr string, configurators ...host.Configurator) iris.Runner
-	CreateRunner(addr string, configurators ...host.Configurator) iris.Runner
+	NewRunner(addr string, configurators ...host.Configurator) iris.Runner
+	NewH2CRunner(addr string, configurators ...host.Configurator) iris.Runner
+	NewAutoTLSRunner(addr string, domain string, email string, configurators ...host.Configurator) iris.Runner
+	NewTLSRunner(addr string, certFile, keyFile string, configurators ...host.Configurator) iris.Runner
+	CreateRunner(addr string, configurators ...host.Configurator) iris.Runner //become invalid after a specified date.
 	Iris() *iris.Application
 	Logger() *golog.Logger
 	Run(serve iris.Runner, c iris.Configuration)

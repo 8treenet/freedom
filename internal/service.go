@@ -18,7 +18,7 @@ func callService(fun interface{}, worker ...Worker) {
 	}
 	serviceObj, err := parseCallServiceFunc(fun)
 	if err != nil {
-		globalApp.Logger().Fatalf("[freedom]CallService, %v : %s", fun, err.Error())
+		globalApp.Logger().Fatalf("[Freedom] CallService, %v : %s", fun, err.Error())
 	}
 	newService := globalApp.pool.pop(worker[0], serviceObj)
 	reflect.ValueOf(fun).Call([]reflect.Value{reflect.ValueOf(newService)})

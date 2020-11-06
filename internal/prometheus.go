@@ -154,9 +154,9 @@ func newPrometheusHandle(p *Prometheus) func(context.Context) {
 	go func() {
 		if strings.Index(p.listen, ":") == 0 {
 
-			globalApp.Logger().Infof("Now prometheus listening on: http://0.0.0.0%s\n", p.listen)
+			globalApp.Logger().Infof("[Freedom] Now prometheus listening on: http://0.0.0.0%s\n", p.listen)
 		} else {
-			globalApp.Logger().Infof("Now prometheus listening on: http://%s\n", p.listen)
+			globalApp.Logger().Infof("[Freedom] Now prometheus listening on: http://%s\n", p.listen)
 		}
 		http.ListenAndServe(p.listen, nil)
 	}()
