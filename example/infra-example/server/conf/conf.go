@@ -2,12 +2,14 @@
 package conf
 
 import (
+	"os"
 	"runtime"
 
 	"github.com/8treenet/freedom"
 )
 
 func init() {
+	entryPoint()
 	cfg = &Configuration{
 		DB:    newDBConf(),
 		App:   newAppConf(),
@@ -77,4 +79,17 @@ func newRedisConf() *RedisConf {
 	}
 	freedom.Configure(result, "redis.toml")
 	return result
+}
+
+func entryPoint() {
+	// [./infra-example -c ./server/conf]
+	for i := 0; i < len(os.Args); i++ {
+		if os.Args[i] != "-c" {
+			continue
+		}
+		if i+1 >= len(os.Args) {
+			break
+		}
+		os.Setenv(freedom.ProfileENV, os.Args[i+1])
+	}
 }
