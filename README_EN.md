@@ -44,5 +44,5 @@ $ freedom new-po --json ./domain/po/shcema.json
 #### [Http2 Listening And Dependency Inversion](https://github.com/8treenet/freedom/blob/master/example/http2)
 #### [Transaction Components And Custom Components](https://github.com/8treenet/freedom/blob/master/example/infra-example)
 #### [Message Events And Domain Events](https://github.com/8treenet/freedom/blob/master/example/event-example)
-#### [Electronic Demo(Contains CQRS、Aggregation、entity、Domain Events、Repository、Infrastructure)](https://github.com/8treenet/freedom/blob/master/example/fshop)
+#### [Electronic Demo(Contains CQS、Aggregation、entity、Domain Events、Repository、Infrastructure)](https://github.com/8treenet/freedom/blob/master/example/fshop)
 

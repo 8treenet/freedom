@@ -46,5 +46,5 @@ $ freedom new-po --json ./domain/po/shcema.json
 #### [事务组件和自定义组件](https://github.com/8treenet/freedom/blob/master/example/infra-example)
 #### [消息事件和领域事件](https://github.com/8treenet/freedom/blob/master/example/event-example)
 
-#### [一个完整的电商demo,包含CQRS、聚合、实体、领域事件、资源库、基础设施](https://github.com/8treenet/freedom/blob/master/example/fshop)
+#### [一个完整的电商demo,包含CQS、聚合、实体、领域事件、资源库、基础设施](https://github.com/8treenet/freedom/blob/master/example/fshop)
 
