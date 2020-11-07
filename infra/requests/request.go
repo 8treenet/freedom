@@ -48,6 +48,7 @@ type Request interface {
 	GetStdRequest() *http.Request
 	AddCookie(*http.Cookie) Request
 	EnableTrace() Request
+	SetClient(client *http.Client) Request
 }
 
 // NewHTTPRequest .
@@ -58,8 +59,7 @@ func NewHTTPRequest(rawurl string) Request {
 	}
 	result.StdRequest = req
 	result.Params = make(url.Values)
-	result.url = rawurl
-	result.stop = false
+	result.RawURL = rawurl
 	result.Client = DefaultHTTPClient
 	return result
 }
@@ -72,8 +72,7 @@ func NewH2CRequest(rawurl string) Request {
 	}
 	result.StdRequest = req
 	result.Params = make(url.Values)
-	result.url = rawurl
-	result.stop = false
+	result.RawURL = rawurl
 	result.Client = DefaultH2CClient
 	return result
 }

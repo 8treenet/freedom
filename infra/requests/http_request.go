@@ -18,7 +18,7 @@ type HTTPRequest struct {
 	StdRequest      *http.Request
 	Response        Response
 	Params          url.Values
-	url             string
+	RawURL          string
 	SingleflightKey string
 	stop            bool
 	Client          *http.Client
@@ -179,9 +179,18 @@ func (req *HTTPRequest) AddHeader(key, value string) Request {
 func (req *HTTPRequest) URL() string {
 	params := req.Params.Encode()
 	if params != "" {
-		return req.url + "?" + params
+		return req.RawURL + "?" + params
 	}
-	return req.url
+	return req.RawURL
+}
+
+// SetClient .
+func (req *HTTPRequest) SetClient(client *http.Client) Request {
+	if client == nil {
+		panic("This is an undefined client")
+	}
+	req.Client = client
+	return req
 }
 
 type singleflightData struct {
