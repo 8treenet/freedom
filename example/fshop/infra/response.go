@@ -33,7 +33,7 @@ func (jrep JSONResponse) Dispatch(ctx context.Context) {
 		repData.Error = jrep.Error.Error()
 	}
 	if repData.Error != "" && repData.Code == 0 {
-		repData.Code = 501
+		repData.Code = 400
 	}
 	ctx.Values().Set("code", strconv.Itoa(repData.Code))
 
