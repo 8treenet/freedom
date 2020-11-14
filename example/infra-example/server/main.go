@@ -6,20 +6,34 @@ import (
 
 	"github.com/8treenet/freedom"
 	_ "github.com/8treenet/freedom/example/infra-example/adapter/controllers"
+	_ "github.com/8treenet/freedom/example/infra-example/adapter/repository"
 	"github.com/8treenet/freedom/example/infra-example/server/conf"
+	"github.com/8treenet/freedom/infra/kafka"
 	"github.com/8treenet/freedom/infra/requests"
 	"github.com/8treenet/freedom/middleware"
+	"github.com/Shopify/sarama"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
+//mac: zookeeper-server-start /usr/local/etc/kafka/zookeeper.properties & kafka-server-start /usr/local/etc/kafka/server.properties
 func main() {
+	// If you use the default Kafka configuration, no need to set
+	kafka.SettingConfig(func(conf *sarama.Config, other map[string]interface{}) {
+		conf.Producer.Retry.Max = 3
+		conf.Producer.Retry.Backoff = 5 * time.Second
+		conf.Consumer.Offsets.Initial = sarama.OffsetOldest
+		freedom.Logger().Info(other)
+	})
+
 	app := freedom.NewApplication()
 	installDatabase(app)
 	installMiddleware(app)
 	addrRunner := app.NewRunner(conf.Get().App.Other["listen_addr"].(string))
 	//app.InstallParty("/example")
 	liveness(app)
+
 	app.Run(addrRunner, *conf.Get().App)
 }
 
@@ -39,6 +53,10 @@ func installMiddleware(app freedom.Application) {
 
 	//总线中间件，处理上下游透传的Header
 	app.InstallBusMiddleware(middleware.NewBusFilter())
+
+	//安装消息监控中间件
+	eventMiddle := NewMsgPrometheus(conf.Get().App.Other["service_name"].(string))
+	kafka.InstallMiddleware(eventMiddle)
 }
 
 func installDatabase(app freedom.Application) {
@@ -60,4 +78,48 @@ func liveness(app freedom.Application) {
 	app.Iris().Get("/ping", func(ctx freedom.Context) {
 		ctx.WriteString("pong")
 	})
+}
+
+// NewMsgPrometheus Kafka消息中间件
+func NewMsgPrometheus(serviceName string) kafka.ProducerHandler {
+	msgPushReqs := prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name:        "kafka_producer_total",
+			Help:        "监控Kafka消息发送总数",
+			ConstLabels: prometheus.Labels{"service": serviceName},
+		},
+		[]string{"topic", "error"},
+	)
+	msgPushLatency := prometheus.NewHistogramVec(prometheus.HistogramOpts{
+		Name:        "kafka_producer_duration_seconds",
+		Help:        "监控Kafka消息发送耗时",
+		ConstLabels: prometheus.Labels{"service": serviceName},
+	},
+		[]string{"topic", "error"},
+	)
+
+	freedom.Prometheus().RegisterCounter(msgPushReqs)
+	freedom.Prometheus().RegisterHistogram(msgPushLatency)
+
+	return func(msg *kafka.Msg) {
+		//返回一个消息中间件
+		if msg.IsStopped() {
+			//如果停止
+			return
+		}
+		start := time.Now()
+		//下一步
+		msg.Next()
+
+		//如果发送错误
+		if msg.GetExecution() != nil {
+			msgPushReqs.WithLabelValues(msg.Topic, msg.GetExecution().Error()).Inc()
+			msgPushLatency.WithLabelValues(msg.Topic, msg.GetExecution().Error()).
+				Observe(float64(time.Since(start).Nanoseconds()) / 1000000000)
+			return
+		}
+		msgPushReqs.WithLabelValues(msg.Topic, "").Inc()
+		msgPushLatency.WithLabelValues(msg.Topic, "").
+			Observe(float64(time.Since(start).Nanoseconds()) / 1000000000)
+	}
 }

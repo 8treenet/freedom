@@ -48,7 +48,7 @@ func installMiddleware(app freedom.Application) {
 	//2.修改请求日志前缀
 	loggerConfig := middleware.DefaultLoggerConfig()
 	loggerConfig.MessageHeaderKeys = append(loggerConfig.MessageHeaderKeys, "User-Agent")
-	loggerConfig.Title = "base-access"
+	loggerConfig.Title = "[BASE-ACCESS]"
 	//日志中间件，每个请求一个logger
 	app.InstallMiddleware(middleware.NewRequestLogger("x-request-id", loggerConfig))
 	//logRow中间件，每一行日志都会触发回调。如果返回true，将停止中间件遍历回调。

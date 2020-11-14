@@ -30,7 +30,7 @@ type Delivery struct {
 // New 创建实体
 func (repo *Delivery) New() (deliveryEntity *entity.Delivery, err error) {
 	deliveryEntity = &entity.Delivery{Delivery: po.Delivery{Created: time.Now(), Updated: time.Now()}}
-	//注入基础Entity 包含运行时和领域事件的producer
+	//注入基础Entity
 	repo.InjectBaseEntity(deliveryEntity)
 	return
 }

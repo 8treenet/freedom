@@ -6,6 +6,7 @@
 - domain - 领域模型
     - aggregate - 聚合
     - entity - 实体
+    - event - 领域事件
     - dto - 传输对象
     - po - 持久化对象
     - *.go - 领域服务
@@ -18,8 +19,7 @@
     - conf - 配置文件
     - main.go - 主函数
 
-- infra - 基础设施
-    - *go - 基础设施组件    
+- infra - 基础设施组件
 
 
 ---
@@ -48,13 +48,11 @@ type Application interface {
     Logger() *golog.Logger
     //启动
     Run(serve iris.Runner, c iris.Configuration)
-    //安装领域事件
-    InstallDomainEventInfra(eventInfra DomainEventInfra)
     //安装其他, 如mongodb、es 等
     InstallOther(f func() interface{})
     //启动回调: Prepare之后，Run之前.
     Start(f func(starter Starter))
-    //安装序列化:应用内的 领域事件对象、实体等序列化和反序列化。未安装默认使用官方json
+    //安装序列化，未安装默认使用官方json
     InstallSerializer(marshal func(v interface{}) ([]byte, error), unmarshal func(data []byte, v interface{}) error)
 }
 
@@ -105,17 +103,6 @@ type Initiator interface {
     //启动回调: Prepare之后，Run之前.
     Start(f func(starter Starter))
     Iris() *iris.Application
-}
-
-// Starter .
-type Starter interface {
-    Iris() *iris.Application
-    //异步缓存预热
-    AsyncCachePreheat(f func(repo *Repository))
-    //同步缓存预热
-    CachePreheat(f func(repo *Repository))
-    //获取单例组件
-    GetSingleInfra(com interface{})
 }
 
 ```

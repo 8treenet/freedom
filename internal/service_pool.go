@@ -7,11 +7,6 @@ import (
 	"github.com/kataras/iris/v12/context"
 )
 
-const (
-	// WorkerKey .
-	WorkerKey = "freedom-worker-ctx"
-)
-
 // newServicePool create a ServicePool
 func newServicePool() *ServicePool {
 	result := new(ServicePool)

@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/8treenet/freedom"
@@ -33,12 +32,6 @@ func getUnitTest() freedom.UnitTest {
 	unitTest.InstallRedis(func() (client redis.Cmdable) {
 		return redisClient
 	})
-
-	mockEvent := unitTest.NewDomainEventInfra(func(producer, topic string, data []byte, header map[string]string) {
-		//mock 一个领域事件基础设施
-		fmt.Println("mock-event-send", producer, topic, string(data), header)
-	})
-	unitTest.InstallDomainEventInfra(mockEvent)
 	return unitTest
 }
 

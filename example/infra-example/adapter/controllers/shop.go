@@ -30,9 +30,9 @@ func (c *ShopController) Post() freedom.Result {
 		return &infra.JSONResponse{Error: e}
 	}
 
-	resp, e := c.OrderSev.Add(request.GoodsID, request.Num, request.UserID)
+	e := c.OrderSev.Shop(request.GoodsID, request.Num, request.UserID)
 	if e != nil {
 		return &infra.JSONResponse{Error: e}
 	}
-	return &infra.JSONResponse{Object: resp}
+	return &infra.JSONResponse{}
 }

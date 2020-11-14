@@ -34,7 +34,7 @@ func (repo *Admin) Get(id int) (adminEntity *entity.Admin, e error) {
 		return
 	}
 
-	//注入基础Entity 包含运行时和领域事件的producer
+	//注入基础Entity
 	repo.InjectBaseEntity(adminEntity)
 	return
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/8treenet/freedom/example/fshop/domain/dependency"
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
 	"github.com/8treenet/freedom/example/fshop/domain/po"
+	"github.com/8treenet/freedom/example/fshop/infra/domainevent"
 	"github.com/8treenet/freedom/infra/store"
 	"github.com/jinzhu/gorm"
 )
@@ -27,7 +28,8 @@ var _ dependency.OrderRepo = (*Order)(nil)
 // Order .
 type Order struct {
 	freedom.Repository
-	Cache store.EntityCache //实体缓存组件
+	Cache        store.EntityCache         //实体缓存组件
+	EventManager *domainevent.EventManager //领域事件组件
 }
 
 // BeginRequest .
@@ -48,7 +50,7 @@ func (repo *Order) New() (orderEntity *entity.Order, e error) {
 	orderNo := fmt.Sprint(time.Now().Unix())
 	orderEntity = &entity.Order{Order: po.Order{OrderNo: orderNo, Status: "NON_PAYMENT", Created: time.Now(), Updated: time.Now()}}
 
-	//注入基础Entity 包含运行时和领域事件的producer
+	//注入基础Entity
 	repo.InjectBaseEntity(orderEntity)
 	return
 }
@@ -67,7 +69,7 @@ func (repo *Order) Save(orderEntity *entity.Order) (e error) {
 				return
 			}
 		}
-		return
+		return repo.EventManager.Save(&repo.Repository, orderEntity) //持久化实体的事件
 	}
 
 	_, e = saveOrder(repo, &orderEntity.Order)
@@ -98,7 +100,7 @@ func (repo *Order) Find(orderNo string, userID int) (orderEntity *entity.Order, 
 		return
 	}
 
-	//注入基础Entity 包含运行时和领域事件的producer
+	//注入基础Entity
 	repo.InjectBaseEntity(orderEntity)
 	return
 }
@@ -120,7 +122,7 @@ func (repo *Order) Finds(userID int, page, pageSize int) (entitys []*entity.Orde
 	}
 
 	totalPage = pager.TotalPage()
-	//注入基础Entity 包含运行时和领域事件的producer
+	//注入基础Entity
 	repo.InjectBaseEntitys(entitys)
 	return
 }
@@ -128,7 +130,7 @@ func (repo *Order) Finds(userID int, page, pageSize int) (entitys []*entity.Orde
 // Get .
 func (repo *Order) Get(orderNo string) (orderEntity *entity.Order, e error) {
 	orderEntity = &entity.Order{Order: po.Order{OrderNo: orderNo}}
-	//注入基础Entity 包含运行时和领域事件的producer
+	//注入基础Entity
 	repo.InjectBaseEntity(orderEntity)
 
 	return orderEntity, repo.Cache.GetEntity(orderEntity)

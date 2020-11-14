@@ -8,12 +8,13 @@
 - 集成Iris v12
 - 集成普罗米修斯
 - 无侵入式Trace
-- 基于组件式的基础设施扩展
+- 基于组件式的 Infrastructure
 - HTTP/H2C Server & Client
 - 依赖注入 & 依赖倒置
-- CRUD & PO 代码生成
+- CRUD & PO Generate
 - DDD & 六边形架构
-- 消息事件 & 领域事件
+- 领域事件 & MQ组件
+- CQS & 聚合根
 - 一级缓存 & 二级缓存 & 防击穿
 
 ## 安装
@@ -43,8 +44,7 @@ $ freedom new-po --json ./domain/po/shcema.json
 
 #### [基础教程](https://github.com/8treenet/freedom/blob/master/example/base)
 #### [http2监听和依赖倒置](https://github.com/8treenet/freedom/blob/master/example/http2)
-#### [事务组件和自定义组件](https://github.com/8treenet/freedom/blob/master/example/infra-example)
-#### [消息事件和领域事件](https://github.com/8treenet/freedom/blob/master/example/event-example)
+#### [事务组件&自定义组件&Kafka&领域事件组件](https://github.com/8treenet/freedom/blob/master/example/infra-example)
 
 #### [一个完整的电商demo,包含CQS、聚合、实体、领域事件、资源库、基础设施](https://github.com/8treenet/freedom/blob/master/example/fshop)
 

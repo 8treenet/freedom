@@ -13,6 +13,8 @@
 - Dependency Injection & Dependency Inversion
 - CRUD Automatic Code Generation
 - DDD & Hexagonal Architecture
+- Domain Events & MQ Infrastructure
+- CQS & Aggregation
 - Message Events & Event Retries & Domain Events
 - Primary Cache & Secondary Cache & Prevent Breakdown
 

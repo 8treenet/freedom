@@ -2,8 +2,10 @@ package domain
 
 import (
 	"github.com/8treenet/freedom"
+	"github.com/8treenet/freedom/example/fshop/infra/domainevent"
 	"github.com/8treenet/freedom/example/infra-example/adapter/repository"
 	"github.com/8treenet/freedom/example/infra-example/domain/dto"
+	"github.com/8treenet/freedom/example/infra-example/domain/event"
 )
 
 func init() {
@@ -20,30 +22,31 @@ func init() {
 
 // GoodsService .
 type GoodsService struct {
-	Worker    freedom.Worker
-	GoodsRepo repository.GoodsInterface
+	Worker           freedom.Worker
+	GoodsRepo        *repository.GoodsRepository
+	EventTransaction *domainevent.EventTransaction //事务组件
 }
 
 // Get .
 func (srv *GoodsService) Get(ID int) (rep dto.GoodsRep, e error) {
-	obj, e := srv.GoodsRepo.Get(ID)
+	entity, e := srv.GoodsRepo.Get(ID)
 	if e != nil {
 		return
 	}
-	rep.ID = obj.ID
-	rep.Name = obj.Name
-	rep.Stock = obj.Stock
-	rep.Price = obj.Price
+	rep.ID = entity.ID
+	rep.Name = entity.Name
+	rep.Stock = entity.Stock
+	rep.Price = entity.Price
 	return
 }
 
 // GetAll .
 func (srv *GoodsService) GetAll() (result []dto.GoodsRep, e error) {
-	objs, e := srv.GoodsRepo.GetAll()
+	entitys, e := srv.GoodsRepo.GetAll()
 	if e != nil {
 		return
 	}
-	for _, goodsModel := range objs {
+	for _, goodsModel := range entitys {
 		result = append(result, dto.GoodsRep{
 			ID:    goodsModel.ID,
 			Name:  goodsModel.Name,
@@ -54,13 +57,18 @@ func (srv *GoodsService) GetAll() (result []dto.GoodsRep, e error) {
 	return
 }
 
-// AddStock .
-func (srv *GoodsService) AddStock(goodsID, num int) error {
-	obj, e := srv.GoodsRepo.Get(goodsID)
+// ShopEvent .
+func (srv *GoodsService) ShopEvent(shopEvent *event.ShopGoods) error {
+	entity, e := srv.GoodsRepo.Get(shopEvent.GoodsID) //通过id取商品实体
 	if e != nil {
 		return e
 	}
 
-	obj.AddStock(num)
-	return srv.GoodsRepo.Save(&obj)
+	entity.AddStock(shopEvent.GoodsNum) //增加库存
+	entity.AddSubEvent(shopEvent)       //为实体加入消费事件
+
+	//使用事务组件保证一致性 1.修改商品库存, 2.事件表修改状态为已处理
+	return srv.EventTransaction.Execute(func() error {
+		return srv.GoodsRepo.Save(entity)
+	})
 }

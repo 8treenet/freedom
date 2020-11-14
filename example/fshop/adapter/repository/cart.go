@@ -31,6 +31,12 @@ type Cart struct {
 // FindAll 获取用户购物车实体
 func (repo *Cart) FindAll(userID int) (entitys []*entity.Cart, e error) {
 	e = findCartList(repo, po.Cart{UserID: userID}, &entitys)
+	if e != nil {
+		return
+	}
+
+	//注入基础Entity
+	repo.InjectBaseEntitys(entitys)
 	return
 }
 

@@ -33,7 +33,7 @@ type Starter interface {
 	AsyncCachePreheat(f func(repo *Repository))
 	// Sync cache warm-up
 	CachePreheat(f func(repo *Repository))
-	GetSingleInfra(com interface{})
+	GetSingleInfra(com interface{}) bool
 }
 
 //SingleBoot singleton startup component.

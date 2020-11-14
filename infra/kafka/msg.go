@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/8treenet/freedom"
 	"github.com/Shopify/sarama"
 )
 
@@ -15,29 +14,21 @@ type Msg struct {
 	Topic        string
 	key          string
 	Content      []byte
-	header       map[string]string
+	header       map[string]interface{}
 	producerName string
 	stop         bool
 	nextIndex    int
 	sendErr      error
 }
 
-// SetWorker .
-func (msg *Msg) SetWorker(worker freedom.Worker) *Msg {
-	freedom.HandleBusMiddleware(worker)
-	msg.httpHeader = worker.Bus().Header
-	return msg
-}
-
 // Publish .
-func (msg *Msg) Publish() {
-	go func() {
-		msg.Next()
-	}()
+func (msg *Msg) Publish() error {
+	msg.Next()
+	return msg.sendErr
 }
 
 // SetHeader .
-func (msg *Msg) SetHeader(head map[string]string) *Msg {
+func (msg *Msg) SetHeader(head map[string]interface{}) *Msg {
 	if msg.header == nil {
 		msg.header = head
 		return msg
@@ -100,11 +91,19 @@ func (msg *Msg) SetMessageKey(key string) *Msg {
 }
 
 // GetHeader .
-func (msg *Msg) GetHeader() map[string]string {
+func (msg *Msg) GetHeader() map[string]interface{} {
 	return msg.header
 }
 
 func (msg *Msg) do() error {
+	syncProducer := producer.getSaramaProducer(msg.producerName)
+	if syncProducer == nil {
+		return fmt.Errorf("This %s, no producer found, please check infra/kafka.toml", msg.Topic)
+	}
+
+	if msg.key == "" {
+		msg.key = producer.generateMessageKey()
+	}
 	saramaMsg := &sarama.ProducerMessage{
 		Topic:     msg.Topic,
 		Key:       sarama.StringEncoder(msg.key),
@@ -116,20 +115,9 @@ func (msg *Msg) do() error {
 	}
 
 	for key, value := range msg.header {
-		saramaMsg.Headers = append(saramaMsg.Headers, sarama.RecordHeader{Key: []byte(key), Value: []byte(value)})
+		saramaMsg.Headers = append(saramaMsg.Headers, sarama.RecordHeader{Key: []byte(key), Value: []byte(fmt.Sprint(value))})
 	}
 
-	syncProducer := producer.getSaramaProducer(msg.producerName)
-	if syncProducer == nil {
-		errMsg := fmt.Sprintf("This '%s', no producer found, please check 'infra/kafka.toml'.", msg.Topic)
-		freedom.Logger().Error("[Freedom] " + errMsg)
-		return nil
-	}
 	_, _, err := syncProducer.SendMessage(saramaMsg)
-	freedom.Logger().Debug("[Freedom] Produce topic: ", saramaMsg.Topic)
-	if err == nil {
-		return nil
-	}
-	freedom.Logger().Error("[Freedom] Failed to send message,", "topic:"+msg.Topic, "content:"+string(msg.Content), "error:"+err.Error())
 	return err
 }

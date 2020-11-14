@@ -5,33 +5,27 @@ import (
 	"time"
 
 	"github.com/8treenet/freedom"
+	"github.com/8treenet/freedom/example/fshop/adapter/consumer"
 	_ "github.com/8treenet/freedom/example/fshop/adapter/controller" //引入输入适配器 http路由
 	_ "github.com/8treenet/freedom/example/fshop/adapter/repository" //引入输出适配器 repository资源库
-	"github.com/8treenet/freedom/example/fshop/adapter/timer"
-	"github.com/8treenet/freedom/example/fshop/server/conf"
-	"github.com/8treenet/freedom/infra/kafka" //需要开启 server/conf/infra/kafka.toml open = true
+	"github.com/8treenet/freedom/example/fshop/server/conf"          //需要开启 server/conf/infra/kafka.toml open = true
 	"github.com/8treenet/freedom/infra/requests"
 	"github.com/8treenet/freedom/middleware"
 	"github.com/go-redis/redis"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
-	"github.com/prometheus/client_golang/prometheus"
 )
 
 func main() {
-
 	app := freedom.NewApplication()
 	installDatabase(app)
 	installRedis(app)
 	installMiddleware(app)
 
-	//安装领域事件的基础设施
-	app.InstallDomainEventInfra(kafka.GetDomainEventInfra())
-
-	timer.FixedTime(app) //非控制器使用领域服务示例
 	addrRunner := app.NewH2CRunner(conf.Get().App.Other["listen_addr"].(string))
 	//app.InstallParty("/fshop")
 	liveness(app)
+	consumer.Start(app) //领域事件消费者
 	app.Run(addrRunner, *conf.Get().App)
 }
 
@@ -46,7 +40,7 @@ func installMiddleware(app freedom.Application) {
 	//2.修改请求日志前缀
 	loggerConfig := middleware.DefaultLoggerConfig()
 	loggerConfig.MessageHeaderKeys = append(loggerConfig.MessageHeaderKeys, "User-Agent")
-	loggerConfig.Title = "fshop-access"
+	loggerConfig.Title = "[请求日志]"
 
 	//日志中间件，每个请求一个logger
 	app.InstallMiddleware(middleware.NewRequestLogger("x-request-id", loggerConfig))
@@ -56,10 +50,6 @@ func installMiddleware(app freedom.Application) {
 	//HttpClient 普罗米修斯中间件，监控下游的API请求。
 	middle := middleware.NewClientPrometheus(conf.Get().App.Other["service_name"].(string), freedom.Prometheus())
 	requests.InstallMiddleware(middle)
-
-	//安装事件监控中间件
-	eventMiddle := NewEventPrometheus(conf.Get().App.Other["service_name"].(string))
-	kafka.InstallMiddleware(eventMiddle)
 
 	//总线中间件，处理上下游透传的Header
 	app.InstallBusMiddleware(middleware.NewBusFilter())
@@ -109,30 +99,4 @@ func liveness(app freedom.Application) {
 	app.Iris().Get("/ping", func(ctx freedom.Context) {
 		ctx.WriteString("pong")
 	})
-}
-
-// NewEventPrometheus 事件监控中间件
-func NewEventPrometheus(serviceName string) kafka.ProducerHandler {
-	eventPublishReqs := prometheus.NewCounterVec(
-		prometheus.CounterOpts{
-			Name:        "event_publish_total",
-			Help:        "",
-			ConstLabels: prometheus.Labels{"service": serviceName},
-		},
-		[]string{"event", "error"},
-	)
-	freedom.Prometheus().RegisterCounter(eventPublishReqs)
-
-	return func(msg *kafka.Msg) {
-		if msg.IsStopped() {
-			return
-		}
-		msg.Next()
-
-		if msg.GetExecution() != nil {
-			eventPublishReqs.WithLabelValues(msg.Topic, msg.GetExecution().Error()).Inc()
-			return
-		}
-		eventPublishReqs.WithLabelValues(msg.Topic, "").Inc()
-	}
 }

@@ -5,7 +5,7 @@ import (
 
 	"github.com/8treenet/freedom/example/fshop/domain/dependency"
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
-	"github.com/8treenet/freedom/infra/transaction"
+	"github.com/8treenet/freedom/example/fshop/infra/domainevent"
 )
 
 //DeliveryCmd 订单发货聚合根
@@ -14,7 +14,7 @@ type DeliveryCmd struct {
 	adminEntity  *entity.Admin
 	orderRepo    dependency.OrderRepo
 	deliveryRepo dependency.DeliveryRepo
-	tx           transaction.Transaction
+	tx           *domainevent.EventTransaction
 }
 
 // Run .

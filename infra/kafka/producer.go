@@ -11,17 +11,7 @@ import (
 func init() {
 	freedom.Prepare(func(initiator freedom.Initiator) {
 		initiator.BindInfra(true, producer)
-
-		initiator.InjectController(func(ctx freedom.Context) (com *ProducerImpl) {
-			initiator.GetInfra(ctx, &com)
-			return
-		})
 	})
-}
-
-// GetDomainEventInfra .
-func GetDomainEventInfra() freedom.DomainEventInfra {
-	return producer
 }
 
 var producer *ProducerImpl = new(ProducerImpl)
@@ -34,14 +24,10 @@ type Producer interface {
 
 // ProducerImpl .
 type ProducerImpl struct {
+	freedom.Infra
 	saramaProducerMap map[string]sarama.SyncProducer
 	defaultProducer   sarama.SyncProducer
 	startUpCallBack   []func()
-}
-
-// StartUp .
-func (pi *ProducerImpl) StartUp(f func()) {
-	pi.startUpCallBack = append(pi.startUpCallBack, f)
 }
 
 // Booting .
@@ -127,17 +113,7 @@ func (pi *ProducerImpl) NewMsg(topic string, content []byte, producerName ...str
 	}
 	return &Msg{
 		Topic:        topic,
-		key:          producer.generateMessageKey(),
 		Content:      content,
 		producerName: pName,
 	}
-}
-
-// DomainEvent .
-func (pi *ProducerImpl) DomainEvent(producer, topic string, data []byte, worker freedom.Worker, header ...map[string]string) {
-	msg := pi.NewMsg(topic, data, producer)
-	if len(header) > 0 {
-		msg = msg.SetHeader(header[0])
-	}
-	msg.SetWorker(worker).Publish()
 }

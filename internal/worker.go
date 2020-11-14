@@ -11,6 +11,11 @@ import (
 	"github.com/kataras/iris/v12/core/memstore"
 )
 
+const (
+	//WorkerKey .
+	WorkerKey = "STORE-WORKER-KEY"
+)
+
 // Worker .
 type Worker interface {
 	IrisContext() iris.Context
@@ -31,6 +36,7 @@ func newWorkerHandle() context.Handler {
 		work := newWorker(ctx)
 		ctx.Values().Set(WorkerKey, work)
 		ctx.Next()
+
 		if work.IsDeferRecycle() {
 			return
 		}

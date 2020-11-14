@@ -39,6 +39,10 @@ func (infra *Infra) NewHTTPRequest(url string, transferBus ...bool) requests.Req
 	if len(transferBus) > 0 && !transferBus[0] {
 		return req
 	}
+	if infra.Worker == nil {
+		//The singleton object does not have a Worker component
+		return req
+	}
 	req.SetHeader(infra.Worker.Bus().Header)
 	return req
 }
@@ -49,18 +53,28 @@ func (infra *Infra) NewH2CRequest(url string, transferBus ...bool) requests.Requ
 	if len(transferBus) > 0 && !transferBus[0] {
 		return req
 	}
+	if infra.Worker == nil {
+		//The singleton object does not have a Worker component
+		return req
+	}
 	req.SetHeader(infra.Worker.Bus().Header)
 	return req
 }
 
 // InjectBaseEntity .
 func (infra *Infra) InjectBaseEntity(entity Entity) {
+	if infra.Worker == nil {
+		panic("The singleton object does not have a Worker component")
+	}
 	injectBaseEntity(infra.Worker, entity)
 	return
 }
 
 // InjectBaseEntitys .
 func (infra *Infra) InjectBaseEntitys(entitys interface{}) {
+	if infra.Worker == nil {
+		panic("The singleton object does not have a Worker component")
+	}
 	entitysValue := reflect.ValueOf(entitys)
 	if entitysValue.Kind() != reflect.Slice {
 		globalApp.IrisApp.Logger().Fatalf("[Freedom] InjectBaseEntitys: It's not a slice, %v", entitysValue.Type())
@@ -77,5 +91,13 @@ func (infra *Infra) InjectBaseEntitys(entitys interface{}) {
 
 // GetWorker .
 func (infra *Infra) GetWorker() Worker {
+	if infra.Worker == nil {
+		panic("The singleton object does not have a Worker component")
+	}
 	return infra.Worker
+}
+
+// GetSingleInfra .
+func (infra *Infra) GetSingleInfra(com interface{}) bool {
+	return globalApp.GetSingleInfra(com)
 }

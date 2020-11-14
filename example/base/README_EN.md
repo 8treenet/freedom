@@ -6,6 +6,7 @@
 - domain - Domain Model
     - aggregate
     - entity
+    - event Domain Event 
     - dto - Data Transfer Object
     - po - Persistent Object
     - *.go - Domain Service

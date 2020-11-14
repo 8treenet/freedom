@@ -6,8 +6,9 @@ import (
 
 	"github.com/8treenet/freedom/example/fshop/domain/dependency"
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
+	"github.com/8treenet/freedom/example/fshop/domain/event"
 	"github.com/8treenet/freedom/example/fshop/domain/po"
-	"github.com/8treenet/freedom/infra/transaction"
+	"github.com/8treenet/freedom/example/fshop/infra/domainevent"
 )
 
 //GoodsShopCmd 购买商品聚合根
@@ -18,7 +19,7 @@ type GoodsShopCmd struct {
 
 	orderRepo dependency.OrderRepo
 	goodsRepo dependency.GoodsRepo
-	tx        transaction.Transaction
+	tx        *domainevent.EventTransaction
 	goodsNum  int
 }
 
@@ -38,22 +39,22 @@ func (cmd *GoodsShopCmd) Shop() error {
 	//增加订单的商品详情
 	cmd.AddOrderDetal(&po.OrderDetail{OrderNo: cmd.OrderNo, GoodsID: cmd.goodsEntity.ID, GoodsName: cmd.goodsEntity.Name, Num: cmd.goodsNum, Created: time.Now(), Updated: time.Now()})
 
-	//事务执行 创建 订单表、订单详情表，修改商品表的库存
+	//订单实体加入购买事件
+	cmd.Order.AddPubEvent(&event.ShopGoods{
+		UserID:    cmd.UserID,
+		OrderNO:   cmd.OrderNo,
+		GoodsID:   cmd.goodsEntity.ID,
+		GoodsNum:  cmd.goodsNum,
+		GoodsName: cmd.goodsEntity.Name,
+	})
+
+	//使用事务组件保证一致性 1.修改商品库存, 2.创建订单, 3.事件表增加记录
+	//Execute 如果返回错误 会触发回滚。成功会调用infra/domainevent/EventManager.push
 	e := cmd.tx.Execute(func() error {
-		if e := cmd.orderRepo.Save(&cmd.Order); e != nil {
-			return e
-		}
 		if e := cmd.goodsRepo.Save(cmd.goodsEntity); e != nil {
 			return e
 		}
-		return nil
+		return cmd.orderRepo.Save(&cmd.Order)
 	})
-
-	if e == nil {
-		//发布领域事件，该商品被下单
-		//需要配置 server/conf/infra/kafka.toml 生产者相关配置
-		cmd.goodsEntity.DomainEvent("goods-shop", cmd.goodsEntity.ID)
-	}
-
 	return e
 }

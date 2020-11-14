@@ -5,6 +5,8 @@ import (
 	"github.com/8treenet/freedom/example/fshop/domain/dependency"
 	"github.com/8treenet/freedom/example/fshop/domain/dto"
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
+	"github.com/8treenet/freedom/example/fshop/domain/event"
+	"github.com/8treenet/freedom/example/fshop/infra/domainevent"
 
 	"github.com/8treenet/freedom"
 )
@@ -25,9 +27,10 @@ func init() {
 
 // Goods 商品领域服务.
 type Goods struct {
-	Worker      freedom.Worker         //运行时，一个请求绑定一个运行时
-	GoodsRepo   dependency.GoodsRepo   //依赖倒置商品资源库
-	ShopFactory *aggregate.ShopFactory //依赖注入购买聚合根工厂
+	Worker      freedom.Worker                //运行时，一个请求绑定一个运行时
+	GoodsRepo   dependency.GoodsRepo          //依赖倒置商品资源库
+	ShopFactory *aggregate.ShopFactory        //依赖注入购买聚合根工厂
+	TX          *domainevent.EventTransaction //依赖倒置事务组件
 }
 
 // New 创建商品
@@ -66,6 +69,25 @@ func (g *Goods) AddStock(goodsID, num int) (e error) {
 	g.Worker.Logger().Info("增加库存", freedom.LogFields{"goodsId": goodsID, "num": num})
 	entity.AddStock(num)
 	return g.GoodsRepo.Save(entity)
+}
+
+// ShopEvent 购买事件 这里只是增加了该商品的库存
+func (g *Goods) ShopEvent(event *event.ShopGoods) (e error) {
+	entity, e := g.GoodsRepo.Get(event.GoodsID)
+	if e != nil {
+		g.Worker.Logger().Error("商品库存失败", freedom.LogFields{"goodsId": event.GoodsID, "num": event.GoodsNum})
+		return
+	}
+	g.Worker.Logger().Info("增加库存", freedom.LogFields{"goodsId": event.GoodsID, "num": event.GoodsNum})
+
+	entity.AddStock(event.GoodsNum) //增加商品库存
+	entity.AddSubEvent(event)       //为实体加入消费事件
+
+	//使用事务组件保证一致性 1.修改商品库存, 2.事件表修改状态为已处理
+	e = g.TX.Execute(func() error {
+		return g.GoodsRepo.Save(entity)
+	})
+	return e
 }
 
 // MarkedTag 商品打tag

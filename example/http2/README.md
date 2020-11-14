@@ -4,7 +4,7 @@
 
 #### 启动
 ```sh
-$  go run domain/main.go
+$  go run server/main.go
 #  本程序是一个购物的小示例, 浏览器可输入http://127.0.0.1:8000/shop/1, 1-4为商品ID
 ```
 

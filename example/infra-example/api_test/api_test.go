@@ -1,4 +1,4 @@
-package controllers
+package api_test
 
 import (
 	"testing"
@@ -30,20 +30,6 @@ func TestGetGoods(t *testing.T) {
 //查看全部商品
 func TestGetGoodsList(t *testing.T) {
 	str, resp := requests.NewHTTPRequest("http://127.0.0.1:8000/goods").Get().ToString()
-	t.Log(str, resp)
-}
-
-//增加库存
-func TestPutStock(t *testing.T) {
-	var request struct {
-		GoodsID int `json:"goodsId"` //商品id
-		Num     int `json:"num"`     //增加数量
-	}
-	request.GoodsID = 1
-	request.Num = 14
-	//request.Num = 5
-
-	str, resp := requests.NewHTTPRequest("http://127.0.0.1:8000/goods/stock").Put().SetJSONBody(request).ToString()
 	t.Log(str, resp)
 }
 

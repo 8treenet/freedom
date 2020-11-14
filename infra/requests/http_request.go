@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/url"
 	"reflect"
+	"strings"
 )
 
 // HTTPRequest .
@@ -263,15 +264,19 @@ func (req *HTTPRequest) readBody() {
 		if req.connTrace != nil {
 			req.connTrace.done()
 		}
-
 	}()
-	if req.Response.Header.Get("Content-Encoding") == "gzip" {
+
+	if strings.EqualFold(req.Response.Header.Get("Content-Encoding"), "gzip") && req.Response.ContentLength != 0 {
 		reader, err := gzip.NewReader(req.Response.stdResponse.Body)
 		if err != nil {
+			req.Response.Error = err
 			return
 		}
-		req.responeBody, _ = ioutil.ReadAll(reader)
+		defer reader.Close()
+		req.responeBody, req.Response.Error = ioutil.ReadAll(reader)
+		return
 	}
+
 	req.responeBody, req.Response.Error = ioutil.ReadAll(req.Response.stdResponse.Body)
 	return
 }

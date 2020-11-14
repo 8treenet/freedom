@@ -7,6 +7,7 @@ import (
 	"github.com/8treenet/freedom/example/fshop/domain/dto"
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
 	"github.com/8treenet/freedom/example/fshop/domain/po"
+	"github.com/8treenet/freedom/example/fshop/infra/domainevent"
 	"github.com/jinzhu/gorm"
 
 	"github.com/8treenet/freedom"
@@ -27,6 +28,7 @@ var _ dependency.UserRepo = (*User)(nil)
 // User .
 type User struct {
 	freedom.Repository
+	EventRepository *domainevent.EventManager //领域事件组件
 }
 
 // Get .
@@ -38,7 +40,7 @@ func (repo *User) Get(ID int) (userEntity *entity.User, e error) {
 		return
 	}
 
-	//注入基础Entity 包含运行时和领域事件的producer
+	//注入基础Entity
 	repo.InjectBaseEntity(userEntity)
 	return
 }
@@ -58,7 +60,10 @@ func (repo *User) FindByName(userName string) (userEntity *entity.User, e error)
 // Save .
 func (repo *User) Save(entity *entity.User) error {
 	_, e := saveUser(repo, &entity.User)
-	return e
+	if e != nil {
+		return e
+	}
+	return repo.EventRepository.Save(&repo.Repository, entity)
 }
 
 // New .

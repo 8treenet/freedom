@@ -14,23 +14,27 @@ func confTemplate() string {
 	import (
 		"runtime"
 		"os"
+		"sync"
 		"github.com/8treenet/freedom"
 	)
 
 	func init() {
 		entryPoint()
-		cfg = &Configuration{
-			DB:    newDBConf(),
-			App:   newAppConf(),
-			Redis: newRedisConf(),
-		}
 	}
-
+	
 	// Get .
 	func Get() *Configuration {
+		once.Do(func() {
+			cfg = &Configuration{
+				DB:    newDBConf(),
+				App:   newAppConf(),
+				Redis: newRedisConf(),
+			}
+		})
 		return cfg
 	}
-
+	
+	var once sync.Once
 	var cfg *Configuration
 
 	// Configuration .

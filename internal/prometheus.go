@@ -40,13 +40,6 @@ type Prometheus struct {
 
 	ormReqs    *prometheus.CounterVec
 	ormLatency *prometheus.HistogramVec
-
-	// httpClientReqs    *prometheus.CounterVec
-	// httpClientLatency *prometheus.HistogramVec
-
-	kafkaProducerReqs    *prometheus.CounterVec
-	kafkaProducerLatency *prometheus.HistogramVec
-
 	counters   []*prometheus.CounterVec
 	histograms []*prometheus.HistogramVec
 }
@@ -100,44 +93,6 @@ func registerPrometheus(p *Prometheus, name, listen string) {
 		[]string{"model", "method", "result"},
 	)
 	prometheus.MustRegister(p.ormLatency)
-
-	// p.httpClientReqs = prometheus.NewCounterVec(
-	// 	prometheus.CounterOpts{
-	// 		Name:        httpClientReqsName,
-	// 		Help:        "",
-	// 		ConstLabels: prometheus.Labels{"service": name},
-	// 	},
-	// 	[]string{"domain", "http_code", "protocol", "method"},
-	// )
-	// prometheus.MustRegister(p.httpClientReqs)
-
-	// p.httpClientLatency = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-	// 	Name:        httpClientLatencyName,
-	// 	Help:        "",
-	// 	ConstLabels: prometheus.Labels{"service": name},
-	// },
-	// 	[]string{"domain", "http_code", "protocol", "method"},
-	// )
-	// prometheus.MustRegister(p.httpClientLatency)
-
-	p.kafkaProducerReqs = prometheus.NewCounterVec(
-		prometheus.CounterOpts{
-			Name:        kafkaProducerReqsName,
-			Help:        "",
-			ConstLabels: prometheus.Labels{"service": name},
-		},
-		[]string{"topic", "error"},
-	)
-	prometheus.MustRegister(p.kafkaProducerReqs)
-
-	p.kafkaProducerLatency = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Name:        kafkaProducerLatencyName,
-		Help:        "",
-		ConstLabels: prometheus.Labels{"service": name},
-	},
-		[]string{"topic", "error"},
-	)
-	prometheus.MustRegister(p.kafkaProducerLatency)
 
 	for i := 0; i < len(p.counters); i++ {
 		prometheus.MustRegister(p.counters[i])

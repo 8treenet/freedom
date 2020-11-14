@@ -3,7 +3,7 @@ package aggregate
 import (
 	"github.com/8treenet/freedom"
 	"github.com/8treenet/freedom/example/fshop/domain/dependency"
-	"github.com/8treenet/freedom/infra/transaction"
+	"github.com/8treenet/freedom/example/fshop/infra/domainevent"
 )
 
 func init() {
@@ -17,12 +17,12 @@ func init() {
 
 // OrderFactory 订单聚合根工厂
 type OrderFactory struct {
-	UserRepo     dependency.UserRepo     //依赖倒置用户资源库
-	OrderRepo    dependency.OrderRepo    //依赖倒置订单资源库
-	AdminRepo    dependency.AdminRepo    //依赖倒置管理员资源库
-	DeliveryRepo dependency.DeliveryRepo //依赖倒置物流资源库
-	TX           transaction.Transaction //依赖倒置事务组件
-	Worker       freedom.Worker          //运行时，一个请求绑定一个运行时
+	UserRepo     dependency.UserRepo           //依赖倒置用户资源库
+	OrderRepo    dependency.OrderRepo          //依赖倒置订单资源库
+	AdminRepo    dependency.AdminRepo          //依赖倒置管理员资源库
+	DeliveryRepo dependency.DeliveryRepo       //依赖倒置物流资源库
+	TX           *domainevent.EventTransaction //依赖倒置事务组件
+	Worker       freedom.Worker                //运行时，一个请求绑定一个运行时
 }
 
 // NewOrderPayCmd 创建订单支付聚合根

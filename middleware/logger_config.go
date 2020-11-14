@@ -80,7 +80,7 @@ func DefaultLoggerConfig() *RequestLoggerConfig {
 		RequestRawBody:       true,
 		RequestRawBodyMaxLen: 512,
 		MessageContextKeys:   []string{"response"},
-		Title:                "[access]",
+		Title:                "[ACCESS]",
 	}
 }
 

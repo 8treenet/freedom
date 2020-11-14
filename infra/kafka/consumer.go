@@ -3,7 +3,6 @@ package kafka
 import (
 	"context"
 	"runtime"
-	"strings"
 	"sync"
 	"time"
 
@@ -23,6 +22,7 @@ var consumerPtr *Consumer = new(Consumer)
 
 // Consumer .
 type Consumer struct {
+	freedom.Infra
 	topicPath       map[string]string
 	limiter         *Limiter
 	conf            kafkaConf
@@ -130,7 +130,6 @@ func (c *Consumer) call(msg *sarama.ConsumerMessage, conf *consumerConf) {
 	if !ok {
 		freedom.Logger().Error("[Freedom] Undefined 'topic' :", msg.Topic, conf.Servers)
 	}
-	path = strings.ReplaceAll(path, ":param1", string(msg.Key))
 	var request requests.Request
 	if c.conf.Consumer.ProxyHTTP2 {
 		request = requests.NewH2CRequest(c.conf.Consumer.ProxyAddr + path)

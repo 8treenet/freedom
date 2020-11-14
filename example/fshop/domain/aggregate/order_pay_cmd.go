@@ -4,9 +4,8 @@ import (
 	"errors"
 
 	"github.com/8treenet/freedom/example/fshop/domain/dependency"
-	"github.com/8treenet/freedom/example/fshop/domain/dto"
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
-	"github.com/8treenet/freedom/infra/transaction"
+	"github.com/8treenet/freedom/example/fshop/infra/domainevent"
 )
 
 //OrderPayCmd 支付订单聚合根
@@ -16,7 +15,7 @@ type OrderPayCmd struct {
 
 	userRepo  dependency.UserRepo
 	orderRepo dependency.OrderRepo
-	tx        transaction.Transaction
+	tx        *domainevent.EventTransaction
 }
 
 // Pay 支付.
@@ -39,14 +38,5 @@ func (cmd *OrderPayCmd) Pay() error {
 
 		return cmd.userRepo.Save(cmd.userEntity)
 	})
-
-	if e == nil {
-		msg := dto.OrderPayMsg{
-			OrderNo:    cmd.OrderNo,
-			TotalPrice: cmd.TotalPrice,
-		}
-		//发布领域事件 订单支付, 需要配置 server/conf/infra/kafka.toml 生产者相关配置
-		cmd.DomainEvent("order-pay", msg)
-	}
 	return e
 }

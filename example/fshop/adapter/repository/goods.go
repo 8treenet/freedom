@@ -9,6 +9,7 @@ import (
 	"github.com/8treenet/freedom/example/fshop/domain/dependency"
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
 	"github.com/8treenet/freedom/example/fshop/domain/po"
+	"github.com/8treenet/freedom/example/fshop/infra/domainevent"
 
 	"github.com/8treenet/freedom"
 )
@@ -28,7 +29,8 @@ var _ dependency.GoodsRepo = (*Goods)(nil)
 // Goods .
 type Goods struct {
 	freedom.Repository
-	Cache store.EntityCache //实体缓存组件
+	Cache        store.EntityCache         //实体缓存组件
+	EventManager *domainevent.EventManager //领域事件组件
 }
 
 // BeginRequest .
@@ -49,7 +51,7 @@ func (repo *Goods) BeginRequest(worker freedom.Worker) {
 func (repo *Goods) Get(ID int) (goodsEntity *entity.Goods, e error) {
 	goodsEntity = &entity.Goods{}
 	goodsEntity.ID = ID
-	//注入基础Entity 包含运行时和领域事件的producer
+	//注入基础Entity
 	repo.InjectBaseEntity(goodsEntity)
 
 	//读取缓存
@@ -59,9 +61,13 @@ func (repo *Goods) Get(ID int) (goodsEntity *entity.Goods, e error) {
 // Save 持久化实体.
 func (repo *Goods) Save(entity *entity.Goods) error {
 	_, e := saveGoods(repo, &entity.Goods)
+	if e != nil {
+		return e
+	}
+
 	//清空缓存
-	repo.Cache.Delete(entity)
-	return e
+	defer repo.Cache.Delete(entity)
+	return repo.EventManager.Save(&repo.Repository, entity) //持久化实体的事件
 }
 
 // Finds .
@@ -75,7 +81,7 @@ func (repo *Goods) Finds(IDs []int) (entitys []*entity.Goods, e error) {
 		return
 	}
 
-	//注入基础Entity 包含运行时和领域事件的producer
+	//注入基础Entity
 	repo.InjectBaseEntitys(entitys)
 	return
 }
@@ -92,7 +98,7 @@ func (repo *Goods) FindsByPage(page, pageSize int, tag string) (entitys []*entit
 		"pageSize":  pageSize,
 		"totalPage": pager.TotalPage(),
 	})
-	//注入基础Entity 包含运行时和领域事件的producer
+	//注入基础Entity
 	repo.InjectBaseEntitys(entitys)
 	return
 }

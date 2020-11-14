@@ -5,9 +5,9 @@
 # http://www.sequelpro.com/
 # https://github.com/sequelpro/sequelpro
 #
-# Host: 127.0.0.1 (MySQL 5.7.26)
+# Host: 127.0.0.1 (MySQL 5.7.18)
 # Database: freedom
-# Generation Time: 2020-01-16 10:09:26 +0000
+# Generation Time: 2020-11-14 08:57:57 +0000
 # ************************************************************
 
 
@@ -23,6 +23,8 @@
 # Dump of table goods
 # ------------------------------------------------------------
 
+DROP TABLE IF EXISTS `goods`;
+
 CREATE TABLE `goods` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(32) NOT NULL DEFAULT '' COMMENT '商品名称',
@@ -33,17 +35,24 @@ CREATE TABLE `goods` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+LOCK TABLES `goods` WRITE;
+/*!40000 ALTER TABLE `goods` DISABLE KEYS */;
 
 INSERT INTO `goods` (`id`, `name`, `price`, `stock`, `created`, `updated`)
 VALUES
-	(1,'冈本',18,50,'2020-01-16 18:06:31','2020-01-16 18:07:24'),
-	(2,'杰士邦',15,50,'2020-01-16 18:06:44','2020-01-16 18:07:26'),
-	(3,'杜蕾斯',20,50,'2020-01-16 18:07:02','2020-01-16 18:07:28'),
-	(4,'第六感',10,50,'2020-01-16 18:07:22','2020-01-16 18:07:29');
+	(1,'冈本',15,139445,'2020-01-16 18:06:31','2020-11-07 17:35:21'),
+	(2,'杰士邦',15,186,'2020-01-16 18:06:44','2020-03-20 22:35:51'),
+	(3,'杜蕾斯',20,186,'2020-01-16 18:07:02','2020-03-20 22:35:51'),
+	(4,'第六感',80,186,'2020-01-16 18:07:22','2020-03-23 22:20:30');
+
+/*!40000 ALTER TABLE `goods` ENABLE KEYS */;
+UNLOCK TABLES;
 
 
 # Dump of table order
 # ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `order`;
 
 CREATE TABLE `order` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
@@ -55,3 +64,12 @@ CREATE TABLE `order` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+
+
+
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

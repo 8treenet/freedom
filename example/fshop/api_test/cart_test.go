@@ -17,7 +17,7 @@ func TestCartGetItems(t *testing.T) {
 func TestPostCart(t *testing.T) {
 	var req dto.CartAddReq
 	req.UserID = 1
-	req.GoodsID = 1
+	req.GoodsID = 3
 	req.GoodsNum = 1
 	str, err := requests.NewH2CRequest("http://127.0.0.1:8000/cart").Post().SetJSONBody(req).ToString()
 	t.Log(str, err)

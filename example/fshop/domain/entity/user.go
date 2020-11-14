@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/8treenet/freedom"
+	"github.com/8treenet/freedom/example/fshop/domain/event"
 	"github.com/8treenet/freedom/example/fshop/domain/po"
 )
 
@@ -25,5 +26,12 @@ func (u *User) ChangePassword(newPassword, oldPassword string) error {
 		return errors.New("Password error")
 	}
 	u.SetPassword(newPassword)
+
+	//用户实体加入修改密码事件
+	u.AddPubEvent(&event.ChangePassword{
+		UserID:      u.User.ID,
+		NewPassword: u.Password,
+		OldPassword: oldPassword,
+	})
 	return nil
 }

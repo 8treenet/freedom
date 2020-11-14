@@ -59,13 +59,6 @@ func (msgBus *EventBus) building() {
 			if eventName == "" {
 				continue
 			}
-			ft := method.Func.Type()
-			if ft.NumIn() != 2 {
-				globalApp.Logger().Fatalf("[Freedom] ListenEvent: Event routing parameters must be 'eventID string', MainHandlerName:%v", t.Elem().String()+"."+method.Name)
-			}
-			if ft.In(1).Kind() != reflect.String {
-				globalApp.Logger().Fatalf("[Freedom] ListenEvent: Event routing parameters must be 'eventID string', MainHandlerName:%v", t.Elem().String()+"."+method.Name)
-			}
 			eventsRoute[eventName] = t.Elem().String() + "." + method.Name
 		}
 	}
