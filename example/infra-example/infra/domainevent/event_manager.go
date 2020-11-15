@@ -153,20 +153,21 @@ func (manager *EventManager) Retry() {
 	freedom.Logger().Info("EventManager Retry")
 }
 
-// addPubToWorker 增加发布事件到worker的Store.
+// addPubToWorker 增加发布事件到Worker.Store.
 func (manager *EventManager) addPubToWorker(worker freedom.Worker, pubs []freedom.DomainEvent) {
 	if len(pubs) == 0 {
 		return
 	}
-	//把worker的请求信息 写到事件的属性里
-	m := map[string]interface{}{}
-	for key, item := range worker.Bus().Header {
-		if len(item) <= 0 {
-			continue
-		}
-		m[key] = item[0]
-	}
 	for _, pubEvent := range pubs {
+		//把worker的请求信息 写到事件的属性里
+		m := map[string]interface{}{}
+		for key, item := range worker.Bus().Header.Clone() {
+			if len(item) <= 0 {
+				continue
+			}
+			m[key] = item[0]
+		}
+
 		pubEvent.SetPrototypes(m)
 	}
 
