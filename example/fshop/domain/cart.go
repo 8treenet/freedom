@@ -1,9 +1,10 @@
 package domain
 
 import (
+	"encoding/json"
+
 	"github.com/8treenet/freedom/example/fshop/domain/aggregate"
 	"github.com/8treenet/freedom/example/fshop/domain/dependency"
-	"github.com/8treenet/freedom/example/fshop/domain/dto"
 
 	"github.com/8treenet/freedom"
 )
@@ -41,29 +42,13 @@ func (c *Cart) Add(userID, goodsID, goodsNum int) (e error) {
 }
 
 // Items 购物车全部商品项
-func (c *Cart) Items(userID int) (items dto.CartItemRes, e error) {
+func (c *Cart) Items(userID int) (json.Marshaler, error) {
 	//创建购物车查询聚合根
 	query, e := c.CartFactory.NewCartItemQuery(userID)
 	if e != nil {
-		return
+		return nil, e
 	}
-	query.VisitAllItem(func(id, goodsId int, goodsName string, goodsNum, totalPrice int) {
-		items.Items = append(items.Items, struct {
-			ID         int
-			GoodsID    int
-			GoodsName  string
-			GoodsNum   int
-			TotalPrice int
-		}{
-			id,
-			goodsId,
-			goodsName,
-			goodsNum,
-			totalPrice,
-		})
-	})
-	items.TotalPrice = query.AllItemTotalPrice()
-	return
+	return query, e
 }
 
 // DeleteAll 清空购物车
