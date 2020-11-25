@@ -26,9 +26,9 @@ func (o *Order) Identity() string {
 	return o.OrderNo
 }
 
-// AddOrderDetal 增加订单详情
-func (o *Order) AddOrderDetal(detal *po.OrderDetail) {
-	o.Details = append(o.Details, detal)
+// AddOrderDetail 增加订单详情
+func (o *Order) AddOrderDetail(detail *po.OrderDetail) {
+	o.Details = append(o.Details, detail)
 }
 
 // Pay 实体触发付款

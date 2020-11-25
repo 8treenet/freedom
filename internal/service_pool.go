@@ -102,11 +102,11 @@ func (pool *ServicePool) malloc(t reflect.Type) interface{} {
 		return nil
 	}
 	// Get 其实是在 BindService 时注入的 生成 service 对象的函数
-	newSercice := syncpool.Get()
-	if newSercice == nil {
+	newService := syncpool.Get()
+	if newService == nil {
 		globalApp.Logger().Fatalf("[Freedom] BindService: func return to empty, %v", t)
 	}
-	return newSercice
+	return newService
 }
 
 func (pool *ServicePool) allType() (list []reflect.Type) {

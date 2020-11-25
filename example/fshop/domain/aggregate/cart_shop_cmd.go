@@ -46,7 +46,7 @@ func (cmd *CartShopCmd) Shop() error {
 		totalPrice += goodsEntity.Price * cmd.allCartEntity[i].Num
 
 		//增加订单的商品详情
-		cmd.AddOrderDetal(&po.OrderDetail{OrderNo: cmd.OrderNo, GoodsID: goodsEntity.ID, GoodsName: goodsEntity.Name, Num: cmd.allCartEntity[i].Num, Created: time.Now(), Updated: time.Now()})
+		cmd.AddOrderDetail(&po.OrderDetail{OrderNo: cmd.OrderNo, GoodsID: goodsEntity.ID, GoodsName: goodsEntity.Name, Num: cmd.allCartEntity[i].Num, Created: time.Now(), Updated: time.Now()})
 
 		//订单实体加入购买事件
 		cmd.Order.AddPubEvent(&event.ShopGoods{
