@@ -24,8 +24,10 @@ type ServicePool struct {
 // get .
 func (pool *ServicePool) get(rt *worker, service interface{}) {
 	svalue := reflect.ValueOf(service)
-	// ptr 为 领域服务指针对象 的类型， 相当于做了个 * 操作
-	ptr := svalue.Elem() // Level 1
+	if svalue.Kind() != reflect.Ptr {
+		globalApp.IrisApp.Logger().Fatalf("[Freedom] No dependency injection was found for the service object,%v", svalue.Type())
+	}
+	ptr := svalue.Elem()
 
 	var newService interface{}
 	newService = pool.malloc(ptr.Type())
