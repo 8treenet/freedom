@@ -37,7 +37,7 @@ func (cmd *GoodsShopCmd) Shop() error {
 	//设置订单的用户
 	cmd.SetUserID(cmd.userEntity.ID)
 	//增加订单的商品详情
-	cmd.AddOrderDetal(&po.OrderDetail{OrderNo: cmd.OrderNo, GoodsID: cmd.goodsEntity.ID, GoodsName: cmd.goodsEntity.Name, Num: cmd.goodsNum, Created: time.Now(), Updated: time.Now()})
+	cmd.AddOrderDetail(&po.OrderDetail{OrderNo: cmd.OrderNo, GoodsID: cmd.goodsEntity.ID, GoodsName: cmd.goodsEntity.Name, Num: cmd.goodsNum, Created: time.Now(), Updated: time.Now()})
 
 	//订单实体加入购买事件
 	cmd.Order.AddPubEvent(&event.ShopGoods{
