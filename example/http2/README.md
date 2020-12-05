@@ -1,5 +1,5 @@
 # freedom
-### http2和依赖倒置
+### HTTP/H2C和依赖倒置
 ---
 
 #### 启动
@@ -8,7 +8,7 @@ $  go run server/main.go
 #  本程序是一个购物的小示例, 浏览器可输入http://127.0.0.1:8000/shop/1, 1-4为商品ID
 ```
 
-#### http2 server
+#### HTTP/H2C Server
 > main.go
 ```go
 
@@ -119,9 +119,9 @@ func (s *ShopService) Shopping(goodsID int) string {
 }
 ```
 
-#### 实现接口和http2 client
-- http NewHttpRequest()
-- http2 NewH2CRequest()
+#### 实现接口和HTTP/H2C Client
+- HTTP     NewHttpRequest()
+- HTTP/H2C NewH2CRequest()
 ```go
 func init() {
 	freedom.Prepare(func(initiator freedom.Initiator) {

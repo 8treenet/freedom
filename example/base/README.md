@@ -1,5 +1,5 @@
-# freedom
-### base - 基础示例
+# Freedom
+## 基础示例
 
 #### 目录结构
 
