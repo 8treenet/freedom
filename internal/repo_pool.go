@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"fmt"
 	"reflect"
 )
 
@@ -25,7 +24,7 @@ func (pool *RepositoryPool) get(t reflect.Type) (ok bool, result reflect.Value) 
 
 	values := reflect.ValueOf(fun).Call([]reflect.Value{})
 	if len(values) == 0 {
-		panic(fmt.Sprintf("[Freedom] BindRepository: func return to empty, %v", reflect.TypeOf(fun)))
+		globalApp.Logger().Fatalf("[Freedom] BindRepository: func return to empty, %v", reflect.TypeOf(fun))
 	}
 
 	return true, values[0]
@@ -42,35 +41,31 @@ func (pool *RepositoryPool) allType() (list []reflect.Type) {
 	return
 }
 
-func (pool *RepositoryPool) diRepo(repo interface{}, instance *serviceElement) {
+func (pool *RepositoryPool) diRepo(repo interface{}, instance *serviceInstance) {
 	allFields(repo, func(value reflect.Value) {
 		pool.diRepoFromValue(value, instance)
 	})
 }
 
-func (pool *RepositoryPool) diRepoFromValue(value reflect.Value, instance *serviceElement) bool {
+func (pool *RepositoryPool) diRepoFromValue(value reflect.Value, instance *serviceInstance) {
 	//如果是指针的成员变量
 	if value.Kind() == reflect.Ptr && value.IsZero() {
 		ok, newfield := pool.get(value.Type())
 		if !ok {
-			return false
+			return
 		}
 		if !value.CanSet() {
-			panic(fmt.Sprintf("[Freedom] This use repository object must be a capital variable: %v" + value.Type().String()))
+			globalApp.IrisApp.Logger().Fatalf("[Freedom] This use repository object must be a capital variable: %v" + value.Type().String())
 		}
 		//创建实例并且注入基础设施组件
 		value.Set(newfield)
 		allFieldsFromValue(newfield, func(repoValue reflect.Value) {
 			globalApp.comPool.diInfraFromValue(repoValue)
-			if repoValue.IsNil() {
-				return
-			}
 			if br, ok := repoValue.Interface().(BeginRequest); ok {
 				instance.calls = append(instance.calls, br)
 			}
 		})
 		//globalApp.comPool.diInfra(newfield.Interface())
-		return true
 	}
 
 	//如果是接口的成员变量
@@ -85,22 +80,18 @@ func (pool *RepositoryPool) diRepoFromValue(value reflect.Value, instance *servi
 				continue
 			}
 			if !value.CanSet() {
-				panic(fmt.Sprintf("[Freedom] This use repository object must be a capital variable: %v" + value.Type().String()))
+				globalApp.IrisApp.Logger().Fatalf("[Freedom] This use repository object must be a capital variable: %v" + value.Type().String())
 			}
 			//创建实例并且注入基础设施组件
 			value.Set(newfield)
 			allFieldsFromValue(newfield, func(repoValue reflect.Value) {
 				globalApp.comPool.diInfraFromValue(repoValue)
-				if repoValue.IsNil() {
-					return
-				}
 				if br, ok := repoValue.Interface().(BeginRequest); ok {
 					instance.calls = append(instance.calls, br)
 				}
 			})
 			//globalApp.comPool.diInfra(newfield.Interface())
-			return true
+			return
 		}
 	}
-	return false
 }
