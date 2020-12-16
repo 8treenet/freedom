@@ -41,13 +41,13 @@ func (pool *RepositoryPool) allType() (list []reflect.Type) {
 	return
 }
 
-func (pool *RepositoryPool) diRepo(repo interface{}) {
+func (pool *RepositoryPool) diRepo(repo interface{}, instance *serviceInstance) {
 	allFields(repo, func(value reflect.Value) {
-		pool.diRepoFromValue(value)
+		pool.diRepoFromValue(value, instance)
 	})
 }
 
-func (pool *RepositoryPool) diRepoFromValue(value reflect.Value) {
+func (pool *RepositoryPool) diRepoFromValue(value reflect.Value, instance *serviceInstance) {
 	//如果是指针的成员变量
 	if value.Kind() == reflect.Ptr && value.IsZero() {
 		ok, newfield := pool.get(value.Type())
@@ -61,6 +61,9 @@ func (pool *RepositoryPool) diRepoFromValue(value reflect.Value) {
 		value.Set(newfield)
 		allFieldsFromValue(newfield, func(repoValue reflect.Value) {
 			globalApp.comPool.diInfraFromValue(repoValue)
+			if br, ok := repoValue.Interface().(BeginRequest); ok {
+				instance.calls = append(instance.calls, br)
+			}
 		})
 		//globalApp.comPool.diInfra(newfield.Interface())
 	}
@@ -83,6 +86,9 @@ func (pool *RepositoryPool) diRepoFromValue(value reflect.Value) {
 			value.Set(newfield)
 			allFieldsFromValue(newfield, func(repoValue reflect.Value) {
 				globalApp.comPool.diInfraFromValue(repoValue)
+				if br, ok := repoValue.Interface().(BeginRequest); ok {
+					instance.calls = append(instance.calls, br)
+				}
 			})
 			//globalApp.comPool.diInfra(newfield.Interface())
 			return

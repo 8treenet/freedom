@@ -46,7 +46,7 @@ func (u *UnitTestImpl) GetRepository(repository interface{}) {
 
 	repo := newfield.Interface()
 	globalApp.comPool.diInfra(repo)
-	globalApp.pool.objBeginRequest(u.rt, repo)
+	globalApp.pool.beginRequest(u.rt, repo)
 	value.Set(newfield)
 }
 
@@ -63,7 +63,7 @@ func (u *UnitTestImpl) GetFactory(factory interface{}) {
 
 	factoryObj := newfield.Interface()
 	globalApp.comPool.diInfra(factoryObj)
-	globalApp.rpool.diRepo(factoryObj)
+	globalApp.rpool.diRepo(factoryObj, nil)
 	globalApp.pool.factoryCall(u.rt, reflect.ValueOf(u.rt), newfield)
 	value.Set(newfield)
 }
