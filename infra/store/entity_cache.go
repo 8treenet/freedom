@@ -126,8 +126,8 @@ func (cache *EntityCacheImpl) GetEntity(result freedom.Entity) error {
 // Delete 删除实体缓存
 func (cache *EntityCacheImpl) Delete(result freedom.Entity, async ...bool) error {
 	name := cache.getName(reflect.ValueOf(result).Type()) + ":" + result.Identity()
-	if !cache.Worker.IsDeferRecycle() {
-		cache.Worker.Store().Remove(name)
+	if !cache.Worker().IsDeferRecycle() {
+		cache.Worker().Store().Remove(name)
 	}
 	client := cache.client
 	if client == nil {
@@ -198,10 +198,10 @@ func (cache *EntityCacheImpl) getName(entityType reflect.Type) string {
 }
 
 func (cache *EntityCacheImpl) getStore(name string, result freedom.Entity) (bool, error) {
-	if cache.Worker.IsDeferRecycle() {
+	if cache.Worker().IsDeferRecycle() {
 		return false, nil
 	}
-	entityStore := cache.Worker.Store().Get(name)
+	entityStore := cache.Worker().Store().Get(name)
 	if entityStore == nil {
 		return false, nil
 	}
@@ -212,10 +212,10 @@ func (cache *EntityCacheImpl) getStore(name string, result freedom.Entity) (bool
 }
 
 func (cache *EntityCacheImpl) setStore(name string, stroe []byte) {
-	if cache.Worker.IsDeferRecycle() {
+	if cache.Worker().IsDeferRecycle() {
 		return
 	}
-	cache.Worker.Store().Set(name, stroe)
+	cache.Worker().Store().Set(name, stroe)
 }
 
 func (cache *EntityCacheImpl) getRedis(name string) ([]byte, error) {

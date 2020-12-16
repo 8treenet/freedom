@@ -20,8 +20,8 @@ func callService(fun interface{}, worker ...Worker) {
 	if err != nil {
 		globalApp.Logger().Fatalf("[Freedom] CallService, %v : %s", fun, err.Error())
 	}
-	newService := globalApp.pool.pop(worker[0], serviceObj)
-	reflect.ValueOf(fun).Call([]reflect.Value{reflect.ValueOf(newService)})
+	newService := globalApp.pool.create(worker[0], serviceObj)
+	reflect.ValueOf(fun).Call([]reflect.Value{reflect.ValueOf(newService.(serviceElement).serviceObject)})
 
 	if worker[0].IsDeferRecycle() {
 		return

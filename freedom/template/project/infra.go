@@ -46,7 +46,7 @@ func jsonRequestTemplate() string {
 	
 	// ReadJSON .
 	func (req *Request) ReadJSON(obj interface{}) error {
-		rawData, err := ioutil.ReadAll(req.Worker.IrisContext().Request().Body)
+		rawData, err := ioutil.ReadAll(req.Worker().IrisContext().Request().Body)
 		if err != nil {
 			return err
 		}
@@ -60,7 +60,7 @@ func jsonRequestTemplate() string {
 	
 	// ReadQuery .
 	func (req *Request) ReadQuery(obj interface{}) error {
-		if err := req.Worker.IrisContext().ReadQuery(obj); err != nil {
+		if err := req.Worker().IrisContext().ReadQuery(obj); err != nil {
 			return err
 		}
 		return validate.Struct(obj)
@@ -68,7 +68,7 @@ func jsonRequestTemplate() string {
 	
 	// ReadForm .
 	func (req *Request) ReadForm(obj interface{}) error {
-		if err := req.Worker.IrisContext().ReadForm(obj); err != nil {
+		if err := req.Worker().IrisContext().ReadForm(obj); err != nil {
 			return err
 		}
 		return validate.Struct(obj)

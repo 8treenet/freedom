@@ -23,8 +23,14 @@ type InfraPool struct {
 
 // bind .
 func (pool *InfraPool) bind(single bool, t reflect.Type, com interface{}) {
+	type setSingle interface {
+		setSingle()
+	}
 	if single {
 		pool.singlemap[t] = com
+		if call, ok := com.(setSingle); ok {
+			call.setSingle()
+		}
 		return
 	}
 	pool.instancePool[t] = &sync.Pool{

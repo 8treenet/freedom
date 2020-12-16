@@ -28,7 +28,7 @@ type EventTransaction struct {
 // Execute .
 func (et *EventTransaction) Execute(fun func() error) (e error) {
 	defer func() {
-		et.Worker.Store().Remove(workerStorePubEventKey)
+		et.Worker().Store().Remove(workerStorePubEventKey)
 	}()
 
 	if e = et.GormImpl.Execute(fun); e != nil {
@@ -41,7 +41,7 @@ func (et *EventTransaction) Execute(fun func() error) (e error) {
 // ExecuteTx .
 func (et *EventTransaction) ExecuteTx(ctx context.Context, fun func() error, opts *sql.TxOptions) (e error) {
 	defer func() {
-		et.Worker.Store().Remove(workerStorePubEventKey)
+		et.Worker().Store().Remove(workerStorePubEventKey)
 	}()
 
 	if e = et.GormImpl.ExecuteTx(ctx, fun, opts); e != nil {
@@ -53,7 +53,7 @@ func (et *EventTransaction) ExecuteTx(ctx context.Context, fun func() error, opt
 
 // pushEvent 发布事件 .
 func (et *EventTransaction) pushEvent() {
-	pubs := et.Worker.Store().Get(workerStorePubEventKey)
+	pubs := et.Worker().Store().Get(workerStorePubEventKey)
 	if pubs == nil {
 		return
 	}

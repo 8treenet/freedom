@@ -9,12 +9,16 @@ import (
 
 // Infra .
 type Infra struct {
-	Worker Worker `json:"-"`
+	worker Worker `json:"-"`
+	single bool
 }
 
 // BeginRequest .子实现多态
 func (infra *Infra) BeginRequest(rt Worker) {
-	infra.Worker = rt
+	if infra.single {
+		return
+	}
+	infra.worker = rt
 }
 
 // SourceDB .
@@ -39,11 +43,11 @@ func (infra *Infra) NewHTTPRequest(url string, transferBus ...bool) requests.Req
 	if len(transferBus) > 0 && !transferBus[0] {
 		return req
 	}
-	if infra.Worker == nil {
+	if infra.worker == nil {
 		//The singleton object does not have a Worker component
 		return req
 	}
-	req.SetHeader(infra.Worker.Bus().Header)
+	req.SetHeader(infra.worker.Bus().Header)
 	return req
 }
 
@@ -53,26 +57,26 @@ func (infra *Infra) NewH2CRequest(url string, transferBus ...bool) requests.Requ
 	if len(transferBus) > 0 && !transferBus[0] {
 		return req
 	}
-	if infra.Worker == nil {
+	if infra.worker == nil {
 		//The singleton object does not have a Worker component
 		return req
 	}
-	req.SetHeader(infra.Worker.Bus().Header)
+	req.SetHeader(infra.worker.Bus().Header)
 	return req
 }
 
 // InjectBaseEntity .
 func (infra *Infra) InjectBaseEntity(entity Entity) {
-	if infra.Worker == nil {
+	if infra.worker == nil {
 		panic("The singleton object does not have a Worker component")
 	}
-	injectBaseEntity(infra.Worker, entity)
+	injectBaseEntity(infra.worker, entity)
 	return
 }
 
 // InjectBaseEntitys .
 func (infra *Infra) InjectBaseEntitys(entitys interface{}) {
-	if infra.Worker == nil {
+	if infra.worker == nil {
 		panic("The singleton object does not have a Worker component")
 	}
 	entitysValue := reflect.ValueOf(entitys)
@@ -84,20 +88,24 @@ func (infra *Infra) InjectBaseEntitys(entitys interface{}) {
 		if _, ok := iface.(Entity); !ok {
 			globalApp.IrisApp.Logger().Fatalf("[Freedom] InjectBaseEntitys: This is not an entity, %v", entitysValue.Type())
 		}
-		injectBaseEntity(infra.Worker, iface)
+		injectBaseEntity(infra.worker, iface)
 	}
 	return
 }
 
-// GetWorker .
-func (infra *Infra) GetWorker() Worker {
-	if infra.Worker == nil {
+// Worker .
+func (infra *Infra) Worker() Worker {
+	if infra.worker == nil {
 		panic("The singleton object does not have a Worker component")
 	}
-	return infra.Worker
+	return infra.worker
 }
 
 // GetSingleInfra .
 func (infra *Infra) GetSingleInfra(com interface{}) bool {
 	return globalApp.GetSingleInfra(com)
+}
+
+func (infra *Infra) setSingle() {
+	infra.single = true
 }

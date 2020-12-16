@@ -36,7 +36,7 @@ func (req *Request) BeginRequest(worker freedom.Worker) {
 
 // ReadJSON .
 func (req *Request) ReadJSON(obj interface{}) error {
-	rawData, err := ioutil.ReadAll(req.Worker.IrisContext().Request().Body)
+	rawData, err := ioutil.ReadAll(req.Worker().IrisContext().Request().Body)
 	if err != nil {
 		return err
 	}
@@ -50,7 +50,7 @@ func (req *Request) ReadJSON(obj interface{}) error {
 
 // ReadQuery .
 func (req *Request) ReadQuery(obj interface{}) error {
-	if err := req.Worker.IrisContext().ReadQuery(obj); err != nil {
+	if err := req.Worker().IrisContext().ReadQuery(obj); err != nil {
 		return err
 	}
 	return validate.Struct(obj)
@@ -58,7 +58,7 @@ func (req *Request) ReadQuery(obj interface{}) error {
 
 // ReadForm .
 func (req *Request) ReadForm(obj interface{}) error {
-	if err := req.Worker.IrisContext().ReadForm(obj); err != nil {
+	if err := req.Worker().IrisContext().ReadForm(obj); err != nil {
 		return err
 	}
 	return validate.Struct(obj)

@@ -22,14 +22,14 @@ type Default struct {
 // GetIP .
 func (repo *Default) GetIP() string {
 	//repo.DB().Find()
-	repo.Worker.Logger().Info("I'm Repository GetIP")
-	return repo.Worker.IrisContext().RemoteAddr()
+	repo.Worker().Logger().Info("I'm Repository GetIP")
+	return repo.Worker().IrisContext().RemoteAddr()
 }
 
 // GetUA - implement DefaultRepoInterface interface
 func (repo *Default) GetUA() string {
-	repo.Worker.Logger().Info("I'm Repository GetUA")
-	return repo.Worker.IrisContext().Request().UserAgent()
+	repo.Worker().Logger().Info("I'm Repository GetUA")
+	return repo.Worker().IrisContext().Request().UserAgent()
 }
 
 // db .
@@ -39,7 +39,7 @@ func (repo *Default) db() *gorm.DB {
 		panic(err)
 	}
 	db = db.New()
-	db.SetLogger(repo.Worker.Logger())
+	db.SetLogger(repo.Worker().Logger())
 	return db
 }
 
