@@ -2,6 +2,7 @@ package internal
 
 import (
 	"math/rand"
+	"reflect"
 	"time"
 
 	stdContext "context"
@@ -12,7 +13,7 @@ import (
 )
 
 const (
-	//WorkerKey .
+	// WorkerKey .
 	WorkerKey = "STORE-WORKER-KEY"
 )
 
@@ -138,3 +139,5 @@ func (rt *worker) Rand() *rand.Rand {
 func (rt *worker) SetLogger(l Logger) {
 	rt.logger = l
 }
+
+var workerType = reflect.TypeOf(&worker{})

@@ -21,6 +21,12 @@ type ServicePool struct {
 	instancePool map[reflect.Type]*sync.Pool
 }
 
+type serviceInstance struct {
+	workers       []reflect.Value
+	calls         []BeginRequest
+	serviceObject interface{}
+}
+
 // get .
 func (pool *ServicePool) get(rt *worker, service interface{}) {
 	svalue := reflect.ValueOf(service)
@@ -35,8 +41,8 @@ func (pool *ServicePool) get(rt *worker, service interface{}) {
 		globalApp.IrisApp.Logger().Fatalf("[Freedom] No dependency injection was found for the service object,%v", ptr.Type())
 	}
 
-	ptr.Set(reflect.ValueOf(newService))
-	pool.objBeginRequest(rt, newService)
+	ptr.Set(reflect.ValueOf(newService.(serviceInstance).serviceObject))
+	pool.beginRequest(rt, newService)
 	rt.freeServices = append(rt.freeServices, newService)
 }
 
@@ -47,7 +53,7 @@ func (pool *ServicePool) pop(rt Worker, service reflect.Type) interface{} {
 		globalApp.IrisApp.Logger().Fatalf("[Freedom] No dependency injection was found for the service object,%v", service)
 	}
 
-	pool.objBeginRequest(rt, newService)
+	pool.beginRequest(rt, newService)
 	return newService
 }
 
@@ -66,14 +72,14 @@ func (pool *ServicePool) freeHandle() context.Handler {
 }
 
 // free .
-func (pool *ServicePool) free(obj interface{}) {
-	t := reflect.TypeOf(obj)
+func (pool *ServicePool) free(service interface{}) {
+	t := reflect.TypeOf(service.(serviceInstance).serviceObject)
 	syncpool, ok := pool.instancePool[t]
 	if !ok {
 		return
 	}
 
-	syncpool.Put(obj)
+	syncpool.Put(service)
 }
 
 func (pool *ServicePool) bind(t reflect.Type, f interface{}) {
@@ -85,13 +91,27 @@ func (pool *ServicePool) bind(t reflect.Type, f interface{}) {
 			}
 
 			newService := values[0].Interface()
+			result := serviceInstance{serviceObject: newService, calls: []BeginRequest{}, workers: []reflect.Value{}}
 			allFields(newService, func(fieldValue reflect.Value) {
-				globalApp.rpool.diRepoFromValue(fieldValue)
+				kind := fieldValue.Kind()
+				if kind == reflect.Interface && workerType.AssignableTo(fieldValue.Type()) && fieldValue.CanSet() {
+					//如果是运行时对象
+					result.workers = append(result.workers, fieldValue)
+					return
+				}
+				globalApp.rpool.diRepoFromValue(fieldValue, &result)
 				globalApp.comPool.diInfraFromValue(fieldValue)
-				globalApp.factoryPool.diFactoryFromValue(fieldValue)
+				globalApp.factoryPool.diFactoryFromValue(fieldValue, &result)
 
+				if br, ok := fieldValue.Interface().(BeginRequest); ok {
+					result.calls = append(result.calls, br)
+				}
 			})
-			return newService
+
+			if br, ok := newService.(BeginRequest); ok {
+				result.calls = append(result.calls, br)
+			}
+			return result
 		},
 	}
 }
@@ -147,8 +167,19 @@ func (pool *ServicePool) factoryCall(rt Worker, wokrerValue reflect.Value, facto
 		return
 	})
 }
+func (pool *ServicePool) beginRequest(worker Worker, obj interface{}) {
+	workerValue := reflect.ValueOf(worker)
+	instance := obj.(serviceInstance)
 
-func (pool *ServicePool) objBeginRequest(rt Worker, obj interface{}) {
+	for i := 0; i < len(instance.workers); i++ {
+		instance.workers[i].Set(workerValue)
+	}
+	for i := 0; i < len(instance.calls); i++ {
+		instance.calls[i].BeginRequest(worker)
+	}
+}
+
+func (pool *ServicePool) objBeginRequest2(rt Worker, obj interface{}) {
 	rtValue := reflect.ValueOf(rt)
 	allFields(obj, func(value reflect.Value) {
 		kind := value.Kind()
