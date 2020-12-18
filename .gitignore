@@ -1,7 +1,9 @@
-.vscode/
-.DS_Store
+.vscode
+.idea
+*.code-workspace
+
 debug
-log/
 .log
 .DS_Store
 go.sum
+/log
