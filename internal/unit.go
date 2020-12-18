@@ -35,8 +35,9 @@ func (u *UnitTestImpl) GetService(service interface{}) {
 
 // GetRepository .
 func (u *UnitTestImpl) GetRepository(repository interface{}) {
+	instance := serviceInstance{calls: []BeginRequest{}, workers: []reflect.Value{}}
 	value := reflect.ValueOf(repository).Elem()
-	ok, newfield := globalApp.rpool.get(value.Type())
+	ok := globalApp.rpool.diRepoFromValue(value, &instance)
 	if !ok {
 		globalApp.IrisApp.Logger().Fatalf("[Freedom] No dependency injection was found for the object,%v", value.Type().String())
 	}
@@ -44,16 +45,17 @@ func (u *UnitTestImpl) GetRepository(repository interface{}) {
 		globalApp.IrisApp.Logger().Fatalf("[Freedom] This use repository object must be a capital variable, %v" + value.Type().String())
 	}
 
-	repo := newfield.Interface()
-	globalApp.comPool.diInfra(repo)
-	globalApp.pool.beginRequest(u.rt, repo)
-	value.Set(newfield)
+	if br, ok := value.Interface().(BeginRequest); ok {
+		instance.calls = append(instance.calls, br)
+	}
+	globalApp.pool.beginRequest(u.rt, instance)
 }
 
 // GetFactory .
 func (u *UnitTestImpl) GetFactory(factory interface{}) {
+	instance := serviceInstance{calls: []BeginRequest{}, workers: []reflect.Value{}}
 	value := reflect.ValueOf(factory).Elem()
-	ok, newfield := globalApp.factoryPool.get(value.Type())
+	ok := globalApp.factoryPool.diFactoryFromValue(value, &instance)
 	if !ok {
 		globalApp.IrisApp.Logger().Fatalf("[Freedom] No dependency injection was found for the object,%v", value.Type().String())
 	}
@@ -61,11 +63,7 @@ func (u *UnitTestImpl) GetFactory(factory interface{}) {
 		globalApp.IrisApp.Logger().Fatalf("[Freedom] This use repository object must be a capital variable, %v" + value.Type().String())
 	}
 
-	factoryObj := newfield.Interface()
-	globalApp.comPool.diInfra(factoryObj)
-	globalApp.rpool.diRepo(factoryObj, nil)
-	globalApp.pool.factoryCall(u.rt, reflect.ValueOf(u.rt), newfield)
-	value.Set(newfield)
+	globalApp.pool.beginRequest(u.rt, instance)
 }
 
 // InstallDB .
