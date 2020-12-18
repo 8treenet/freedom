@@ -61,6 +61,9 @@ func (pool *RepositoryPool) diRepoFromValue(value reflect.Value, instance *servi
 		value.Set(newfield)
 		allFieldsFromValue(newfield, func(repoValue reflect.Value) {
 			globalApp.comPool.diInfraFromValue(repoValue)
+			if repoValue.IsNil() {
+				return
+			}
 			if br, ok := repoValue.Interface().(BeginRequest); ok {
 				instance.calls = append(instance.calls, br)
 			}
@@ -87,6 +90,9 @@ func (pool *RepositoryPool) diRepoFromValue(value reflect.Value, instance *servi
 			value.Set(newfield)
 			allFieldsFromValue(newfield, func(repoValue reflect.Value) {
 				globalApp.comPool.diInfraFromValue(repoValue)
+				if repoValue.IsNil() {
+					return
+				}
 				if br, ok := repoValue.Interface().(BeginRequest); ok {
 					instance.calls = append(instance.calls, br)
 				}

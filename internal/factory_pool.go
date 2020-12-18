@@ -75,6 +75,9 @@ func (pool *FactoryPool) diFactoryFromValue(value reflect.Value, instance *servi
 			globalApp.rpool.diRepoFromValue(fieldValue, instance)
 			globalApp.comPool.diInfraFromValue(fieldValue)
 
+			if fieldValue.IsNil() {
+				return
+			}
 			if br, ok := fieldValue.Interface().(BeginRequest); ok {
 				instance.calls = append(instance.calls, br)
 			}
@@ -111,6 +114,9 @@ func (pool *FactoryPool) diFactoryFromValue(value reflect.Value, instance *servi
 				globalApp.rpool.diRepoFromValue(fieldValue, instance)
 				globalApp.comPool.diInfraFromValue(fieldValue)
 
+				if fieldValue.IsNil() {
+					return
+				}
 				if br, ok := fieldValue.Interface().(BeginRequest); ok {
 					instance.calls = append(instance.calls, br)
 				}
