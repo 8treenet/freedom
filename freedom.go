@@ -21,10 +21,10 @@ func init() {
 }
 
 type (
-	//Worker .
+	// Worker .
 	Worker = internal.Worker
 
-	//Initiator .
+	// Initiator .
 	Initiator = internal.Initiator
 
 	//Repository .
@@ -51,25 +51,25 @@ type (
 	//Starter is the startup interface.
 	Starter = internal.Starter
 
-	//Bus is the bus message type.
+	// Bus is the bus message type.
 	Bus = internal.Bus
 
-	//BusHandler is the bus message middleware type.
+	// BusHandler is the bus message middleware type.
 	BusHandler = internal.BusHandler
 
-	//Configuration is the configuration type of the app.
+	// Configuration is the configuration type of the app.
 	Configuration = iris.Configuration
 
-	//BeforeActivation is Is the start-up pre-processing of the action..
+	// BeforeActivation is Is the start-up pre-processing of the action.
 	BeforeActivation = mvc.BeforeActivation
 
-	//LogFields is the column type of the log.
+	// LogFields is the column type of the log.
 	LogFields = golog.Fields
 
-	//LogRow is the log per line callback.
+	// LogRow is the log per line callback.
 	LogRow = golog.Log
 
-	//DomainEvent .
+	// DomainEvent .
 	DomainEvent = internal.DomainEvent
 )
 
