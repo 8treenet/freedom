@@ -10,33 +10,39 @@ import (
 	"time"
 )
 
-//NewMap .
+// NewMap accepts a pointer to map, and create a new map to draw back the
+// pointer.
 func NewMap(dst interface{}) error {
-	dscValue := reflect.ValueOf(dst)
-	if dscValue.Elem().Kind() != reflect.Map {
+	dstRef := reflect.ValueOf(dst)
+
+	if dstRef.Kind() != reflect.Ptr {
+		return errors.New("'dst' must be a pointer to map")
+	}
+
+	if dstRef.Elem().Kind() != reflect.Map {
 		return errors.New("dst error")
 	}
 	result := reflect.MakeMap(reflect.TypeOf(dst).Elem())
-	dscValue.Elem().Set(result)
+	dstRef.Elem().Set(result)
 	return nil
 }
 
 //InSlice .
-func InSlice(array interface{}, item interface{}) bool {
-	values := reflect.ValueOf(array)
-	if values.Kind() != reflect.Slice {
+func InSlice(haystack interface{}, searchItem interface{}) bool {
+	arrRef := reflect.ValueOf(haystack)
+	if arrRef.Kind() != reflect.Slice {
 		return false
 	}
 
-	size := values.Len()
+	size := arrRef.Len()
 	list := make([]interface{}, size)
-	slice := values.Slice(0, size)
+	slice := arrRef.Slice(0, size)
 	for index := 0; index < size; index++ {
 		list[index] = slice.Index(index).Interface()
 	}
 
 	for index := 0; index < len(list); index++ {
-		if list[index] == item {
+		if list[index] == searchItem {
 			return true
 		}
 	}

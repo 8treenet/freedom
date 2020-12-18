@@ -14,9 +14,8 @@ func newServicePool() *ServicePool {
 	return result
 }
 
-// ServicePool is domain service pool,a domain service type owns a pool
-// instancePool key: the reflect.Type of domain service
-// instancePool value: *sync.Pool
+// ServicePool is domain service pool, a domain service type owns a pool
+// instancePool key: the reflect.Type of domain service instancePool value: *sync.Pool
 type ServicePool struct {
 	instancePool map[reflect.Type]*sync.Pool
 }
