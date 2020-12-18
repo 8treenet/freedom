@@ -46,13 +46,13 @@ func (pool *FactoryPool) allType() (list []reflect.Type) {
 }
 
 // diFactory .
-func (pool *FactoryPool) diFactory(factory interface{}, instance *serviceInstance) {
+func (pool *FactoryPool) diFactory(factory interface{}, instance *serviceElement) {
 	allFields(factory, func(value reflect.Value) {
 		pool.diFactoryFromValue(value, instance)
 	})
 }
 
-func (pool *FactoryPool) diFactoryFromValue(value reflect.Value, instance *serviceInstance) bool {
+func (pool *FactoryPool) diFactoryFromValue(value reflect.Value, instance *serviceElement) bool {
 	//如果是指针的成员变量
 	if value.Kind() == reflect.Ptr && value.IsZero() {
 		ok, newfield := pool.get(value.Type())

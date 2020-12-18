@@ -35,7 +35,7 @@ func (u *UnitTestImpl) GetService(service interface{}) {
 
 // GetRepository .
 func (u *UnitTestImpl) GetRepository(repository interface{}) {
-	instance := serviceInstance{calls: []BeginRequest{}, workers: []reflect.Value{}}
+	instance := serviceElement{calls: []BeginRequest{}, workers: []reflect.Value{}}
 	value := reflect.ValueOf(repository).Elem()
 	ok := globalApp.rpool.diRepoFromValue(value, &instance)
 	if !ok {
@@ -53,7 +53,7 @@ func (u *UnitTestImpl) GetRepository(repository interface{}) {
 
 // GetFactory .
 func (u *UnitTestImpl) GetFactory(factory interface{}) {
-	instance := serviceInstance{calls: []BeginRequest{}, workers: []reflect.Value{}}
+	instance := serviceElement{calls: []BeginRequest{}, workers: []reflect.Value{}}
 	value := reflect.ValueOf(factory).Elem()
 	ok := globalApp.factoryPool.diFactoryFromValue(value, &instance)
 	if !ok {

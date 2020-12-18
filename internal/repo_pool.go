@@ -41,13 +41,13 @@ func (pool *RepositoryPool) allType() (list []reflect.Type) {
 	return
 }
 
-func (pool *RepositoryPool) diRepo(repo interface{}, instance *serviceInstance) {
+func (pool *RepositoryPool) diRepo(repo interface{}, instance *serviceElement) {
 	allFields(repo, func(value reflect.Value) {
 		pool.diRepoFromValue(value, instance)
 	})
 }
 
-func (pool *RepositoryPool) diRepoFromValue(value reflect.Value, instance *serviceInstance) bool {
+func (pool *RepositoryPool) diRepoFromValue(value reflect.Value, instance *serviceElement) bool {
 	//如果是指针的成员变量
 	if value.Kind() == reflect.Ptr && value.IsZero() {
 		ok, newfield := pool.get(value.Type())
