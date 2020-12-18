@@ -52,6 +52,6 @@ func (repo *Delivery) db() *gorm.DB {
 		panic(err)
 	}
 	db = db.New()
-	db.SetLogger(repo.Worker.Logger())
+	db.SetLogger(repo.Worker().Logger())
 	return db
 }

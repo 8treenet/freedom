@@ -23,11 +23,14 @@ type InfraPool struct {
 
 // bind .
 func (pool *InfraPool) bind(single bool, t reflect.Type, com interface{}) {
+	type setSingle interface {
+		setSingle()
+	}
 	if single {
-		if _, ok := com.(BeginRequest); ok {
-			globalApp.Logger().Fatalf("[Freedom] BindInfra: Singleton cannot implement BeginRequest, %v", reflect.TypeOf(com))
-		}
 		pool.singlemap[t] = com
+		if call, ok := com.(setSingle); ok {
+			call.setSingle()
+		}
 		return
 	}
 	pool.instancePool[t] = &sync.Pool{

@@ -61,19 +61,19 @@ func (t *GormImpl) execute(ctx context.Context, fun func() error, opts *sql.TxOp
 		t.db = db.Begin()
 	}
 
-	t.Worker.Store().Set("freedom_local_transaction_db", t.db)
+	t.Worker().Store().Set("freedom_local_transaction_db", t.db)
 
 	defer func() {
 		if perr := recover(); perr != nil {
 			t.db.Rollback()
 			t.db = nil
 			e = errors.New(fmt.Sprint(perr))
-			t.Worker.Store().Remove("freedom_local_transaction_db")
+			t.Worker().Store().Remove("freedom_local_transaction_db")
 			return
 		}
 
 		deferdb := t.db
-		t.Worker.Store().Remove("freedom_local_transaction_db")
+		t.Worker().Store().Remove("freedom_local_transaction_db")
 		t.db = nil
 		if e != nil {
 			e2 := deferdb.Rollback()

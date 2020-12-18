@@ -100,7 +100,7 @@ func (manager *EventManager) Save(repo *freedom.Repository, entity freedom.Entit
 		}
 		domainEvent.SetIdentity(model.ID)
 	}
-	manager.addPubToWorker(repo.GetWorker(), entity.GetPubEvent())
+	manager.addPubToWorker(repo.Worker(), entity.GetPubEvent())
 
 	//Update SubEvent
 	for _, subEvent := range entity.GetSubEvent() {
@@ -183,6 +183,6 @@ func getTxDB(repo *freedom.Repository) *gorm.DB {
 		panic(err)
 	}
 	db = db.New()
-	db.SetLogger(repo.Worker.Logger())
+	db.SetLogger(repo.Worker().Logger())
 	return db
 }

@@ -66,6 +66,6 @@ func (repo *OrderRepository) db() *gorm.DB {
 	if err := repo.FetchDB(&db); err != nil {
 		panic(err)
 	}
-	db.SetLogger(repo.Worker.Logger())
+	db.SetLogger(repo.Worker().Logger())
 	return db
 }

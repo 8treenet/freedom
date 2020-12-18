@@ -47,12 +47,12 @@ func (pool *RepositoryPool) diRepo(repo interface{}, instance *serviceInstance) 
 	})
 }
 
-func (pool *RepositoryPool) diRepoFromValue(value reflect.Value, instance *serviceInstance) {
+func (pool *RepositoryPool) diRepoFromValue(value reflect.Value, instance *serviceInstance) bool {
 	//如果是指针的成员变量
 	if value.Kind() == reflect.Ptr && value.IsZero() {
 		ok, newfield := pool.get(value.Type())
 		if !ok {
-			return
+			return false
 		}
 		if !value.CanSet() {
 			globalApp.IrisApp.Logger().Fatalf("[Freedom] This use repository object must be a capital variable: %v" + value.Type().String())
@@ -66,6 +66,7 @@ func (pool *RepositoryPool) diRepoFromValue(value reflect.Value, instance *servi
 			}
 		})
 		//globalApp.comPool.diInfra(newfield.Interface())
+		return true
 	}
 
 	//如果是接口的成员变量
@@ -91,7 +92,8 @@ func (pool *RepositoryPool) diRepoFromValue(value reflect.Value, instance *servi
 				}
 			})
 			//globalApp.comPool.diInfra(newfield.Interface())
-			return
+			return true
 		}
 	}
+	return false
 }
