@@ -2,17 +2,18 @@ package repository
 
 import (
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/8treenet/freedom"
 	"github.com/8treenet/freedom/example/fshop/domain/po"
 	"github.com/jinzhu/gorm"
-	"strings"
-	"time"
 )
 
 // GORMRepository .
 type GORMRepository interface {
 	db() *gorm.DB
-	GetWorker() freedom.Worker
+	Worker() freedom.Worker
 }
 
 // Builder .
@@ -118,7 +119,7 @@ func ormErrorLog(repo GORMRepository, model, method string, e error, expression 
 	if e == nil || e == gorm.ErrRecordNotFound {
 		return
 	}
-	repo.GetWorker().Logger().Errorf("Orm error, model: %s, method: %s, expression :%v, reason for error:%v", model, method, expression, e)
+	repo.Worker().Logger().Errorf("Orm error, model: %s, method: %s, expression :%v, reason for error:%v", model, method, expression, e)
 }
 
 // findDelivery .

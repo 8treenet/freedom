@@ -52,12 +52,12 @@ func (pool *FactoryPool) diFactory(factory interface{}, instance *serviceInstanc
 	})
 }
 
-func (pool *FactoryPool) diFactoryFromValue(value reflect.Value, instance *serviceInstance) {
+func (pool *FactoryPool) diFactoryFromValue(value reflect.Value, instance *serviceInstance) bool {
 	//如果是指针的成员变量
 	if value.Kind() == reflect.Ptr && value.IsZero() {
 		ok, newfield := pool.get(value.Type())
 		if !ok {
-			return
+			return false
 		}
 		if !value.CanSet() {
 			globalApp.IrisApp.Logger().Fatalf("[Freedom] This use factory object must be a capital variable: %v" + value.Type().String())
@@ -75,12 +75,16 @@ func (pool *FactoryPool) diFactoryFromValue(value reflect.Value, instance *servi
 			globalApp.rpool.diRepoFromValue(fieldValue, instance)
 			globalApp.comPool.diInfraFromValue(fieldValue)
 
+			if fieldValue.IsNil() {
+				return
+			}
 			if br, ok := fieldValue.Interface().(BeginRequest); ok {
 				instance.calls = append(instance.calls, br)
 			}
 		})
 		// globalApp.comPool.diInfra(factoryObj)
 		// globalApp.rpool.diRepo(factoryObj)
+		return true
 	}
 
 	//如果是接口的成员变量
@@ -110,11 +114,15 @@ func (pool *FactoryPool) diFactoryFromValue(value reflect.Value, instance *servi
 				globalApp.rpool.diRepoFromValue(fieldValue, instance)
 				globalApp.comPool.diInfraFromValue(fieldValue)
 
+				if fieldValue.IsNil() {
+					return
+				}
 				if br, ok := fieldValue.Interface().(BeginRequest); ok {
 					instance.calls = append(instance.calls, br)
 				}
 			})
-			return
+			return true
 		}
 	}
+	return false
 }

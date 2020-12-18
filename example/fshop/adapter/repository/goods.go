@@ -93,7 +93,7 @@ func (repo *Goods) FindsByPage(page, pageSize int, tag string) (entitys []*entit
 	if e != nil {
 		return
 	}
-	repo.Worker.Logger().Info("FindsByPage", freedom.LogFields{
+	repo.Worker().Logger().Info("FindsByPage", freedom.LogFields{
 		"page":      page,
 		"pageSize":  pageSize,
 		"totalPage": pager.TotalPage(),
@@ -122,6 +122,6 @@ func (repo *Goods) db() *gorm.DB {
 		panic(err)
 	}
 	db = db.New()
-	db.SetLogger(repo.Worker.Logger())
+	db.SetLogger(repo.Worker().Logger())
 	return db
 }

@@ -13,19 +13,19 @@ import (
 
 // Repository .
 type Repository struct {
-	Worker Worker
+	worker Worker
 }
 
 // BeginRequest .
 func (repo *Repository) BeginRequest(rt Worker) {
-	repo.Worker = rt
+	repo.worker = rt
 }
 
 // FetchDB .
 func (repo *Repository) FetchDB(db interface{}) error {
 	resultDB := globalApp.Database.db
 
-	transactionData := repo.Worker.Store().Get("freedom_local_transaction_db")
+	transactionData := repo.worker.Store().Get("freedom_local_transaction_db")
 	if transactionData != nil {
 		resultDB = transactionData
 	}
@@ -63,7 +63,7 @@ func (repo *Repository) NewHTTPRequest(url string, transferBus ...bool) requests
 	if len(transferBus) > 0 && !transferBus[0] {
 		return req
 	}
-	req.SetHeader(repo.Worker.Bus().Header)
+	req.SetHeader(repo.worker.Bus().Header)
 	return req
 }
 
@@ -73,7 +73,7 @@ func (repo *Repository) NewH2CRequest(url string, transferBus ...bool) requests.
 	if len(transferBus) > 0 && !transferBus[0] {
 		return req
 	}
-	req.SetHeader(repo.Worker.Bus().Header)
+	req.SetHeader(repo.worker.Bus().Header)
 	return req
 }
 
@@ -102,7 +102,7 @@ func (repo *Repository) NewH2CRequest(url string, transferBus ...bool) requests.
 
 // InjectBaseEntity .
 func (repo *Repository) InjectBaseEntity(entity Entity) {
-	injectBaseEntity(repo.Worker, entity)
+	injectBaseEntity(repo.worker, entity)
 	return
 }
 
@@ -117,7 +117,7 @@ func (repo *Repository) InjectBaseEntitys(entitys interface{}) {
 		if _, ok := iface.(Entity); !ok {
 			panic(fmt.Sprintf("[Freedom] InjectBaseEntitys: This is not an entity, %v", entitysValue.Type()))
 		}
-		injectBaseEntity(repo.Worker, iface)
+		injectBaseEntity(repo.worker, iface)
 	}
 	return
 }
@@ -137,7 +137,7 @@ func repositoryAPIRun(irisConf iris.Configuration) {
 	requests.InitH2cClient(time.Duration(sec) * time.Second)
 }
 
-// GetWorker .
-func (repo *Repository) GetWorker() Worker {
-	return repo.Worker
+// Worker .
+func (repo *Repository) Worker() Worker {
+	return repo.worker
 }

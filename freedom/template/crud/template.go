@@ -65,7 +65,7 @@ func FunTemplatePackage() string {
 	// GORMRepository .
 	type GORMRepository interface {
 		db() *gorm.DB
-		GetWorker() freedom.Worker
+		Worker() freedom.Worker
 	}
 
 	// Builder .
@@ -172,7 +172,7 @@ func FunTemplatePackage() string {
 		if e == nil || e == gorm.ErrRecordNotFound {
 			return
 		}
-		repo.GetWorker().Logger().Errorf("Orm error, model: %s, method: %s, expression :%v, reason for error:%v", model, method, expression, e)
+		repo.Worker().Logger().Errorf("Orm error, model: %s, method: %s, expression :%v, reason for error:%v", model, method, expression, e)
 	}
 `
 	return strings.ReplaceAll(source, "$$wave", "`")

@@ -103,6 +103,9 @@ func (pool *ServicePool) bind(t reflect.Type, f interface{}) {
 				globalApp.comPool.diInfraFromValue(fieldValue)
 				globalApp.factoryPool.diFactoryFromValue(fieldValue, &result)
 
+				if fieldValue.IsNil() {
+					return
+				}
 				if br, ok := fieldValue.Interface().(BeginRequest); ok {
 					result.calls = append(result.calls, br)
 				}
