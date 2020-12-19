@@ -1,4 +1,4 @@
-package dto
+package vo
 
 // CartAddReq .
 type CartAddReq struct {

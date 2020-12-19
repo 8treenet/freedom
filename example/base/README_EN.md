@@ -7,7 +7,7 @@
     - aggregate
     - entity
     - event Domain Event 
-    - dto - Data Transfer Object
+    - vo - Value Object
     - po - Persistent Object
     - *.go - Domain Service
 
@@ -360,8 +360,8 @@ func (repo *Default) GetIP() string {
     repo.Redis()
     repo.Other()
     repo.NewHttpRequest()
-    repo.Worker.Logger().Infof("I'm Repository GetIP")
-    return repo.Worker.IrisContext().RemoteAddr()
+    repo.Worker().Logger().Infof("I'm Repository GetIP")
+    return repo.Worker().IrisContext().RemoteAddr()
 }
 
 ```

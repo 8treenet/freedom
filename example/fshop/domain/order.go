@@ -3,7 +3,7 @@ package domain
 import (
 	"github.com/8treenet/freedom/example/fshop/domain/aggregate"
 	"github.com/8treenet/freedom/example/fshop/domain/dependency"
-	"github.com/8treenet/freedom/example/fshop/domain/dto"
+	"github.com/8treenet/freedom/example/fshop/domain/vo"
 
 	"github.com/8treenet/freedom"
 )
@@ -39,13 +39,13 @@ func (o *Order) Pay(orderNo string, userID int) (e error) {
 }
 
 // Items 订单列表.
-func (o *Order) Items(userID int, page, pageSize int) (result []dto.OrderItemRes, totalPage int, e error) {
+func (o *Order) Items(userID int, page, pageSize int) (result []vo.OrderItemRes, totalPage int, e error) {
 	items, totalPage, e := o.OrderRepo.Finds(userID, page, pageSize)
 	if e != nil {
 		return
 	}
 	for i := 0; i < len(items); i++ {
-		item := dto.OrderItemRes{
+		item := vo.OrderItemRes{
 			OrderNo:    items[i].OrderNo,
 			TotalPrice: items[i].TotalPrice,
 			Status:     items[i].Status,
@@ -69,7 +69,7 @@ func (o *Order) Items(userID int, page, pageSize int) (result []dto.OrderItemRes
 }
 
 // Delivery 管理员发货服务
-func (o *Order) Delivery(req dto.DeliveryReq) (e error) {
+func (o *Order) Delivery(req vo.DeliveryReq) (e error) {
 	//创建订单发货聚合根
 	cmd, e := o.OrderFactory.NewOrderDeliveryCmd(req.OrderNo, req.AdminID)
 	if e != nil {

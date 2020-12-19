@@ -1,4 +1,4 @@
-package dto
+package vo
 
 // UserInfoRes .
 type UserInfoRes struct {

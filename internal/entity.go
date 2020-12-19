@@ -23,7 +23,7 @@ type DomainEvent interface {
 //Entity is the entity's father interface.
 type Entity interface {
 	Identity() string
-	GetWorker() Worker
+	Worker() Worker
 	Marshal() []byte
 	AddPubEvent(DomainEvent)
 	GetPubEvent() []DomainEvent
@@ -87,8 +87,8 @@ func (e *entity) Identity() string {
 	return e.identity
 }
 
-// GetWorker .
-func (e *entity) GetWorker() Worker {
+// Worker .
+func (e *entity) Worker() Worker {
 	return e.worker
 }
 

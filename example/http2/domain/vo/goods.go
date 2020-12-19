@@ -1,4 +1,4 @@
-package dto
+package vo
 
 // Goods .
 type Goods struct {

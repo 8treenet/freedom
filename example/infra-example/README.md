@@ -175,7 +175,7 @@ func (et *EventTransaction) Execute(fun func() error) (e error) {
 }
 
 func (et *EventTransaction) pushEvent() {
-	pubs := et.Worker.Store().Get(workerStorePubEventKey)
+	pubs := et.Worker().Store().Get(workerStorePubEventKey)
 	if pubs == nil {
 		return
 	}
@@ -290,7 +290,7 @@ func (req *JSONRequest) BeginRequest(worker freedom.Worker) {
 // ReadJSON .
 func (req *JSONRequest) ReadJSON(obj interface{}) error {
 	//从上下文读取io数据
-	rawData, err := ioutil.ReadAll(req.Worker.Ctx().Request().Body)
+	rawData, err := ioutil.ReadAll(req.Worker().Ctx().Request().Body)
 	if err != nil {
 		return err
 	}

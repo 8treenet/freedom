@@ -5,7 +5,7 @@ import (
 	"github.com/8treenet/freedom/example/fshop/infra"
 
 	"github.com/8treenet/freedom"
-	"github.com/8treenet/freedom/example/fshop/domain/dto"
+	"github.com/8treenet/freedom/example/fshop/domain/vo"
 )
 
 func init() {
@@ -28,16 +28,16 @@ func (c *Cart) GetItems() freedom.Result {
 		return &infra.JSONResponse{Error: err}
 	}
 
-	dto, err := c.CartSev.Items(userID)
+	vo, err := c.CartSev.Items(userID)
 	if err != nil {
 		return &infra.JSONResponse{Error: err}
 	}
-	return &infra.JSONResponse{Object: dto}
+	return &infra.JSONResponse{Object: vo}
 }
 
 // Post 添加商品到购物车, POST: /cart route.
 func (c *Cart) Post() freedom.Result {
-	var req dto.CartAddReq
+	var req vo.CartAddReq
 	e := c.Request.ReadJSON(&req)
 	if e != nil {
 		return &infra.JSONResponse{Error: e}
@@ -59,7 +59,7 @@ func (c *Cart) DeleteAll() freedom.Result {
 
 // PostShop 购物购物车全部买商品, POST: /cart/shop route.
 func (c *Cart) PostShop() freedom.Result {
-	var req dto.CartShopReq
+	var req vo.CartShopReq
 	e := c.Request.ReadJSON(&req)
 	if e != nil {
 		return &infra.JSONResponse{Error: e}

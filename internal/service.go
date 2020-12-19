@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"fmt"
 	"net/http"
 	"reflect"
 
@@ -18,7 +19,7 @@ func callService(fun interface{}, worker ...Worker) {
 	}
 	serviceObj, err := parseCallServiceFunc(fun)
 	if err != nil {
-		globalApp.Logger().Fatalf("[Freedom] CallService, %v : %s", fun, err.Error())
+		panic(fmt.Sprintf("[Freedom] CallService, %v : %s", fun, err.Error()))
 	}
 	newService := globalApp.pool.create(worker[0], serviceObj)
 	reflect.ValueOf(fun).Call([]reflect.Value{reflect.ValueOf(newService.(serviceElement).serviceObject)})

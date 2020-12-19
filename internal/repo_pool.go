@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"fmt"
 	"reflect"
 )
 
@@ -24,7 +25,7 @@ func (pool *RepositoryPool) get(t reflect.Type) (ok bool, result reflect.Value) 
 
 	values := reflect.ValueOf(fun).Call([]reflect.Value{})
 	if len(values) == 0 {
-		globalApp.Logger().Fatalf("[Freedom] BindRepository: func return to empty, %v", reflect.TypeOf(fun))
+		panic(fmt.Sprintf("[Freedom] BindRepository: func return to empty, %v", reflect.TypeOf(fun)))
 	}
 
 	return true, values[0]
@@ -55,7 +56,7 @@ func (pool *RepositoryPool) diRepoFromValue(value reflect.Value, instance *servi
 			return false
 		}
 		if !value.CanSet() {
-			globalApp.IrisApp.Logger().Fatalf("[Freedom] This use repository object must be a capital variable: %v" + value.Type().String())
+			panic(fmt.Sprintf("[Freedom] This use repository object must be a capital variable: %v" + value.Type().String()))
 		}
 		//创建实例并且注入基础设施组件
 		value.Set(newfield)
@@ -84,7 +85,7 @@ func (pool *RepositoryPool) diRepoFromValue(value reflect.Value, instance *servi
 				continue
 			}
 			if !value.CanSet() {
-				globalApp.IrisApp.Logger().Fatalf("[Freedom] This use repository object must be a capital variable: %v" + value.Type().String())
+				panic(fmt.Sprintf("[Freedom] This use repository object must be a capital variable: %v" + value.Type().String()))
 			}
 			//创建实例并且注入基础设施组件
 			value.Set(newfield)

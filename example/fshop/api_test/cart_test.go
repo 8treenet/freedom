@@ -3,7 +3,7 @@ package api_test
 import (
 	"testing"
 
-	"github.com/8treenet/freedom/example/fshop/domain/dto"
+	"github.com/8treenet/freedom/example/fshop/domain/vo"
 	"github.com/8treenet/freedom/infra/requests"
 )
 
@@ -15,7 +15,7 @@ func TestCartGetItems(t *testing.T) {
 
 // 添加购物车商品
 func TestPostCart(t *testing.T) {
-	var req dto.CartAddReq
+	var req vo.CartAddReq
 	req.UserID = 1
 	req.GoodsID = 3
 	req.GoodsNum = 1
@@ -36,7 +36,7 @@ func TestDeleteCarts(t *testing.T) {
 
 // 购买购物车商品
 func TestCartShop(t *testing.T) {
-	obj := dto.CartShopReq{
+	obj := vo.CartShopReq{
 		UserID: 1, //用户id
 	}
 	str, err := requests.NewHTTPRequest("http://127.0.0.1:8000/cart/shop").Post().SetJSONBody(obj).ToString()

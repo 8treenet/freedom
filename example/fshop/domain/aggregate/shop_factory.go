@@ -87,7 +87,7 @@ func (factory *ShopFactory) newGoodsShopCmd(userID, goodsID, goodsNum int) (*Goo
 func (factory *ShopFactory) newCartShopCmd(userID int) (*CartShopCmd, error) {
 	user, e := factory.UserRepo.Get(userID)
 	if e != nil {
-		user.GetWorker().Logger().Error(e, "userId", userID)
+		user.Worker().Logger().Error(e, "userId", userID)
 		//用户不存在
 		return nil, e
 	}

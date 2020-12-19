@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"fmt"
 	"reflect"
 	"sync"
 
@@ -38,7 +39,7 @@ func (pool *InfraPool) bind(single bool, t reflect.Type, com interface{}) {
 
 			values := reflect.ValueOf(com).Call([]reflect.Value{})
 			if len(values) == 0 {
-				globalApp.Logger().Fatalf("[Freedom] BindInfra: Infra func return to empty, %v", reflect.TypeOf(com))
+				panic(fmt.Sprintf("[Freedom] BindInfra: Infra func return to empty, %v", reflect.TypeOf(com)))
 			}
 			newCom := values[0].Interface()
 			return newCom

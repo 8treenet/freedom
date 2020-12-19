@@ -240,11 +240,6 @@ func (app *Application) NewRunner(addr string, configurators ...host.Configurato
 	return iris.Addr(addr, configurators...)
 }
 
-// CreateRunner become invalid after a specified date.
-func (app *Application) CreateRunner(addr string, configurators ...host.Configurator) iris.Runner {
-	return app.NewRunner(addr, configurators...)
-}
-
 // NewAutoTLSRunner can be used as an argument for the `Run` method.
 // It will start the Application's secure server using
 // certifications created on the fly by the "autocert" golang/x package,

@@ -1,8 +1,8 @@
 package dependency
 
 import (
-	"github.com/8treenet/freedom/example/fshop/domain/dto"
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
+	"github.com/8treenet/freedom/example/fshop/domain/vo"
 )
 
 //依赖倒置的接口 外部adapter负责实现
@@ -12,7 +12,7 @@ type UserRepo interface {
 	Get(ID int) (obj *entity.User, e error)
 	FindByName(userName string) (userEntity *entity.User, e error)
 	Save(entity *entity.User) error
-	New(userDto dto.RegisterUserReq, money int) (entityUser *entity.User, e error)
+	New(userDto vo.RegisterUserReq, money int) (entityUser *entity.User, e error)
 }
 
 // CartRepo .

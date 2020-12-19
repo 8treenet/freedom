@@ -5,8 +5,8 @@ import (
 
 	"github.com/8treenet/freedom"
 	"github.com/8treenet/freedom/example/infra-example/adapter/repository"
-	"github.com/8treenet/freedom/example/infra-example/domain/dto"
 	"github.com/8treenet/freedom/example/infra-example/domain/event"
+	"github.com/8treenet/freedom/example/infra-example/domain/vo"
 	"github.com/8treenet/freedom/example/infra-example/infra/domainevent"
 )
 
@@ -31,7 +31,7 @@ type OrderService struct {
 }
 
 // Get .
-func (srv *OrderService) Get(ID, userID int) (result dto.OrderRep, e error) {
+func (srv *OrderService) Get(ID, userID int) (result vo.OrderRep, e error) {
 	entity, e := srv.OrderRepo.Get(ID, userID)
 	if e != nil {
 		return
@@ -49,7 +49,7 @@ func (srv *OrderService) Get(ID, userID int) (result dto.OrderRep, e error) {
 }
 
 // GetAll .
-func (srv *OrderService) GetAll(userID int) (result []dto.OrderRep, e error) {
+func (srv *OrderService) GetAll(userID int) (result []vo.OrderRep, e error) {
 	entitys, e := srv.OrderRepo.GetAll(userID)
 	if e != nil {
 		return
@@ -62,7 +62,7 @@ func (srv *OrderService) GetAll(userID int) (result []dto.OrderRep, e error) {
 			return
 		}
 
-		result = append(result, dto.OrderRep{
+		result = append(result, vo.OrderRep{
 			ID:        obj.ID,
 			GoodsID:   obj.GoodsID,
 			GoodsName: goodsEntity.Name,

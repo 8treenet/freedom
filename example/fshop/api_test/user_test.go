@@ -23,7 +23,7 @@ func TestPostBy(t *testing.T) {
 		Code  int
 		Error string
 		Data  struct {
-			Id    int
+			ID    int
 			Name  string
 			Money int
 		}

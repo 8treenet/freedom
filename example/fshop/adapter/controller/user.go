@@ -2,7 +2,7 @@ package controller
 
 import (
 	"github.com/8treenet/freedom/example/fshop/domain"
-	"github.com/8treenet/freedom/example/fshop/domain/dto"
+	"github.com/8treenet/freedom/example/fshop/domain/vo"
 	"github.com/8treenet/freedom/example/fshop/infra"
 
 	"github.com/8treenet/freedom"
@@ -23,7 +23,7 @@ type User struct {
 
 // Put 修改密码, PUT: /user route.
 func (u *User) Put() freedom.Result {
-	var req dto.ChangePasswordReq
+	var req vo.ChangePasswordReq
 	if e := u.Request.ReadJSON(&req); e != nil {
 		return &infra.JSONResponse{Error: e}
 	}
@@ -39,23 +39,23 @@ func (u *User) Put() freedom.Result {
 
 // GetBy 获取用户信息, GET: /user/:id route.
 func (u *User) GetBy(id int) freedom.Result {
-	dto, e := u.Sev.Get(id)
+	vo, e := u.Sev.Get(id)
 	if e != nil {
 		return &infra.JSONResponse{Error: e}
 	}
-	return &infra.JSONResponse{Object: dto}
+	return &infra.JSONResponse{Object: vo}
 }
 
 // Post 注册用户, POST: /user route.
 func (u *User) Post() freedom.Result {
-	var req dto.RegisterUserReq
+	var req vo.RegisterUserReq
 	if e := u.Request.ReadJSON(&req); e != nil {
 		return &infra.JSONResponse{Error: e}
 	}
 
-	dto, e := u.Sev.Register(req)
+	vo, e := u.Sev.Register(req)
 	if e != nil {
 		return &infra.JSONResponse{Error: e}
 	}
-	return &infra.JSONResponse{Object: dto}
+	return &infra.JSONResponse{Object: vo}
 }

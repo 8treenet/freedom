@@ -534,6 +534,10 @@ func allFields(dest interface{}, call func(reflect.Value)) {
 			continue
 		}
 		val := destVal.Field(index)
+		kind := val.Kind()
+		if kind != reflect.Ptr && kind != reflect.Interface {
+			continue
+		}
 		call(val)
 	}
 }
@@ -551,6 +555,10 @@ func allFieldsFromValue(val reflect.Value, call func(reflect.Value)) {
 			continue
 		}
 		val := destVal.Field(index)
+		kind := val.Kind()
+		if kind != reflect.Ptr && kind != reflect.Interface {
+			continue
+		}
 		call(val)
 	}
 }

@@ -3,7 +3,7 @@ package api_test
 import (
 	"testing"
 
-	"github.com/8treenet/freedom/example/fshop/domain/dto"
+	"github.com/8treenet/freedom/example/fshop/domain/vo"
 	"github.com/8treenet/freedom/infra/requests"
 )
 
@@ -17,7 +17,7 @@ func TestGetItems(t *testing.T) {
 
 // 创建商品
 func TestPostGoods(t *testing.T) {
-	var goodsAddReq dto.GoodsAddReq
+	var goodsAddReq vo.GoodsAddReq
 	goodsAddReq.Name = "freedom"
 	goodsAddReq.Price = 50
 
@@ -34,10 +34,10 @@ func TestGoodsPutStock(t *testing.T) {
 // 商品打标签
 func TestGoodsPutTag(t *testing.T) {
 	var goodsTagReq struct {
-		Id  int
+		ID  int
 		Tag string //`validate:"oneof=HOT NEW NONE"` //要设置的标签必须是 热门，新品，默认
 	}
-	goodsTagReq.Id = 5
+	goodsTagReq.ID = 5
 	goodsTagReq.Tag = "NONE"
 	str, err := requests.NewH2CRequest("http://127.0.0.1:8000/goods/tag").Put().SetJSONBody(goodsTagReq).ToString()
 	t.Log(str, err)
@@ -48,7 +48,7 @@ func TestGoodsPutTag(t *testing.T) {
 
 // 购买商品
 func TestGoodsShop(t *testing.T) {
-	obj := dto.GoodsShopReq{
+	obj := vo.GoodsShopReq{
 		UserID: 1, //用户id
 		ID:     2, //商品id
 		Num:    2, //商品数量
