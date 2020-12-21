@@ -13,9 +13,12 @@ type Middleware interface {
 	GetRespone() *Response
 	GetResponeBody() []byte
 	IsStopped() bool
+	//Is HTTP/2 Cleartext Request
+	IsH2C() bool
 	Context() context.Context
 	WithContextFromMiddleware(context.Context)
 	EnableTraceFromMiddleware()
+	SetClientFromMiddleware(Client)
 }
 
 var middlewares []Handler

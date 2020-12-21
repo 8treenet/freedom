@@ -10,18 +10,42 @@ import (
 	"golang.org/x/sync/singleflight"
 )
 
+func init() {
+	InitH2CClient(10 * time.Second)
+	InitHTTPClient(10 * time.Second)
+}
+
 var (
-	// DefaultH2CClient .
-	DefaultH2CClient *http.Client
-	h2cclientGroup   singleflight.Group
-	// DefaultHTTPClient .
-	DefaultHTTPClient *http.Client
-	httpclientGroup   singleflight.Group
+	// defaultH2CClient .
+	defaultH2CClient Client
+	// defaultHTTPClient .
+	defaultHTTPClient Client
+
+	h2cclientGroup  singleflight.Group
+	httpclientGroup singleflight.Group
 )
 
-func init() {
-	InitH2cClient(10 * time.Second)
-	InitHTTPClient(10 * time.Second)
+// SetHTTPClient .
+func SetHTTPClient(client Client) {
+	defaultHTTPClient = client
+}
+
+// SetH2CClient .
+func SetH2CClient(client Client) {
+	defaultH2CClient = client
+}
+
+type Client interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
+type ClientImpl struct {
+	*http.Client
+}
+
+// Do .
+func (client *ClientImpl) Do(req *http.Request) (*http.Response, error) {
+	return client.Client.Do(req)
 }
 
 // InitHTTPClient .
@@ -46,14 +70,14 @@ func InitHTTPClient(rwTimeout time.Duration, connectTimeout ...time.Duration) {
 		MaxIdleConnsPerHost:   100,
 	}
 
-	DefaultHTTPClient = &http.Client{
+	defaultHTTPClient = &ClientImpl{Client: &http.Client{
 		Transport: tran,
 		Timeout:   rwTimeout,
-	}
+	}}
 }
 
-// InitH2cClient .
-func InitH2cClient(rwTimeout time.Duration, connectTimeout ...time.Duration) {
+// InitH2CClient .
+func InitH2CClient(rwTimeout time.Duration, connectTimeout ...time.Duration) {
 	tran := &http2.Transport{
 		AllowHTTP: true,
 		DialTLS: func(network, addr string, cfg *tls.Config) (net.Conn, error) {
@@ -66,10 +90,10 @@ func InitH2cClient(rwTimeout time.Duration, connectTimeout ...time.Duration) {
 		},
 	}
 
-	DefaultH2CClient = &http.Client{
+	defaultH2CClient = &ClientImpl{Client: &http.Client{
 		Transport: tran,
 		Timeout:   rwTimeout,
-	}
+	}}
 }
 
 // timeoutDialer returns functions of connection dialer with timeout settings for http.Transport Dial field.
@@ -81,14 +105,4 @@ func timeoutDialer(cTimeout time.Duration) func(net, addr string) (c net.Conn, e
 		}
 		return conn, err
 	}
-}
-
-// InstallHTTPClient .
-func InstallHTTPClient(client *http.Client) {
-	DefaultHTTPClient = client
-}
-
-// InstallH2CClient .
-func InstallH2CClient(client *http.Client) {
-	DefaultH2CClient = client
 }

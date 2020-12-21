@@ -134,7 +134,7 @@ func repositoryAPIRun(irisConf iris.Configuration) {
 		sec = v.(int64)
 	}
 	requests.InitHTTPClient(time.Duration(sec) * time.Second)
-	requests.InitH2cClient(time.Duration(sec) * time.Second)
+	requests.InitH2CClient(time.Duration(sec) * time.Second)
 }
 
 // Worker .

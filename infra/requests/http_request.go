@@ -22,10 +22,11 @@ type HTTPRequest struct {
 	RawURL          string
 	SingleflightKey string
 	stop            bool
-	Client          *http.Client
+	Client          Client
 	nextIndex       int
 	responeBody     []byte
 	connTrace       *requestConnTrace
+	h2c             bool
 }
 
 // Post .
@@ -186,7 +187,7 @@ func (req *HTTPRequest) URL() string {
 }
 
 // SetClient .
-func (req *HTTPRequest) SetClient(client *http.Client) Request {
+func (req *HTTPRequest) SetClient(client Client) Request {
 	if client == nil {
 		panic("This is an undefined client")
 	}
@@ -413,4 +414,14 @@ func (req *HTTPRequest) WithContext(ctx context.Context) Request {
 // WithContextFromMiddleware .
 func (req *HTTPRequest) WithContextFromMiddleware(ctx context.Context) {
 	req.WithContext(ctx)
+}
+
+// SetClientFromMiddleware .
+func (req *HTTPRequest) SetClientFromMiddleware(client Client) {
+	req.SetClient(client)
+}
+
+// IsH2C .
+func (req *HTTPRequest) IsH2C() bool {
+	return req.h2c
 }

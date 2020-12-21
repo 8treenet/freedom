@@ -18,6 +18,7 @@ func newRequest(url string) requests.Request {
 func NewMiddleware() requests.Handler {
 	return func(middle requests.Middleware) {
 		fmt.Println("begin")
+		fmt.Println("h2c:", middle.IsH2C())
 		middle.Next()
 		fmt.Println("end")
 	}
