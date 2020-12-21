@@ -10,15 +10,14 @@ import (
 
 // Msg .
 type Msg struct {
-	httpHeader   http.Header
-	Topic        string
-	key          string
-	Content      []byte
-	header       map[string]interface{}
-	producerName string
-	stop         bool
-	nextIndex    int
-	sendErr      error
+	httpHeader http.Header
+	Topic      string
+	key        string
+	Content    []byte
+	header     map[string]interface{}
+	stop       bool
+	nextIndex  int
+	sendErr    error
 }
 
 // Publish .
@@ -37,12 +36,6 @@ func (msg *Msg) SetHeader(head map[string]interface{}) *Msg {
 	for key, value := range head {
 		msg.header[key] = value
 	}
-	return msg
-}
-
-// SelectClient .
-func (msg *Msg) SelectClient(producer string) *Msg {
-	msg.producerName = producer
 	return msg
 }
 
@@ -96,11 +89,6 @@ func (msg *Msg) GetHeader() map[string]interface{} {
 }
 
 func (msg *Msg) do() error {
-	syncProducer := producer.getSaramaProducer(msg.producerName)
-	if syncProducer == nil {
-		return fmt.Errorf("This %s, no producer found, please check infra/kafka.toml", msg.Topic)
-	}
-
 	if msg.key == "" {
 		msg.key = producer.generateMessageKey()
 	}
@@ -118,6 +106,6 @@ func (msg *Msg) do() error {
 		saramaMsg.Headers = append(saramaMsg.Headers, sarama.RecordHeader{Key: []byte(key), Value: []byte(fmt.Sprint(value))})
 	}
 
-	_, _, err := syncProducer.SendMessage(saramaMsg)
+	_, _, err := producer.syncProducer.SendMessage(saramaMsg)
 	return err
 }

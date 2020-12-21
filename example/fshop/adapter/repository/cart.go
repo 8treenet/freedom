@@ -53,7 +53,7 @@ func (repo *Cart) FindByGoodsID(userID, goodsID int) (cartEntity *entity.Cart, e
 
 // Save 保存购物车
 func (repo *Cart) Save(entity *entity.Cart) error {
-	_, e := saveCart(repo, &entity.Cart)
+	_, e := saveCart(repo, entity)
 	return e
 }
 

@@ -7,7 +7,7 @@ import (
 // domainEventPublish .
 type domainEventPublish struct {
 	changes map[string]interface{}
-	ID      int       `gorm:"primary_key;column:id"`
+	ID      int       `gorm:"primary_key;column:id;auto increment"`
 	Topic   string    `gorm:"column:topic;not null"`             // 主题
 	Content string    `gorm:"column:content;size:2000;not null"` // 内容
 	Created time.Time `gorm:"column:created;not null"`

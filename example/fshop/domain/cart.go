@@ -34,7 +34,7 @@ type Cart struct {
 // Add 购物车增加商品
 func (c *Cart) Add(userID, goodsID, goodsNum int) (e error) {
 	//创建购物车增加商品聚合根
-	cmd, e := c.CartFactory.NewCartAddCmd(goodsID, goodsNum)
+	cmd, e := c.CartFactory.NewCartAddCmd(goodsID, userID)
 	if e != nil {
 		return
 	}

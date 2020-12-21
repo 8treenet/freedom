@@ -19,21 +19,18 @@ import (
 
 //mac: zookeeper-server-start /usr/local/etc/kafka/zookeeper.properties & kafka-server-start /usr/local/etc/kafka/server.properties
 func main() {
-	// If you use the default Kafka configuration, no need to set
-	kafka.SettingConfig(func(conf *sarama.Config, other map[string]interface{}) {
-		conf.Producer.Retry.Max = 3
-		conf.Producer.Retry.Backoff = 5 * time.Second
-		conf.Consumer.Offsets.Initial = sarama.OffsetOldest
-		freedom.Logger().Info(other)
-	})
-
 	app := freedom.NewApplication()
 	installDatabase(app)
 	installMiddleware(app)
-	addrRunner := app.NewRunner(conf.Get().App.Other["listen_addr"].(string))
+	addr := conf.Get().App.Other["listen_addr"].(string)
+	addrRunner := app.NewRunner(addr)
 	//app.InstallParty("/example")
 	liveness(app)
 
+	kafkaConf := sarama.NewConfig()
+	kafkaConf.Version = sarama.V0_11_0_2
+	kafka.GetConsumer().Start([]string{":9092"}, "freedom1", kafkaConf, "http://127.0.0.1:8000", false)
+	kafka.GetProducer().Start([]string{":9092"}, kafkaConf)
 	app.Run(addrRunner, *conf.Get().App)
 }
 

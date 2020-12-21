@@ -162,7 +162,6 @@ type Application interface {
 	Start(f func(starter Starter))
 	InstallBusMiddleware(handle ...BusHandler)
 	InstallSerializer(marshal func(v interface{}) ([]byte, error), unmarshal func(data []byte, v interface{}) error)
-	CallService(fun interface{}, worker ...Worker)
 }
 
 //ToWorker the context is converted to a worker.
@@ -176,4 +175,9 @@ func ToWorker(ctx Context) Worker {
 //DefaultConfiguration the default profile.
 func DefaultConfiguration() Configuration {
 	return iris.DefaultConfiguration()
+}
+
+// ServiceLocator .
+func ServiceLocator() *internal.ServiceLocatorImpl {
+	return app.GetServiceLocator()
 }

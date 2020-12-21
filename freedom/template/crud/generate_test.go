@@ -32,5 +32,5 @@ func TestJSONGenerate(t *testing.T) {
 	cmd.prefix = "fuck_"
 	tableColumns, _ := cmd.getJSONColumns(tables)
 
-	t.Log(cmd.shcema(tableColumns))
+	t.Log(cmd.schema(tableColumns))
 }

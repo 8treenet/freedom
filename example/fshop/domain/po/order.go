@@ -23,8 +23,13 @@ func (obj *Order) TableName() string {
 	return "order"
 }
 
-// TakeChanges .
-func (obj *Order) TakeChanges() map[string]interface{} {
+// Location .
+func (obj *Order) Location() map[string]interface{} {
+	return map[string]interface{}{"id": obj.ID}
+}
+
+// GetChanges .
+func (obj *Order) GetChanges() map[string]interface{} {
 	if obj.changes == nil {
 		return nil
 	}
@@ -36,8 +41,8 @@ func (obj *Order) TakeChanges() map[string]interface{} {
 	return result
 }
 
-// updateChanges .
-func (obj *Order) setChanges(name string, value interface{}) {
+// update .
+func (obj *Order) update(name string, value interface{}) {
 	if obj.changes == nil {
 		obj.changes = make(map[string]interface{})
 	}
@@ -47,47 +52,47 @@ func (obj *Order) setChanges(name string, value interface{}) {
 // SetOrderNo .
 func (obj *Order) SetOrderNo(orderNo string) {
 	obj.OrderNo = orderNo
-	obj.setChanges("order_no", orderNo)
+	obj.update("order_no", orderNo)
 }
 
 // SetUserID .
 func (obj *Order) SetUserID(userID int) {
 	obj.UserID = userID
-	obj.setChanges("user_id", userID)
+	obj.update("user_id", userID)
 }
 
 // SetTotalPrice .
 func (obj *Order) SetTotalPrice(totalPrice int) {
 	obj.TotalPrice = totalPrice
-	obj.setChanges("total_price", totalPrice)
+	obj.update("total_price", totalPrice)
 }
 
 // SetStatus .
 func (obj *Order) SetStatus(status string) {
 	obj.Status = status
-	obj.setChanges("status", status)
+	obj.update("status", status)
 }
 
 // SetCreated .
 func (obj *Order) SetCreated(created time.Time) {
 	obj.Created = created
-	obj.setChanges("created", created)
+	obj.update("created", created)
 }
 
 // SetUpdated .
 func (obj *Order) SetUpdated(updated time.Time) {
 	obj.Updated = updated
-	obj.setChanges("updated", updated)
+	obj.update("updated", updated)
 }
 
 // AddUserID .
 func (obj *Order) AddUserID(userID int) {
 	obj.UserID += userID
-	obj.setChanges("user_id", gorm.Expr("user_id + ?", userID))
+	obj.update("user_id", gorm.Expr("user_id + ?", userID))
 }
 
 // AddTotalPrice .
 func (obj *Order) AddTotalPrice(totalPrice int) {
 	obj.TotalPrice += totalPrice
-	obj.setChanges("total_price", gorm.Expr("total_price + ?", totalPrice))
+	obj.update("total_price", gorm.Expr("total_price + ?", totalPrice))
 }

@@ -12,7 +12,7 @@ import (
 func init() {
 	freedom.Prepare(func(initiator freedom.Initiator) {
 		initiator.BindController("/goods", &GoodsController{})
-		initiator.ListenEvent((&event.ShopGoods{}).Topic(), "GoodsController.PostStock")
+		initiator.ListenEvent((&event.ShopGoods{}).Topic(), "GoodsController.PostShop")
 	})
 }
 
@@ -43,8 +43,8 @@ func (goods *GoodsController) Get() freedom.Result {
 	return &infra.JSONResponse{Object: objs}
 }
 
-// PostStock handles the POST: /goods/stock route 增加商品库存.
-func (goods *GoodsController) PostStock() freedom.Result {
+// PostShop handles the POST: /goods/shop route 商品购买事件.
+func (goods *GoodsController) PostShop() freedom.Result {
 	shopEvent := &event.ShopGoods{}
 	//使用自定义的json组件
 	if e := goods.Request.ReadJSON(shopEvent); e != nil {

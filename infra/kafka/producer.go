@@ -14,89 +14,80 @@ func init() {
 	})
 }
 
+// GetProducer .
+func GetProducer() Producer {
+	return producer
+}
+
 var producer *ProducerImpl = new(ProducerImpl)
-var _ Producer = (*ProducerImpl)(nil)
 
 // Producer .
 type Producer interface {
-	NewMsg(topic string, content []byte, producerName ...string) *Msg
+	NewMsg(topic string, content []byte) *Msg
+	Start(addrs []string, config *sarama.Config)
+	Restart() error
 }
 
 // ProducerImpl .
 type ProducerImpl struct {
 	freedom.Infra
-	saramaProducerMap map[string]sarama.SyncProducer
-	defaultProducer   sarama.SyncProducer
-	startUpCallBack   []func()
+	syncProducer sarama.SyncProducer
+	addrs        []string
+	config       *sarama.Config
+}
+
+// Start .
+func (pi *ProducerImpl) Start(addrs []string, config *sarama.Config) {
+	pi.addrs = addrs
+	pi.config = config
+	pi.config.Producer.Return.Errors = true
+	pi.config.Producer.Return.Successes = true
+}
+
+// Restart .
+func (pi *ProducerImpl) Restart() error {
+	if err := pi.Close(); err != nil {
+		return err
+	}
+	return pi.dial()
 }
 
 // Booting .
 func (pi *ProducerImpl) Booting(sb freedom.SingleBoot) {
-	pi.saramaProducerMap = make(map[string]sarama.SyncProducer)
-
-	conf := kafkaConf{}
-	if err := freedom.Configure(&conf, "infra/kafka.toml"); err != nil {
-		panic(err)
+	if len(pi.addrs) == 0 {
+		return
 	}
-	pi.dial(conf)
 
 	sb.RegisterShutdown(func() {
-		pi.close()
-	})
-
-	for i := 0; i < len(pi.startUpCallBack); i++ {
-		pi.startUpCallBack[i]()
-	}
-}
-
-func (pi *ProducerImpl) dial(conf kafkaConf) {
-	if !conf.Producer.Open {
-		freedom.Logger().Debug("[Freedom] 'infra/kafka.toml' '[[producer.open]]' is false")
-		return
-	}
-	if len(conf.Producers) == 0 {
-		freedom.Logger().Error("[Freedom] 'infra/kafka.toml' file under '[[producer_clients]]' error")
-		return
-	}
-	for index := 0; index < len(conf.Producers); index++ {
-		c := newProducerConfig(conf.Producers[index])
-		if confCallBack != nil {
-			confCallBack(c, conf.Other)
-		}
-		syncp, err := sarama.NewSyncProducer(conf.Producers[index].Servers, c)
-		if err != nil {
-			panic(err)
-		}
-		freedom.Logger().Debug("[Freedom] Producer connect servers: ", conf.Producers[index].Servers)
-
-		if conf.Producers[index].Name == "" {
-			pi.defaultProducer = syncp
-		}
-		pi.saramaProducerMap[conf.Producers[index].Name] = syncp
-	}
-}
-
-func (pi *ProducerImpl) close() {
-	for _, producer := range pi.saramaProducerMap {
-		if err := producer.Close(); err != nil {
+		if err := pi.Close(); err != nil {
 			freedom.Logger().Error(err)
-		} else {
-			freedom.Logger().Debug("[Freedom]Producer close complete")
 		}
+	})
+	if err := pi.dial(); err != nil {
+		panic(err)
 	}
 }
 
-// getSaramaProducer .
-func (pi *ProducerImpl) getSaramaProducer(name string) sarama.SyncProducer {
-	if name == "" {
-		return pi.defaultProducer
+func (pi *ProducerImpl) dial() error {
+	syncp, err := sarama.NewSyncProducer(pi.addrs, pi.config)
+	if err != nil {
+		return err
+	}
+	pi.syncProducer = syncp
+	freedom.Logger().Debug("[Freedom] Producer connect servers: ", pi.addrs)
+	return nil
+}
+
+// Close .
+func (pi *ProducerImpl) Close() error {
+	if pi.syncProducer == nil {
+		return nil
 	}
 
-	result, ok := pi.saramaProducerMap[name]
-	if !ok {
-		panic("[Freedom] The instance does not exist name:" + name)
-	}
-	return result
+	defer func() {
+		pi.syncProducer = nil
+	}()
+	return pi.syncProducer.Close()
 }
 
 // generateMessageKey
@@ -106,14 +97,9 @@ func (pi *ProducerImpl) generateMessageKey() string {
 }
 
 // NewMsg .
-func (pi *ProducerImpl) NewMsg(topic string, content []byte, producerName ...string) *Msg {
-	pName := ""
-	if len(producerName) > 0 {
-		pName = producerName[0]
-	}
+func (pi *ProducerImpl) NewMsg(topic string, content []byte) *Msg {
 	return &Msg{
-		Topic:        topic,
-		Content:      content,
-		producerName: pName,
+		Topic:   topic,
+		Content: content,
 	}
 }

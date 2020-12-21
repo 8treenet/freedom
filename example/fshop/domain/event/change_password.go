@@ -4,7 +4,7 @@ import "encoding/json"
 
 // ChangePassword 修改密码事件
 type ChangePassword struct {
-	ID          int `json:"id"`
+	ID          string `json:"identity"`
 	prototypes  map[string]interface{}
 	UserID      int    `json:"userID"`
 	NewPassword string `json:"newPassword"`
@@ -34,17 +34,21 @@ func (password *ChangePassword) GetPrototypes() map[string]interface{} {
 }
 
 // Marshal .
-func (password *ChangePassword) Marshal() []byte {
-	data, _ := json.Marshal(password)
-	return data
+func (shop *ChangePassword) Marshal() ([]byte, error) {
+	return json.Marshal(shop)
+}
+
+// Unmarshal .
+func (shop *ChangePassword) Unmarshal(data []byte) error {
+	return json.Unmarshal(data, shop)
 }
 
 // Identity .
-func (password *ChangePassword) Identity() interface{} {
+func (password *ChangePassword) Identity() string {
 	return password.ID
 }
 
 // SetIdentity .
-func (password *ChangePassword) SetIdentity(identity interface{}) {
-	password.ID = identity.(int)
+func (password *ChangePassword) SetIdentity(identity string) {
+	password.ID = identity
 }

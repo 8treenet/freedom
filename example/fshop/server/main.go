@@ -25,7 +25,7 @@ func main() {
 	addrRunner := app.NewH2CRunner(conf.Get().App.Other["listen_addr"].(string))
 	//app.InstallParty("/fshop")
 	liveness(app)
-	consumer.Start(app) //领域事件消费者
+	consumer.Start() //领域事件消费者
 	app.Run(addrRunner, *conf.Get().App)
 }
 

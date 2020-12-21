@@ -47,8 +47,8 @@ func (l *requestLoggerMiddleware) ServeHTTP(ctx context.Context) {
 	}
 
 	work := freedom.ToWorker(ctx)
-	freelog := newFreedomLogger(l.config.traceName, work.Bus().Get(l.config.traceName))
-	work.Store().Set("logger_impl", freelog)
+	freelog := NewLogger(l.config.traceName, work.Bus().Get(l.config.traceName))
+	work.SetLogger(freelog)
 
 	rawQuery := ctx.Request().URL.Query()
 	ctx.Next()

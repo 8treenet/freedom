@@ -38,6 +38,7 @@ func NewApplication() *Application {
 		globalApp.marshal = json.Marshal
 		globalApp.unmarshal = json.Unmarshal
 		globalApp.Prometheus = newPrometheus()
+		globalApp.serviceLocator = newServiceLocator()
 		globalApp.IrisApp.Logger().SetTimeFormat("2006-01-02 15:04:05.000")
 	})
 	return globalApp
@@ -47,10 +48,11 @@ func NewApplication() *Application {
 // Create an application of freedom, by using NewApplication().
 type Application struct {
 	// IrisApp is an iris application
-	IrisApp     *iris.Application
-	pool        *ServicePool
-	rpool       *RepositoryPool
-	factoryPool *FactoryPool
+	IrisApp        *iris.Application
+	serviceLocator *ServiceLocatorImpl
+	pool           *ServicePool
+	rpool          *RepositoryPool
+	factoryPool    *FactoryPool
 
 	comPool *InfraPool
 	msgsBus *EventBus
@@ -403,7 +405,7 @@ func (app *Application) InstallSerializer(marshal func(v interface{}) ([]byte, e
 	app.unmarshal = unmarshal
 }
 
-// CallService .
-func (app *Application) CallService(fun interface{}, worker ...Worker) {
-	callService(fun, worker...)
+// GetServiceLocator .
+func (app *Application) GetServiceLocator() *ServiceLocatorImpl {
+	return app.serviceLocator
 }

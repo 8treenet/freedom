@@ -96,6 +96,8 @@ func (u *UnitTestImpl) newRuntime() *worker {
 	ctx.BeginRequest(nil, u.request)
 	rt := newWorker(ctx)
 	ctx.Values().Set(WorkerKey, rt)
+	rt.bus = newBus(make(http.Header))
+	ctx.Values().Set(WorkerKey, rt)
 	return rt
 }
 

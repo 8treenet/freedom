@@ -10,8 +10,8 @@ package po
 {{.Import}}
 {{.Content}}
 
-// TakeChanges .
-func (obj *{{.Name}})TakeChanges() map[string]interface{} {
+// GetChanges .
+func (obj *{{.Name}})GetChanges() map[string]interface{} {
 	if obj.changes == nil {
 		return nil
 	}
@@ -23,8 +23,8 @@ func (obj *{{.Name}})TakeChanges() map[string]interface{} {
 	return result
 }
 
-// updateChanges .
-func (obj *{{.Name}}) setChanges(name string, value interface{}) {
+// update .
+func (obj *{{.Name}}) update(name string, value interface{}) {
 	if obj.changes == nil {
 		obj.changes = make(map[string]interface{})
 	}
@@ -35,7 +35,7 @@ func (obj *{{.Name}}) setChanges(name string, value interface{}) {
 // Set{{.Name}} .
 func (obj *{{.ObjectName}}) Set{{.Name}} ({{.Variable}} {{.VariableType}}) {
 	obj.{{.Name}} = {{.Variable}} 
-	obj.setChanges("{{.Column}}", {{.Variable}})
+	obj.update("{{.Column}}", {{.Variable}})
 }
 {{ end }}
 
@@ -43,7 +43,7 @@ func (obj *{{.ObjectName}}) Set{{.Name}} ({{.Variable}} {{.VariableType}}) {
 // Add{{.Name}} .
 func (obj *{{.ObjectName}}) Add{{.Name}} ({{.Variable}} {{.VariableType}}) {
 	obj.{{.Name}} += {{.Variable}} 
-	obj.setChanges("{{.Column}}", gorm.Expr("{{.Column}} + ?", {{.Variable}}))
+	obj.update("{{.Column}}", gorm.Expr("{{.Column}} + ?", {{.Variable}}))
 }
 {{ end }}
 `
@@ -67,6 +67,12 @@ func FunTemplatePackage() string {
 		db() *gorm.DB
 		Worker() freedom.Worker
 	}
+
+	type saveObject interface {
+		TableName() string
+		Location() map[string]interface{}
+		GetChanges() map[string]interface{}
+	}	
 
 	// Builder .
 	type Builder interface {
@@ -200,9 +206,12 @@ func FunTemplate() string {
 	// find{{.Name}}ListByPrimarys .
 	func find{{.Name}}ListByPrimarys(repo GORMRepository, results interface{}, primarys ...interface{}) (e error) {
 		now := time.Now()
+		defer func() {
+			freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "find{{.Name}}ListByPrimarys", e, now)
+			ormErrorLog(repo, "{{.Name}}", "find{{.Name}}sByPrimarys", e, primarys)
+		}()
+
 		e = repo.db().Find(results, primarys).Error
-		freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "find{{.Name}}ListByPrimarys", e, now)
-		ormErrorLog(repo, "{{.Name}}", "find{{.Name}}sByPrimarys", e, primarys)
 		return
 	}
 	
@@ -302,22 +311,28 @@ func FunTemplate() string {
 	// create{{.Name}} .
 	func create{{.Name}}(repo GORMRepository, object *po.{{.Name}}) (rowsAffected int64, e error) {
 		now := time.Now()
+		defer func() {
+			freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "create{{.Name}}", e, now)
+			ormErrorLog(repo, "{{.Name}}", "create{{.Name}}", e, *object)
+		}()
+
 		db := repo.db().Create(object)
 		rowsAffected = db.RowsAffected
 		e = db.Error
-		freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "create{{.Name}}", e, now)
-		ormErrorLog(repo, "{{.Name}}", "create{{.Name}}", e, *object)
 		return
 	}
 
 	// save{{.Name}} .
-	func save{{.Name}}(repo GORMRepository, object *po.{{.Name}}) (affected int64, e error) {
+	func save{{.Name}}(repo GORMRepository, object saveObject) (affected int64, e error) {
 		now := time.Now()
-		db := repo.db().Model(object).Updates(object.TakeChanges())
+		defer func() {
+			freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "save{{.Name}}", e, now)
+			ormErrorLog(repo, "{{.Name}}", "save{{.Name}}", e, object)
+		}()
+
+		db := repo.db().Table(object.TableName()).Where(object.Location()).Updates(object.GetChanges())
 		e = db.Error
 		affected = db.RowsAffected
-		freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "save{{.Name}}", e, now)
-		ormErrorLog(repo, "{{.Name}}", "save{{.Name}}", e, *object)
 		return
 	}
 `

@@ -22,10 +22,11 @@ type HTTPRequest struct {
 	RawURL          string
 	SingleflightKey string
 	stop            bool
-	Client          *http.Client
+	Client          Client
 	nextIndex       int
 	responeBody     []byte
 	connTrace       *requestConnTrace
+	h2c             bool
 }
 
 // Post .
@@ -186,7 +187,7 @@ func (req *HTTPRequest) URL() string {
 }
 
 // SetClient .
-func (req *HTTPRequest) SetClient(client *http.Client) Request {
+func (req *HTTPRequest) SetClient(client Client) Request {
 	if client == nil {
 		panic("This is an undefined client")
 	}
@@ -201,6 +202,9 @@ type singleflightData struct {
 
 func (req *HTTPRequest) singleflightDo(noCopy bool) (body []byte) {
 	if req.SingleflightKey == "" {
+		if req.Response.Error = req.prepare(); req.Response.Error != nil {
+			return
+		}
 		req.Next()
 		if req.Response.Error != nil {
 			return
@@ -210,6 +214,9 @@ func (req *HTTPRequest) singleflightDo(noCopy bool) (body []byte) {
 	}
 
 	data, _, shared := httpclientGroup.Do(req.SingleflightKey, func() (interface{}, error) {
+		if req.Response.Error = req.prepare(); req.Response.Error != nil {
+			return &singleflightData{Res: *req.Response.Clone(), Body: []byte{}}, nil
+		}
 		req.Next()
 		if req.Response.Error != nil {
 			return &singleflightData{Res: *req.Response.Clone(), Body: []byte{}}, nil
@@ -240,15 +247,6 @@ func (req *HTTPRequest) do() {
 	if req.Response.Error != nil {
 		return
 	}
-	if req.Response.Error = req.prepare(); req.Response.Error != nil {
-		return
-	}
-	u, e := url.Parse(req.URL())
-	if e != nil {
-		req.Response.Error = e
-		return
-	}
-	req.StdRequest.URL = u
 	req.Response.stdResponse, req.Response.Error = req.Client.Do(req.StdRequest)
 	if req.Response.Error != nil {
 		return
@@ -413,4 +411,14 @@ func (req *HTTPRequest) WithContext(ctx context.Context) Request {
 // WithContextFromMiddleware .
 func (req *HTTPRequest) WithContextFromMiddleware(ctx context.Context) {
 	req.WithContext(ctx)
+}
+
+// SetClientFromMiddleware .
+func (req *HTTPRequest) SetClientFromMiddleware(client Client) {
+	req.SetClient(client)
+}
+
+// IsH2C .
+func (req *HTTPRequest) IsH2C() bool {
+	return req.h2c
 }

@@ -107,14 +107,14 @@ func (t *Generate) RunDsn() (result []ObjectContent, e error) {
 		return
 	}
 
-	// 获取表和字段的shcema
+	// 获取表和字段的schema
 	tableColumns, err := t.getColumns()
 	if err != nil {
 		e = err
 		return
 	}
 
-	return t.shcema(tableColumns), nil
+	return t.schema(tableColumns), nil
 }
 
 // RunJSON .
@@ -127,19 +127,21 @@ func (t *Generate) RunJSON(jsonFileName string) (result []ObjectContent, e error
 	var tables []interface{}
 	json.Unmarshal(buffer, &tables)
 
-	// 获取表和字段的shcema
+	// 获取表和字段的schema
 	tableColumns, err := t.getJSONColumns(tables)
 	if err != nil {
 		e = err
 		return
 	}
-	return t.shcema(tableColumns), nil
+	return t.schema(tableColumns), nil
 }
 
-func (t *Generate) shcema(tableColumns map[string][]column) (result []ObjectContent) {
+func (t *Generate) schema(tableColumns map[string][]column) (result []ObjectContent) {
 	for tableRealName, item := range tableColumns {
 		var structContent string
 		tableName := tableRealName
+		primaryName := ""
+		primaryStructName := ""
 		sc := ObjectContent{
 			TableRealName: tableName,
 			SetMethods:    make([]Method, 0),
@@ -167,10 +169,13 @@ func (t *Generate) shcema(tableColumns map[string][]column) (result []ObjectCont
 		for _, v := range item {
 			column := v.Tag
 			if v.Primary == "PRI" {
+				primaryName = v.Tag
+				primaryStructName = v.ColumnName
 				v.Tag = "`" + `gorm:"primary_key;column:` + v.Tag + `"` + "`"
 			} else {
 				v.Tag = "`" + `gorm:"column:` + v.Tag + `"` + "`"
 			}
+
 			//structContent += tab(depth) + v.ColumnName + " " + v.Type + " " + v.Json + "\n"
 			// 字段注释
 			var clumnComment string
@@ -205,8 +210,14 @@ func (t *Generate) shcema(tableColumns map[string][]column) (result []ObjectCont
 				tableName, t.realNameMethod)
 			structContent += fmt.Sprintf("%sreturn \"%s\"\n",
 				tab(depth), tableRealName)
-			structContent += "}\n\n"
+			structContent += "}\n"
 		}
+
+		structContent += "// Location" + " .\n"
+		structContent += fmt.Sprintf("func (obj *%s) Location() map[string]interface{} {\n", tableName)
+		structContent += fmt.Sprintf(`return map[string]interface{}{"%s":obj.%s}`+"\n", primaryName, primaryStructName)
+		structContent += "}\n"
+
 		sc.Content = structContent
 		result = append(result, sc)
 	}

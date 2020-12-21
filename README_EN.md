@@ -33,11 +33,11 @@ $ freedom new-project [project-name]
 # Configurable address and output directory, using 'freedom new-po -h' to see more
 $ cd [project-name]
 
-# DB shcema
+# DB schema
 $ freedom new-po --dsn "root:123123@tcp(127.0.0.1:3306)/freedom?charset=utf8"
 
-# JSON shcema
-$ freedom new-po --json ./domain/po/shcema.json
+# JSON schema
+$ freedom new-po --json ./domain/po/schema.json
 ```
 
 ## Example

@@ -11,6 +11,10 @@ import (
 	"github.com/kataras/iris/v12/context"
 )
 
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
 // NewTrace .
 func NewTrace(traceIDName string) func(context.Context) {
 	return func(ctx context.Context) {
@@ -20,11 +24,11 @@ func NewTrace(traceIDName string) func(context.Context) {
 			if traceID != "" {
 				break
 			}
-			uuidv1, e := uuid.NewV1()
-			if e != nil {
+
+			var e error
+			if traceID, e = GenerateTraceID(); e != nil {
 				break
 			}
-			traceID = strings.ReplaceAll(uuidv1.String(), "-", "")
 			bus.Add(traceIDName, traceID)
 			break
 		}
@@ -32,6 +36,11 @@ func NewTrace(traceIDName string) func(context.Context) {
 	}
 }
 
-func init() {
-	rand.Seed(time.Now().UnixNano())
+// GenerateTraceID .
+func GenerateTraceID() (string, error) {
+	uuidv1, e := uuid.NewV1()
+	if e != nil {
+		return "", e
+	}
+	return strings.ReplaceAll(uuidv1.String(), "-", ""), nil
 }

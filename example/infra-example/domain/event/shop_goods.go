@@ -4,7 +4,7 @@ import "encoding/json"
 
 // ShopGoods 购买事件
 type ShopGoods struct {
-	ID         int `json:"id"`
+	ID         string `json:"identity"`
 	prototypes map[string]interface{}
 	UserID     int    `json:"userID"`
 	GoodsID    int    `json:"goodsID"`
@@ -35,17 +35,21 @@ func (shop *ShopGoods) GetPrototypes() map[string]interface{} {
 }
 
 // Marshal .
-func (shop *ShopGoods) Marshal() []byte {
-	data, _ := json.Marshal(shop)
-	return data
+func (shop *ShopGoods) Marshal() ([]byte, error) {
+	return json.Marshal(shop)
+}
+
+// Unmarshal .
+func (shop *ShopGoods) Unmarshal(data []byte) error {
+	return json.Unmarshal(data, shop)
 }
 
 // Identity .
-func (shop *ShopGoods) Identity() interface{} {
+func (shop *ShopGoods) Identity() string {
 	return shop.ID
 }
 
 // SetIdentity .
-func (shop *ShopGoods) SetIdentity(identity interface{}) {
-	shop.ID = identity.(int)
+func (shop *ShopGoods) SetIdentity(identity string) {
+	shop.ID = identity
 }

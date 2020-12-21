@@ -2,10 +2,10 @@ package domain
 
 import (
 	"github.com/8treenet/freedom"
-	"github.com/8treenet/freedom/example/fshop/infra/domainevent"
 	"github.com/8treenet/freedom/example/infra-example/adapter/repository"
 	"github.com/8treenet/freedom/example/infra-example/domain/event"
 	"github.com/8treenet/freedom/example/infra-example/domain/vo"
+	"github.com/8treenet/freedom/example/infra-example/infra/domainevent"
 )
 
 func init() {

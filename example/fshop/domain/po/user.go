@@ -22,8 +22,13 @@ func (obj *User) TableName() string {
 	return "user"
 }
 
-// TakeChanges .
-func (obj *User) TakeChanges() map[string]interface{} {
+// Location .
+func (obj *User) Location() map[string]interface{} {
+	return map[string]interface{}{"id": obj.ID}
+}
+
+// GetChanges .
+func (obj *User) GetChanges() map[string]interface{} {
 	if obj.changes == nil {
 		return nil
 	}
@@ -35,8 +40,8 @@ func (obj *User) TakeChanges() map[string]interface{} {
 	return result
 }
 
-// updateChanges .
-func (obj *User) setChanges(name string, value interface{}) {
+// update .
+func (obj *User) update(name string, value interface{}) {
 	if obj.changes == nil {
 		obj.changes = make(map[string]interface{})
 	}
@@ -46,35 +51,35 @@ func (obj *User) setChanges(name string, value interface{}) {
 // SetName .
 func (obj *User) SetName(name string) {
 	obj.Name = name
-	obj.setChanges("name", name)
+	obj.update("name", name)
 }
 
 // SetMoney .
 func (obj *User) SetMoney(money int) {
 	obj.Money = money
-	obj.setChanges("money", money)
+	obj.update("money", money)
 }
 
 // SetPassword .
 func (obj *User) SetPassword(password string) {
 	obj.Password = password
-	obj.setChanges("password", password)
+	obj.update("password", password)
 }
 
 // SetCreated .
 func (obj *User) SetCreated(created time.Time) {
 	obj.Created = created
-	obj.setChanges("created", created)
+	obj.update("created", created)
 }
 
 // SetUpdated .
 func (obj *User) SetUpdated(updated time.Time) {
 	obj.Updated = updated
-	obj.setChanges("updated", updated)
+	obj.update("updated", updated)
 }
 
 // AddMoney .
 func (obj *User) AddMoney(money int) {
 	obj.Money += money
-	obj.setChanges("money", gorm.Expr("money + ?", money))
+	obj.update("money", gorm.Expr("money + ?", money))
 }
