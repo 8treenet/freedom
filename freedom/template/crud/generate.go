@@ -107,14 +107,14 @@ func (t *Generate) RunDsn() (result []ObjectContent, e error) {
 		return
 	}
 
-	// 获取表和字段的shcema
+	// 获取表和字段的schema
 	tableColumns, err := t.getColumns()
 	if err != nil {
 		e = err
 		return
 	}
 
-	return t.shcema(tableColumns), nil
+	return t.schema(tableColumns), nil
 }
 
 // RunJSON .
@@ -127,16 +127,16 @@ func (t *Generate) RunJSON(jsonFileName string) (result []ObjectContent, e error
 	var tables []interface{}
 	json.Unmarshal(buffer, &tables)
 
-	// 获取表和字段的shcema
+	// 获取表和字段的schema
 	tableColumns, err := t.getJSONColumns(tables)
 	if err != nil {
 		e = err
 		return
 	}
-	return t.shcema(tableColumns), nil
+	return t.schema(tableColumns), nil
 }
 
-func (t *Generate) shcema(tableColumns map[string][]column) (result []ObjectContent) {
+func (t *Generate) schema(tableColumns map[string][]column) (result []ObjectContent) {
 	for tableRealName, item := range tableColumns {
 		var structContent string
 		tableName := tableRealName
