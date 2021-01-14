@@ -24,7 +24,7 @@ type DomainEvent interface {
 type Entity interface {
 	Identity() string
 	Worker() Worker
-	Marshal() []byte
+	Marshal() ([]byte, error)
 	AddPubEvent(DomainEvent)
 	GetPubEvent() []DomainEvent
 	RemoveAllPubEvent()
@@ -93,12 +93,8 @@ func (e *entity) Worker() Worker {
 }
 
 // Marshal .
-func (e *entity) Marshal() []byte {
-	data, err := globalApp.marshal(e.entityObject)
-	if err != nil {
-		e.worker.Logger().Errorf("[Freedom] Entity.Marshal: serialization failed, %v, error:%v", reflect.TypeOf(e.entityObject), err)
-	}
-	return data
+func (e *entity) Marshal() ([]byte, error) {
+	return globalApp.marshal(e.entityObject)
 }
 
 // AddPubEvent.
