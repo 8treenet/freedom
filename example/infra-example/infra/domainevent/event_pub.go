@@ -6,8 +6,8 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-// pubEventPO .
-type pubEventPO struct {
+// pubEventObject .
+type pubEventObject struct {
 	changes  map[string]interface{}
 	Sequence int       `gorm:"primary_key;column:sequence;auto increment"`
 	Identity string    `gorm:"unique;not null;column:identity"`
@@ -19,12 +19,17 @@ type pubEventPO struct {
 }
 
 // TableName .
-func (obj *pubEventPO) TableName() string {
+func (obj *pubEventObject) TableName() string {
 	return "pub_event_" + time.Now().Format("200601")
 }
 
-// TakeChanges .
-func (obj *pubEventPO) TakeChanges() map[string]interface{} {
+// Location .
+func (obj *pubEventObject) Location() map[string]interface{} {
+	return map[string]interface{}{"id": obj.Sequence}
+}
+
+// GetChanges .
+func (obj *pubEventObject) GetChanges() map[string]interface{} {
 	if obj.changes == nil {
 		return nil
 	}
@@ -36,8 +41,8 @@ func (obj *pubEventPO) TakeChanges() map[string]interface{} {
 	return result
 }
 
-// updateChanges .
-func (obj *pubEventPO) setChanges(name string, value interface{}) {
+// update .
+func (obj *pubEventObject) update(name string, value interface{}) {
 	if obj.changes == nil {
 		obj.changes = make(map[string]interface{})
 	}
@@ -45,7 +50,7 @@ func (obj *pubEventPO) setChanges(name string, value interface{}) {
 }
 
 // AddRetries .
-func (obj *pubEventPO) AddRetries(retries int) {
+func (obj *pubEventObject) AddRetries(retries int) {
 	obj.Retries += retries
-	obj.setChanges("retries", gorm.Expr("retries + ?", retries))
+	obj.update("retries", gorm.Expr("retries + ?", retries))
 }

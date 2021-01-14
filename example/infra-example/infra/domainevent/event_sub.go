@@ -6,8 +6,8 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-// subEventPO .
-type subEventPO struct {
+// subEventObject .
+type subEventObject struct {
 	changes  map[string]interface{}
 	Sequence int       `gorm:"primary_key;column:sequence;auto increment"`
 	Identity string    `gorm:"unique;not null;column:identity"`
@@ -19,12 +19,17 @@ type subEventPO struct {
 }
 
 // TableName .
-func (obj *subEventPO) TableName() string {
+func (obj *subEventObject) TableName() string {
 	return "sub_event_" + time.Now().Format("200601")
 }
 
-// TakeChanges .
-func (obj *subEventPO) TakeChanges() map[string]interface{} {
+// Location .
+func (obj *subEventObject) Location() map[string]interface{} {
+	return map[string]interface{}{"id": obj.Sequence}
+}
+
+// GetChanges .
+func (obj *subEventObject) GetChanges() map[string]interface{} {
 	if obj.changes == nil {
 		return nil
 	}
@@ -37,7 +42,7 @@ func (obj *subEventPO) TakeChanges() map[string]interface{} {
 }
 
 // updateChanges .
-func (obj *subEventPO) setChanges(name string, value interface{}) {
+func (obj *subEventObject) update(name string, value interface{}) {
 	if obj.changes == nil {
 		obj.changes = make(map[string]interface{})
 	}
@@ -45,7 +50,7 @@ func (obj *subEventPO) setChanges(name string, value interface{}) {
 }
 
 // AddRetries .
-func (obj *subEventPO) AddRetries(retries int) {
+func (obj *subEventObject) AddRetries(retries int) {
 	obj.Retries += retries
-	obj.setChanges("retries", gorm.Expr("retries + ?", retries))
+	obj.update("retries", gorm.Expr("retries + ?", retries))
 }

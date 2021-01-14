@@ -112,7 +112,7 @@ func (retry *eventRetry) scanSub() {
 		}
 
 		po.AddRetries(1)
-		err := GetEventManager().db().Model(po).Updates(po.TakeChanges()).Error //修改重试次数
+		err := GetEventManager().db().Table(po.TableName()).Where(po.Location()).Updates(po.GetChanges()).Error //修改重试次数
 		if err != nil {
 			freedom.Logger().Error("RetrySubEvent:", err)
 			continue
@@ -160,7 +160,7 @@ func (retry *eventRetry) scanPub() {
 		}
 
 		po.AddRetries(1)
-		err := GetEventManager().db().Model(po).Updates(po.TakeChanges()).Error //修改重试次数
+		err := GetEventManager().db().Table(po.TableName()).Where(po.Location()).Updates(po.GetChanges()).Error //修改重试次数
 		if err != nil {
 			freedom.Logger().Error("RetryPubEvent:", err)
 			continue

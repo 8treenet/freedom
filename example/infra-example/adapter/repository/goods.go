@@ -47,7 +47,7 @@ func (repo *GoodsRepository) GetAll() (result []*entity.Goods, e error) {
 
 // Save .
 func (repo *GoodsRepository) Save(goods *entity.Goods) (e error) {
-	_, e = saveGoods(repo, &goods.Goods)
+	_, e = saveGoods(repo, goods)
 	if e != nil {
 		return
 	}
