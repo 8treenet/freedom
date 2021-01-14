@@ -58,7 +58,7 @@ func TestRetry(t *testing.T) {
 		GoodsID: 234,
 	}).Marshal()
 
-	po := subEventPO{
+	po := subEventObject{
 		changes: map[string]interface{}{
 			"": nil,
 		},

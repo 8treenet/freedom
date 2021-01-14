@@ -36,10 +36,10 @@ type EventManager struct {
 
 // Booting .
 func (manager *EventManager) Booting(sb freedom.SingleBoot) {
-	if err := manager.db().AutoMigrate(&pubEventPO{}).Error; err != nil {
+	if err := manager.db().AutoMigrate(&pubEventObject{}).Error; err != nil {
 		panic(err)
 	}
-	if err := manager.db().AutoMigrate(&subEventPO{}).Error; err != nil {
+	if err := manager.db().AutoMigrate(&subEventObject{}).Error; err != nil {
 		panic(err)
 	}
 
@@ -86,7 +86,7 @@ func (manager *EventManager) push(event freedom.DomainEvent) {
 		}
 
 		// Push成功后删除
-		if err := manager.db().Delete(&pubEventPO{}, "identity = ?", identity).Error; err != nil {
+		if err := manager.db().Delete(&pubEventObject{}, "identity = ?", identity).Error; err != nil {
 			freedom.Logger().Error(err)
 		}
 	}()
@@ -116,7 +116,7 @@ func (manager *EventManager) Save(repo *freedom.Repository, entity freedom.Entit
 			continue
 		}
 
-		model := pubEventPO{
+		model := pubEventObject{
 			Identity: domainEvent.Identity(),
 			Topic:    domainEvent.Topic(),
 			Content:  string(content),
@@ -137,7 +137,7 @@ func (manager *EventManager) Save(repo *freedom.Repository, entity freedom.Entit
 		}
 
 		eventID := subEvent.Identity()
-		rowResult := GetEventManager().db().Delete(&subEventPO{}, "identity = ?", eventID) //删除消费事件表
+		rowResult := GetEventManager().db().Delete(&subEventObject{}, "identity = ?", eventID) //删除消费事件表
 
 		e = rowResult.Error
 		if e != nil {
@@ -159,7 +159,7 @@ func (manager *EventManager) InsertSubEvent(event freedom.DomainEvent) error {
 		return err
 	}
 
-	model := subEventPO{
+	model := subEventObject{
 		Identity: event.Identity(),
 		Topic:    event.Topic(),
 		Content:  string(content),

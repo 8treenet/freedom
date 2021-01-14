@@ -97,17 +97,17 @@ func (retry *eventRetry) Booting() {
 
 func (retry *eventRetry) scanSub() {
 	rows := 200
-	var list []*subEventPO
+	var list []*subEventObject
 	err := GetEventManager().db().Where("retries < ? and created < ?", retry.retries, time.Now().Add(-retry.delay)).Order("sequence ASC").Limit(rows).Find(&list).Error
 	if err != nil {
 		freedom.Logger().Info("RetrySubEvent:", err)
 		return
 	}
 
-	var filterList []*subEventPO
+	var filterList []*subEventObject
 	for _, po := range list {
 		if !retry.SubExist(po.Topic) {
-			GetEventManager().db().Delete(&subEventPO{}, "identity = ?", po.Identity) //未注册重试，直接删除
+			GetEventManager().db().Delete(&subEventObject{}, "identity = ?", po.Identity) //未注册重试，直接删除
 			continue
 		}
 
@@ -125,7 +125,7 @@ func (retry *eventRetry) scanSub() {
 	}
 }
 
-func (retry *eventRetry) callSub(po *subEventPO) {
+func (retry *eventRetry) callSub(po *subEventObject) {
 	defer func() {
 		if perr := recover(); perr != nil {
 			freedom.Logger().Error("RetrySubEvent:", perr)
@@ -145,17 +145,17 @@ func (retry *eventRetry) callSub(po *subEventPO) {
 
 func (retry *eventRetry) scanPub() {
 	rows := 200
-	var list []*pubEventPO
+	var list []*pubEventObject
 	err := GetEventManager().db().Where("retries < ? and created < ?", retry.retries, time.Now().Add(-retry.delay)).Order("sequence ASC").Limit(rows).Find(&list).Error
 	if err != nil {
 		freedom.Logger().Info("RetryPubEvent:", err)
 		return
 	}
 
-	var filterList []*pubEventPO
+	var filterList []*pubEventObject
 	for _, po := range list {
 		if !retry.PubExist(po.Topic) {
-			GetEventManager().db().Delete(&pubEventPO{}, "identity = ?", po.Identity) //未注册重试，直接删除
+			GetEventManager().db().Delete(&pubEventObject{}, "identity = ?", po.Identity) //未注册重试，直接删除
 			continue
 		}
 
@@ -173,7 +173,7 @@ func (retry *eventRetry) scanPub() {
 	}
 }
 
-func (retry *eventRetry) callPub(po *pubEventPO) {
+func (retry *eventRetry) callPub(po *pubEventObject) {
 	defer func() {
 		if perr := recover(); perr != nil {
 			freedom.Logger().Error("RetrySubEvent:", perr)
