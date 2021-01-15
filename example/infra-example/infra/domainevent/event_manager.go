@@ -58,18 +58,18 @@ func (manager *EventManager) SetRetryPolicy(delay, interval time.Duration, retri
 
 // push EventTransaction在事务成功后触发 .
 func (manager *EventManager) push(event freedom.DomainEvent) {
-	freedom.Logger().Infof("领域事件发布 Topic:%s, %+v", event.Topic(), event)
+	freedom.Logger().Infof("Publish Event Topic:%s, %+v", event.Topic(), event)
 	identity := event.Identity()
 	go func() {
 		defer func() {
 			if perr := recover(); perr != nil {
-				freedom.Logger().Error("push:", perr)
+				freedom.Logger().Error("Publish Event:", perr)
 			}
 		}()
 
 		content, err := event.Marshal()
 		if err != nil {
-			freedom.Logger().Error(err)
+			freedom.Logger().Error("Publish Event:", err)
 			return
 		}
 		msg := manager.kafkaProducer.NewMsg(event.Topic(), content).SetHeader(event.GetPrototypes())

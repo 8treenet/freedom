@@ -1,6 +1,15 @@
 package event
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"github.com/8treenet/freedom/example/infra-example/infra/domainevent"
+)
+
+func init() {
+	//不注册 不会触发重试
+	domainevent.GetEventManager().RetryPubEvent(&ShopGoods{})
+}
 
 // ShopGoods 购买事件
 type ShopGoods struct {

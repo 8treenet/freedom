@@ -14,6 +14,13 @@ func init() {
 		initiator.BindController("/goods", &GoodsController{})
 		initiator.ListenEvent((&event.ShopGoods{}).Topic(), "GoodsController.PostShop")
 	})
+
+	//重试消费事件
+	domainevent.GetEventManager().RetrySubEvent(&event.ShopGoods{}, func(shopGoodsEvent *event.ShopGoods) {
+		freedom.ServiceLocator().Call(func(goodsSev *domain.GoodsService) {
+			goodsSev.ShopEvent(shopGoodsEvent)
+		})
+	})
 }
 
 // GoodsController .
