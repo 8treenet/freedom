@@ -1,24 +1,35 @@
 package freedom
 
 import (
-	"os"
-
 	"github.com/8treenet/freedom/internal"
-	"github.com/kataras/iris/v12/core/host"
 	"github.com/kataras/iris/v12/hero"
 	"github.com/kataras/iris/v12/mvc"
 
-	"github.com/BurntSushi/toml"
-	"github.com/go-redis/redis"
 	"github.com/kataras/golog"
 	iris "github.com/kataras/iris/v12"
 )
 
-var app *internal.Application
+type (
+	// IrisResult represents an type alias to hero.Result
+	IrisResult = hero.Result
 
-func init() {
-	app = internal.NewApplication()
-}
+	// IrisContext represents an type alias to iris.Context
+	IrisContext = iris.Context
+
+	// IrisBeforeActivation represents an type alias to mvc.BeforeActivation
+	IrisBeforeActivation = mvc.BeforeActivation
+
+	// IrisConfiguration represents an type alias to iris.Configuration
+	IrisConfiguration = iris.Configuration
+)
+
+type (
+	// LogFields is the column type of the log.
+	GologFields = golog.Fields
+
+	// LogRow is the log per line callback.
+	GologRow = golog.Log
+)
 
 type (
 	// Worker .
@@ -36,14 +47,11 @@ type (
 	//SingleBoot .
 	SingleBoot = internal.SingleBoot
 
-	//Result is the controller return type.
-	Result = hero.Result
-
-	//Context is the context type.
-	Context = iris.Context
-
 	//Entity is the entity's father interface.
 	Entity = internal.Entity
+
+	// DomainEvent represents a domain event
+	DomainEvent = internal.DomainEvent
 
 	//UnitTest is a unit test tool.
 	UnitTest = internal.UnitTest
@@ -57,127 +65,31 @@ type (
 	// BusHandler is the bus message middleware type.
 	BusHandler = internal.BusHandler
 
+	//Result is the controller return type.
+	Result = IrisResult
+
+	//Context is the context type.
+	Context = IrisContext
+
 	// Configuration is the configuration type of the app.
-	Configuration = iris.Configuration
+	Configuration = IrisConfiguration
 
 	// BeforeActivation is Is the start-up pre-processing of the action.
-	BeforeActivation = mvc.BeforeActivation
+	BeforeActivation = IrisBeforeActivation
 
 	// LogFields is the column type of the log.
-	LogFields = golog.Fields
+	LogFields = GologFields
 
 	// LogRow is the log per line callback.
-	LogRow = golog.Log
-
-	// DomainEvent .
-	DomainEvent = internal.DomainEvent
+	LogRow = GologRow
 )
 
-// NewApplication .
-func NewApplication() Application {
-	return app
-}
-
-// NewUnitTest .
-func NewUnitTest() UnitTest {
-	return new(internal.UnitTestImpl)
+func init() {
+	initApp()
+	initConfigurator()
 }
 
 // Prepare .
 func Prepare(f func(Initiator)) {
 	internal.Prepare(f)
-}
-
-// Logger .
-func Logger() *golog.Logger {
-	return app.Logger()
-}
-
-// Prometheus .
-func Prometheus() *internal.Prometheus {
-	return app.Prometheus
-}
-
-var path string
-
-// Configurer .
-type Configurer interface {
-	Configure(obj interface{}, file string, metaData ...interface{}) error
-}
-
-var configurer Configurer
-
-// SetConfigurer .
-func SetConfigurer(confer Configurer) {
-	configurer = confer
-}
-
-// ProfileENV The name of the environment variable for the profile directory
-var ProfileENV = "FREEDOM_PROJECT_CONFIG"
-
-// Configure .
-func Configure(obj interface{}, file string, metaData ...interface{}) error {
-	if configurer != nil {
-		return configurer.Configure(obj, file)
-	}
-	path = os.Getenv(ProfileENV)
-	if path == "" {
-		path = "./conf"
-		_, err := os.Stat(path)
-		if err != nil {
-			path = ""
-		}
-	}
-
-	if path == "" {
-		path = "./server/conf"
-		_, err := os.Stat(path)
-		if err != nil {
-			path = ""
-		}
-	}
-	_, err := toml.DecodeFile(path+"/"+file, obj)
-	if err != nil {
-		Logger().Errorf("[Freedom] configure decode error: %s", err.Error())
-	} else {
-		Logger().Infof("[Freedom] configure decode: %s", path+"/"+file)
-	}
-	return err
-}
-
-// Application .
-type Application interface {
-	InstallDB(f func() (db interface{}))
-	InstallRedis(f func() (client redis.Cmdable))
-	InstallOther(f func() interface{})
-	InstallMiddleware(handler iris.Handler)
-	InstallParty(relativePath string)
-	NewRunner(addr string, configurators ...host.Configurator) iris.Runner
-	NewH2CRunner(addr string, configurators ...host.Configurator) iris.Runner
-	NewAutoTLSRunner(addr string, domain string, email string, configurators ...host.Configurator) iris.Runner
-	NewTLSRunner(addr string, certFile, keyFile string, configurators ...host.Configurator) iris.Runner
-	Iris() *iris.Application
-	Logger() *golog.Logger
-	Run(serve iris.Runner, c iris.Configuration)
-	Start(f func(starter Starter))
-	InstallBusMiddleware(handle ...BusHandler)
-	InstallSerializer(marshal func(v interface{}) ([]byte, error), unmarshal func(data []byte, v interface{}) error)
-}
-
-//ToWorker the context is converted to a worker.
-func ToWorker(ctx Context) Worker {
-	if result, ok := ctx.Values().Get(internal.WorkerKey).(Worker); ok {
-		return result
-	}
-	return nil
-}
-
-//DefaultConfiguration the default profile.
-func DefaultConfiguration() Configuration {
-	return iris.DefaultConfiguration()
-}
-
-// ServiceLocator .
-func ServiceLocator() *internal.ServiceLocatorImpl {
-	return app.GetServiceLocator()
 }

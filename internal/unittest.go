@@ -28,6 +28,10 @@ type UnitTestImpl struct {
 	request *http.Request
 }
 
+func NewUnitTest() UnitTest {
+	return new(UnitTestImpl)
+}
+
 // GetService .
 func (u *UnitTestImpl) GetService(service interface{}) {
 	globalApp.GetService(u.rt.IrisContext(), service)

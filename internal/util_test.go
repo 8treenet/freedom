@@ -6,60 +6,62 @@ import (
 )
 
 var _ = Describe("util.go", func() {
+
 	Describe("NewMap", func() {
+
 		Context("given a non-pointer", func() {
 			var (
-				badDst map[string]struct{}
-				err    error
+				badMapWithoutPointer map[string]struct{}
+				err                  error
 			)
 
 			BeforeEach(func() {
-				badDst = map[string]struct{}{}
+				badMapWithoutPointer = map[string]struct{}{}
 
 				maybePanic := func() {
-					err = NewMap(badDst)
+					err = NewMap(badMapWithoutPointer)
 				}
 
 				Expect(maybePanic).ShouldNot(Panic())
 			})
 
-			It("should return an error", func() {
+			It("should fail", func() {
 				Expect(err).Should(HaveOccurred())
 			})
 		})
 
 		Context("given a pointer to other type", func() {
 			var (
-				badDst *struct{}
-				err    error
+				badMapWithOtherType *struct{}
+				err                 error
 			)
 
 			BeforeEach(func() {
-				badDst = &struct{}{}
+				badMapWithOtherType = &struct{}{}
 
 				maybePanic := func() {
-					err = NewMap(badDst)
+					err = NewMap(badMapWithOtherType)
 				}
 
 				Expect(maybePanic).ShouldNot(Panic())
 			})
 
-			It("should return an error", func() {
+			It("should fail", func() {
 				Expect(err).Should(HaveOccurred())
 			})
 		})
 
 		Context("given a pointer to map", func() {
 			var (
-				goodDst *map[string]struct{}
+				goodMap *map[string]struct{}
 				err     error
 			)
 
 			BeforeEach(func() {
-				goodDst = &map[string]struct{}{}
+				goodMap = &map[string]struct{}{}
 
 				maybePanic := func() {
-					err = NewMap(goodDst)
+					err = NewMap(goodMap)
 				}
 
 				Expect(maybePanic).ShouldNot(Panic())
@@ -74,75 +76,75 @@ var _ = Describe("util.go", func() {
 	Describe("InSlice", func() {
 		Context("given a non-slice", func() {
 			var (
-				badArr              int
+				badSliceWithIntType int
 				arbitrarySearchItem int
-				ret                 bool
+				found               bool
 			)
 
 			BeforeEach(func() {
-				badArr = 10
+				badSliceWithIntType = 10
 				arbitrarySearchItem = 100
 
 				maybePanic := func() {
-					ret = InSlice(badArr, arbitrarySearchItem)
+					found = InSlice(badSliceWithIntType, arbitrarySearchItem)
 				}
 
 				Expect(maybePanic).ShouldNot(Panic())
 			})
 
-			It("should return false", func() {
-				Expect(ret).To(BeFalse())
+			It("should not be found", func() {
+				Expect(found).To(BeFalse())
 			})
 		})
 
 		Context("given a slice", func() {
 			var (
-				goodArr []int
+				goodSlice []int
 			)
 
 			BeforeEach(func() {
-				goodArr = []int{1, 3, 5, 7, 9}
+				goodSlice = []int{1, 3, 5, 7, 9}
 			})
 
-			When("search item does not occurred", func() {
+			When("search item is absent", func() {
 				var (
-					notOccurredSearchItem int
-					ret                   bool
+					absentSearchItem int
+					found            bool
 				)
 
 				BeforeEach(func() {
-					notOccurredSearchItem = 2
+					absentSearchItem = 2
 
 					maybePanic := func() {
-						ret = InSlice(goodArr, notOccurredSearchItem)
+						found = InSlice(goodSlice, absentSearchItem)
 					}
 
 					Expect(maybePanic).ShouldNot(Panic())
 				})
 
-				It("should return false", func() {
-					Expect(ret).To(BeFalse())
+				It("should not be found", func() {
+					Expect(found).To(BeFalse())
 				})
 			})
 
-			When("search item has occurred", func() {
+			When("search item is occurred", func() {
 				var (
 					occurredSearchItem int
-					ret                bool
+					found              bool
 				)
 
 				BeforeEach(func() {
 					occurredSearchItem = 1
 
 					maybePanic := func() {
-						ret = InSlice(goodArr, occurredSearchItem)
+						found = InSlice(goodSlice, occurredSearchItem)
 					}
 
 					Expect(maybePanic).ShouldNot(Panic())
 				})
 
-				It("should return true", func() {
-					Expect(ret).To(BeTrue())
+				It("should be found", func() {
+					Expect(found).To(BeTrue())
 				})
 			})
 		})
