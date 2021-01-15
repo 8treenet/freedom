@@ -7,6 +7,13 @@ import (
 	"github.com/kataras/iris/v12/context"
 )
 
+var (
+	globalApp     *Application
+	globalAppOnce sync.Once
+	prepares      []func(Initiator)
+	starters      []func(starter Starter)
+)
+
 // Initiator .
 type Initiator interface {
 	CreateParty(relativePath string, handlers ...context.Handler) iris.Party
@@ -30,13 +37,13 @@ type Initiator interface {
 type Starter interface {
 	Iris() *iris.Application
 	// Asynchronous cache warm-up
-	AsyncCachePreheat(f func(repo *Repository))
+	AsyncCacheWarmUp(f func(repo *Repository))
 	// Sync cache warm-up
-	CachePreheat(f func(repo *Repository))
+	CacheWarmUp(f func(repo *Repository))
 	GetSingleInfra(com interface{}) bool
 }
 
-//SingleBoot singleton startup component.
+// SingleBoot represents singleton startup component.
 type SingleBoot interface {
 	Iris() *iris.Application
 	//Pass in the current component to get the event path, which can bind the specified component.
@@ -49,13 +56,6 @@ type SingleBoot interface {
 type BeginRequest interface {
 	BeginRequest(Worker Worker)
 }
-
-var (
-	globalApp     *Application
-	globalAppOnce sync.Once
-	prepares      []func(Initiator)
-	starters      []func(starter Starter)
-)
 
 // Prepare app.BindController or app.BindControllerByParty.
 func Prepare(f func(Initiator)) {

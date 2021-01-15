@@ -1,6 +1,7 @@
 package internal
 
 import (
+	stdcontext "context"
 	"encoding/json"
 	"net/http"
 	"reflect"
@@ -14,8 +15,6 @@ import (
 	"github.com/kataras/iris/v12/core/host"
 	"github.com/kataras/iris/v12/mvc"
 
-	stdContext "context"
-
 	iris "github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/context"
 )
@@ -24,7 +23,7 @@ var _ Initiator = (*Application)(nil)
 var _ SingleBoot = (*Application)(nil)
 var _ Starter = (*Application)(nil)
 
-// NewApplication create an instance of freedom.
+// NewApplication creates an instance of Application.
 func NewApplication() *Application {
 	globalAppOnce.Do(func() {
 		globalApp = new(Application)
@@ -44,8 +43,7 @@ func NewApplication() *Application {
 	return globalApp
 }
 
-// Application is the framework's application.
-// Create an application of freedom, by using NewApplication().
+// Application represents a manager of freedom.
 type Application struct {
 	// IrisApp is an iris application
 	IrisApp        *iris.Application
@@ -80,7 +78,7 @@ type Application struct {
 	marshal func(v interface{}) ([]byte, error)
 }
 
-// InstallParty installs prefixParty of Application
+// InstallParty sets prefixParty of Application
 func (app *Application) InstallParty(relativePath string) {
 	app.prefixParty = relativePath
 }
@@ -173,13 +171,13 @@ func (app *Application) GetInfra(ctx iris.Context, com interface{}) {
 }
 
 // AsyncCachePreheat .
-func (app *Application) AsyncCachePreheat(f func(repo *Repository)) {
+func (app *Application) AsyncCacheWarmUp(f func(repo *Repository)) {
 	rb := new(Repository)
 	go f(rb)
 }
 
-// CachePreheat .
-func (app *Application) CachePreheat(f func(repo *Repository)) {
+// CacheWarmUp .
+func (app *Application) CacheWarmUp(f func(repo *Repository)) {
 	rb := new(Repository)
 	f(rb)
 }
@@ -314,7 +312,7 @@ func (app *Application) NewH2CRunner(addr string, configurators ...host.Configur
 func (app *Application) shutdown(timeout int64) {
 	iris.RegisterOnInterrupt(func() {
 		//读取配置的关闭最长时间
-		ctx, cancel := stdContext.WithTimeout(stdContext.Background(), time.Duration(timeout)*time.Second)
+		ctx, cancel := stdcontext.WithTimeout(stdcontext.Background(), time.Duration(timeout)*time.Second)
 		defer cancel()
 		close := func() {
 			if err := recover(); err != nil {
