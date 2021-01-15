@@ -1,7 +1,6 @@
 package domainevent
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -13,7 +12,7 @@ import (
 var eventManager *EventManager
 
 func init() {
-	eventManager = &EventManager{}
+	eventManager = &EventManager{eventRetry: newEventRetry()}
 	freedom.Prepare(func(initiator freedom.Initiator) {
 		initiator.BindInfra(true, eventManager) //单例绑定
 		initiator.InjectController(func(ctx freedom.Context) (com *EventManager) {
@@ -31,43 +30,50 @@ func GetEventManager() *EventManager {
 // EventManager .
 type EventManager struct {
 	freedom.Infra
+	eventRetry    *eventRetry         //重试处理
 	kafkaProducer *kafka.ProducerImpl //Kafka Producer组件
 }
 
 // Booting .
 func (manager *EventManager) Booting(sb freedom.SingleBoot) {
-	if err := manager.db().AutoMigrate(&domainEventPublish{}).Error; err != nil {
+	if err := manager.db().AutoMigrate(&pubEventPO{}).Error; err != nil {
 		panic(err)
 	}
-	if err := manager.db().AutoMigrate(&domainEventSubscribe{}).Error; err != nil {
+	if err := manager.db().AutoMigrate(&subEventPO{}).Error; err != nil {
 		panic(err)
 	}
 
 	//获取Kafka Producer组件, 只支持单例组件的获取.
 	if !manager.GetSingleInfra(&manager.kafkaProducer) {
-		panic("getkafkaProducer")
+		panic("No KafkaProducer found")
 	}
+
+	manager.eventRetry.Booting() //启动重试
+}
+
+// SetRetryPolicy Set the rules for retry.
+func (manager *EventManager) SetRetryPolicy(delay, interval time.Duration, retries int) {
+	manager.eventRetry.SetRetryPolicy(delay, interval, retries)
 }
 
 // push EventTransaction在事务成功后触发 .
 func (manager *EventManager) push(event freedom.DomainEvent) {
 	freedom.Logger().Infof("领域事件发布 Topic:%s, %+v", event.Topic(), event)
-	eventID := event.Identity().(int)
+	identity := event.Identity()
 	go func() {
-		/*
-			Kafka 消息模式参考 example/infra-example
-			if err := manager.kafkaProducer.NewMsg(event.Topic(), event.Marshal()).SetHeader(event.GetPrototypes()).Publish(); err != nil {
-				freedom.Logger().Error(err)
-				return
+		defer func() {
+			if perr := recover(); perr != nil {
+				freedom.Logger().Error("push:", perr)
 			}
+		}()
 
-			REST 模式参考 example/http2
-			manager.NewHTTPRequest(URL)
-			manager.NewH2CRequest(URL)
-		*/
-
-		msg := manager.kafkaProducer.NewMsg(event.Topic(), event.Marshal()).SetHeader(event.GetPrototypes())
-		msg.SetMessageKey(fmt.Sprint(eventID)) //设置kafka消息key
+		content, err := event.Marshal()
+		if err != nil {
+			freedom.Logger().Error(err)
+			return
+		}
+		msg := manager.kafkaProducer.NewMsg(event.Topic(), content).SetHeader(event.GetPrototypes())
+		msg.SetMessageKey(fmt.Sprint(identity)) //设置kafka消息key
 
 		//消息发送
 		if err := msg.Publish(); err != nil {
@@ -75,9 +81,12 @@ func (manager *EventManager) push(event freedom.DomainEvent) {
 			return
 		}
 
-		publish := &domainEventPublish{ID: eventID}
+		if !manager.eventRetry.PubExist(event.Topic()) {
+			return //未注册重试,结束
+		}
+
 		// Push成功后删除
-		if err := manager.db().Delete(&publish).Error; err != nil {
+		if err := manager.db().Delete(&pubEventPO{}, "identity = ?", identity).Error; err != nil {
 			freedom.Logger().Error(err)
 		}
 	}()
@@ -97,34 +106,42 @@ func (manager *EventManager) Save(repo *freedom.Repository, entity freedom.Entit
 
 	//Insert PubEvent
 	for _, domainEvent := range entity.GetPubEvent() {
-		model := domainEventPublish{
-			Topic:   domainEvent.Topic(),
-			Content: string(domainEvent.Marshal()),
-			Created: time.Now(),
-			Updated: time.Now(),
+		if !manager.eventRetry.PubExist(domainEvent.Topic()) {
+			continue //未注册重试,无需存储
+		}
+
+		content, err := domainEvent.Marshal()
+		if err != nil {
+			freedom.Logger().Error(err)
+			continue
+		}
+
+		model := pubEventPO{
+			Identity: domainEvent.Identity(),
+			Topic:    domainEvent.Topic(),
+			Content:  string(content),
+			Created:  time.Now(),
+			Updated:  time.Now(),
 		}
 		e = txDB.Create(&model).Error //插入发布事件表。
 		if e != nil {
 			return
 		}
-		domainEvent.SetIdentity(model.ID)
 	}
 	manager.addPubToWorker(repo.Worker(), entity.GetPubEvent())
 
-	//Update SubEvent
+	//Delete SubEvent
 	for _, subEvent := range entity.GetSubEvent() {
-		eventID := subEvent.Identity().(int)
-		subscribe := &domainEventSubscribe{PublishID: eventID}
-		subscribe.SetSuccess(1)                                             //状态已处理
-		rowResult := txDB.Model(subscribe).Updates(subscribe.TakeChanges()) //修改消费事件表
+		if !manager.eventRetry.SubExist(subEvent.Topic()) {
+			continue //未注册重试,无需修改
+		}
+
+		eventID := subEvent.Identity()
+		rowResult := GetEventManager().db().Delete(&subEventPO{}, "identity = ?", eventID) //删除消费事件表
 
 		e = rowResult.Error
 		if e != nil {
 			freedom.Logger().Error(rowResult.Error)
-			return
-		}
-		if rowResult.RowsAffected == 0 {
-			e = errors.New("Event not found")
 			return
 		}
 	}
@@ -133,24 +150,33 @@ func (manager *EventManager) Save(repo *freedom.Repository, entity freedom.Entit
 
 // InsertSubEvent .
 func (manager *EventManager) InsertSubEvent(event freedom.DomainEvent) error {
-	model := domainEventSubscribe{
-		PublishID: event.Identity().(int),
-		Topic:     event.Topic(),
-		Content:   string(event.Marshal()),
-		Created:   time.Now(),
-		Updated:   time.Now(),
+	if !manager.eventRetry.SubExist(event.Topic()) {
+		return nil //未注册重试,无需存储
 	}
-	err := manager.db().Create(&model).Error //插入消费事件表。
+
+	content, err := event.Marshal()
 	if err != nil {
 		return err
 	}
-	return nil
+
+	model := subEventPO{
+		Identity: event.Identity(),
+		Topic:    event.Topic(),
+		Content:  string(content),
+		Created:  time.Now(),
+		Updated:  time.Now(),
+	}
+	return manager.db().Create(&model).Error //插入消费事件表。
 }
 
-// Retry .
-func (manager *EventManager) Retry() {
-	//定时器扫描表中失败的Pub/Sub事件
-	freedom.Logger().Info("EventManager Retry")
+// RetryPubEvent .
+func (manager *EventManager) RetryPubEvent(event freedom.DomainEvent) {
+	manager.eventRetry.RetryPubEvent(event)
+}
+
+// RetrySubEvent .
+func (manager *EventManager) RetrySubEvent(event freedom.DomainEvent, function interface{}) {
+	manager.eventRetry.RetrySubEvent(event, function)
 }
 
 // addPubToWorker 增加发布事件到Worker.Store.

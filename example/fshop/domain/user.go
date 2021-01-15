@@ -2,7 +2,7 @@ package domain
 
 import (
 	"github.com/8treenet/freedom/example/fshop/domain/dependency"
-	"github.com/8treenet/freedom/example/fshop/domain/dto"
+	"github.com/8treenet/freedom/example/fshop/domain/vo"
 	"github.com/8treenet/freedom/example/fshop/infra/domainevent"
 
 	"github.com/8treenet/freedom"
@@ -52,7 +52,7 @@ func (user *User) ChangePassword(userID int, newPassword, oldPassword string) (e
 }
 
 // Register .
-func (user *User) Register(req dto.RegisterUserReq) (result dto.UserInfoRes, e error) {
+func (user *User) Register(req vo.RegisterUserReq) (result vo.UserInfoRes, e error) {
 	userEntity, e := user.UserRepo.New(req, 10000)
 	if e != nil {
 		return
@@ -64,7 +64,7 @@ func (user *User) Register(req dto.RegisterUserReq) (result dto.UserInfoRes, e e
 }
 
 // Get .
-func (user *User) Get(userID int) (result dto.UserInfoRes, e error) {
+func (user *User) Get(userID int) (result vo.UserInfoRes, e error) {
 	userEntity, e := user.UserRepo.Get(userID)
 	if e != nil {
 		return

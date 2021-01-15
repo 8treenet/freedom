@@ -19,8 +19,13 @@ func (obj *Admin) TableName() string {
 	return "admin"
 }
 
-// TakeChanges .
-func (obj *Admin) TakeChanges() map[string]interface{} {
+// Location .
+func (obj *Admin) Location() map[string]interface{} {
+	return map[string]interface{}{"id": obj.ID}
+}
+
+// GetChanges .
+func (obj *Admin) GetChanges() map[string]interface{} {
 	if obj.changes == nil {
 		return nil
 	}
@@ -32,8 +37,8 @@ func (obj *Admin) TakeChanges() map[string]interface{} {
 	return result
 }
 
-// updateChanges .
-func (obj *Admin) setChanges(name string, value interface{}) {
+// update .
+func (obj *Admin) update(name string, value interface{}) {
 	if obj.changes == nil {
 		obj.changes = make(map[string]interface{})
 	}
@@ -43,17 +48,17 @@ func (obj *Admin) setChanges(name string, value interface{}) {
 // SetName .
 func (obj *Admin) SetName(name string) {
 	obj.Name = name
-	obj.setChanges("name", name)
+	obj.update("name", name)
 }
 
 // SetCreated .
 func (obj *Admin) SetCreated(created time.Time) {
 	obj.Created = created
-	obj.setChanges("created", created)
+	obj.update("created", created)
 }
 
 // SetUpdated .
 func (obj *Admin) SetUpdated(updated time.Time) {
 	obj.Updated = updated
-	obj.setChanges("updated", updated)
+	obj.update("updated", updated)
 }

@@ -1,6 +1,9 @@
 package internal
 
-import "reflect"
+import (
+	"fmt"
+	"reflect"
+)
 
 func newOther() *other {
 	result := new(other)
@@ -38,7 +41,7 @@ func (o *other) get(object interface{}) {
 
 	poolValue, ok := o.pool[vtype]
 	if !ok {
-		globalApp.IrisApp.Logger().Fatalf("[Freedom] Repository.Other: Does not exist, %v", vtype)
+		panic(fmt.Sprintf("[Freedom] Repository.Other: Does not exist, %v", vtype))
 	}
 	value.Elem().Set(poolValue)
 }

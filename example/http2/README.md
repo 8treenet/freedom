@@ -89,7 +89,7 @@ func DefaultLogRowHandle(value *freedom.LogRow) bool {
 package repositorys
 //声明接口
 type GoodsInterface interface {
-	GetGoods(goodsID int) dto.GoodsModel
+	GetGoods(goodsID int) vo.GoodsModel
 }
 ```
 ```go
@@ -137,15 +137,15 @@ type GoodsRepository struct {
 }
 
 // 实现接口
-func (repo *GoodsRepository) GetGoods(goodsID int) (result dto.GoodsModel) {
+func (repo *GoodsRepository) GetGoods(goodsID int) (result vo.GoodsModel) {
 	//篇幅有限 不调用其他微服务API，直接调用自身的API
 	addr := "http://127.0.0.1:8000/goods/" + strconv.Itoa(goodsID)
 	repo.NewH2CRequest(addr).Get().ToJSON(&result)
 
 	//开启go 并发,并且没有group wait。请求结束触发相关对象回收，会快于当前并发go的读取数据，所以使用DeferRecycle
-	repo.Worker.DeferRecycle()
+	repo.Worker().DeferRecycle()
 	go func() {
-		var model dto.GoodsModel
+		var model vo.GoodsModel
 		repo.NewH2CRequest(addr).Get().ToJSON(&model)
 		repo.NewHttpRequest(addr, false).Get().ToJSON(&model)
 	}()

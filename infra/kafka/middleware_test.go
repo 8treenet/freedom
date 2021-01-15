@@ -35,11 +35,6 @@ func TestProducer(t *testing.T) {
 }
 
 func initTestProducer() {
-	kconf := kafkaConf{}
-	kconf.Producer.Open = true
-	kconf.Producers = append(kconf.Producers, producerConf{
-		Servers: []string{":9092"},
-	})
-	producer.saramaProducerMap = make(map[string]sarama.SyncProducer)
-	producer.dial(kconf)
+	producer.Start([]string{":9092"}, sarama.NewConfig())
+	producer.dial()
 }

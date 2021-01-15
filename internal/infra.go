@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"fmt"
 	"reflect"
 
 	"github.com/8treenet/freedom/infra/requests"
@@ -81,12 +82,12 @@ func (infra *Infra) InjectBaseEntitys(entitys interface{}) {
 	}
 	entitysValue := reflect.ValueOf(entitys)
 	if entitysValue.Kind() != reflect.Slice {
-		globalApp.IrisApp.Logger().Fatalf("[Freedom] InjectBaseEntitys: It's not a slice, %v", entitysValue.Type())
+		panic(fmt.Sprintf("[Freedom] InjectBaseEntitys: It's not a slice, %v", entitysValue.Type()))
 	}
 	for i := 0; i < entitysValue.Len(); i++ {
 		iface := entitysValue.Index(i).Interface()
 		if _, ok := iface.(Entity); !ok {
-			globalApp.IrisApp.Logger().Fatalf("[Freedom] InjectBaseEntitys: This is not an entity, %v", entitysValue.Type())
+			panic(fmt.Sprintf("[Freedom] InjectBaseEntitys: This is not an entity, %v", entitysValue.Type()))
 		}
 		injectBaseEntity(infra.worker, iface)
 	}

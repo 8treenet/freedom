@@ -5,7 +5,7 @@ import (
 
 	"github.com/8treenet/freedom"
 	"github.com/8treenet/freedom/example/fshop/domain"
-	"github.com/8treenet/freedom/example/fshop/domain/dto"
+	"github.com/8treenet/freedom/example/fshop/domain/vo"
 	"github.com/8treenet/freedom/example/fshop/infra"
 )
 
@@ -24,7 +24,7 @@ type Order struct {
 
 // PutPay 支付订单, PUT: /order/pay route.
 func (o *Order) PutPay() freedom.Result {
-	var req dto.OrderPayReq
+	var req vo.OrderPayReq
 	e := o.Request.ReadJSON(&req)
 	if e != nil {
 		return &infra.JSONResponse{Error: e}
@@ -43,11 +43,11 @@ func (o *Order) GetItems() freedom.Result {
 		return &infra.JSONResponse{Error: err}
 	}
 
-	dtoItems, totalPage, err := o.OrderSrv.Items(userID, page, pageSize)
+	voItems, totalPage, err := o.OrderSrv.Items(userID, page, pageSize)
 	if err != nil {
 		return &infra.JSONResponse{Error: err}
 	}
 	o.Worker.IrisContext().Header("X-Total-Page", strconv.Itoa(totalPage))
 
-	return &infra.JSONResponse{Object: dtoItems}
+	return &infra.JSONResponse{Object: voItems}
 }

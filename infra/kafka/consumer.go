@@ -2,7 +2,6 @@ package kafka
 
 import (
 	"context"
-	"runtime"
 	"sync"
 	"time"
 
@@ -18,52 +17,81 @@ func init() {
 	})
 }
 
-var consumerPtr *Consumer = new(Consumer)
-
-// Consumer .
-type Consumer struct {
-	freedom.Infra
-	topicPath       map[string]string
-	limiter         *Limiter
-	conf            kafkaConf
-	startUpCallBack []func()
-	consumerGroups  []sarama.ConsumerGroup
-	cancel          context.CancelFunc
-	wg              sync.WaitGroup
+// GetConsumer .
+func GetConsumer() Consumer {
+	return consumerPtr
 }
 
-// StartUp .
-func (c *Consumer) StartUp(f func()) {
-	c.startUpCallBack = append(c.startUpCallBack, f)
+var consumerPtr *ConsumerImpl = new(ConsumerImpl)
+
+// Consumer .
+type Consumer interface {
+	Start(addrs []string, groupID string, config *sarama.Config, proxyAddr string, proxyH2C bool)
+	Restart() error
+	Close() error
+	SetChanSize(size int)
+}
+
+// ConsumerImpl .
+type ConsumerImpl struct {
+	freedom.Infra
+	topicPath map[string]string
+	config    *sarama.Config
+	client    sarama.ConsumerGroup
+	cancel    context.CancelFunc
+	wg        sync.WaitGroup
+	proxyH2C  bool
+	proxyAddr string
+	addrs     []string
+	groupID   string
+	limiter   *LimiterImpl
+}
+
+// Start .
+func (c *ConsumerImpl) Start(addrs []string, groupID string, config *sarama.Config, proxyAddr string, proxyH2C bool) {
+	c.addrs = addrs
+	c.groupID = groupID
+	c.config = config
+	c.proxyAddr = proxyAddr
+	c.proxyH2C = proxyH2C
+	c.limiter = newLimiter()
+
+	c.config.Consumer.Return.Errors = false
+}
+
+// SetChanSize .
+func (c *ConsumerImpl) SetChanSize(size int) {
+	c.limiter.SetChanSize(size)
+	return
+}
+
+// Restart .
+func (c *ConsumerImpl) Restart() error {
+	if err := c.Close(); err != nil {
+		return err
+	}
+	return c.listen()
 }
 
 // Booting .
-func (c *Consumer) Booting(sb freedom.SingleBoot) {
-	c.limiter = newLimiter(int32(runtime.NumCPU() * 2048))
+func (c *ConsumerImpl) Booting(sb freedom.SingleBoot) {
+	if len(c.addrs) == 0 {
+		return
+	}
 	c.topicPath = sb.EventsPath(c)
-	if err := freedom.Configure(&c.conf, "infra/kafka.toml"); err != nil {
-		panic(err)
-	}
-	if !c.conf.Consumer.Open {
-		freedom.Logger().Debug("[Freedom] 'infra/kafka.toml' '[[consumer.open]]' is false")
-		return
-	}
-	if len(c.conf.Consumers) == 0 {
-		freedom.Logger().Error("[Freedom] 'infra/kafka.toml' file under '[[consumer_clients]]' error")
-		return
-	}
 	sb.RegisterShutdown(func() {
-		c.Close()
+		if err := c.Close(); err != nil {
+			freedom.Logger().Error(err)
+		}
 	})
 
-	c.Listen()
-	for i := 0; i < len(c.startUpCallBack); i++ {
-		c.startUpCallBack[i]()
+	if err := c.listen(); err != nil {
+		panic(err)
 	}
 }
 
-// Listen .
-func (c *Consumer) Listen() {
+// listen .
+func (c *ConsumerImpl) listen() error {
 	topicNames := []string{}
 	for topic, path := range c.topicPath {
 		topicNames = append(topicNames, topic)
@@ -72,71 +100,71 @@ func (c *Consumer) Listen() {
 	var ctx context.Context
 
 	ctx, c.cancel = context.WithCancel(context.Background())
-	for index := 0; index < len(c.conf.Consumers); index++ {
-		addrConf := c.conf.Consumers[index]
-		cconf := newConsumerConfig(addrConf)
-		if confCallBack != nil {
-			confCallBack(cconf, c.conf.Other)
-		}
-		cconf.Consumer.Return.Errors = false
-		client, err := sarama.NewConsumerGroup(addrConf.Servers, addrConf.GroupID, cconf)
-		if err != nil {
-			freedom.Logger().Fatal(err)
-		}
-		freedom.Logger().Debug("[Freedom] Consumer connect servers: ", addrConf.Servers)
-		c.consumerGroups = append(c.consumerGroups, client)
-		c.wg.Add(1)
-		go func() {
-			defer c.wg.Done()
-			for {
-				// `Consume` should be called inside an infinite loop, when a
-				// server-side rebalance happens, the consumer session will need to be
-				// recreated to get the new claims
-				if err := client.Consume(ctx, topicNames, &consumerHandle{
-					consumer: c,
-					conf:     &addrConf,
-				}); err != nil {
-					freedom.Logger().Errorf("[Freedom] Error from consumer: %v", err)
-					time.Sleep(5 * time.Second)
-				}
-				// check if context was cancelled, signaling that the consumer should stop
-				if ctx.Err() != nil {
-					return
-				}
-			}
-		}()
+	client, err := sarama.NewConsumerGroup(c.addrs, c.groupID, c.config)
+	if err != nil {
+		return err
 	}
+	freedom.Logger().Debug("[Freedom] Consumer connect servers: ", c.addrs)
+	c.client = client
+	c.wg.Add(1)
+	go func() {
+		defer c.wg.Done()
+		for {
+			// `Consume` should be called inside an infinite loop, when a
+			// server-side rebalance happens, the consumer session will need to be
+			// recreated to get the new claims
+			if err := client.Consume(ctx, topicNames, &consumerHandle{
+				consumer: c,
+			}); err != nil {
+				freedom.Logger().Errorf("[Freedom] Error from consumer: %v", err)
+				time.Sleep(5 * time.Second)
+			}
+			// check if context was cancelled, signaling that the consumer should stop
+			if ctx.Err() != nil {
+				return
+			}
+		}
+	}()
+	return nil
 }
 
 // Close .
-func (c *Consumer) Close() {
+func (c *ConsumerImpl) Close() error {
+	if c.client == nil {
+		return nil
+	}
+
 	c.cancel()
 	c.wg.Wait()
-	for _, item := range c.consumerGroups {
-		if err := item.Close(); err != nil {
-			freedom.Logger().Error(err)
-		} else {
-			freedom.Logger().Debug("[Freedom] Consumer close complete")
-		}
-	}
-	c.consumerGroups = []sarama.ConsumerGroup{}
+	defer func() {
+		c.cancel = nil
+		c.client = nil
+	}()
+	return c.client.Close()
 }
 
-func (c *Consumer) call(msg *sarama.ConsumerMessage, conf *consumerConf) {
+func (c *ConsumerImpl) do(msg *sarama.ConsumerMessage) {
 	defer func() {
-		c.limiter.Close(1)
+		if err := recover(); err != nil {
+			freedom.Logger().Error(err)
+		}
+		c.limiter.sub()
 	}()
+
 	path, ok := c.topicPath[msg.Topic]
 	if !ok {
-		freedom.Logger().Error("[Freedom] Undefined 'topic' :", msg.Topic, conf.Servers)
+		freedom.Logger().Error("[Freedom] Undefined 'topic' :", msg.Topic)
 	}
 	var request requests.Request
-	if c.conf.Consumer.ProxyHTTP2 {
-		request = requests.NewH2CRequest(c.conf.Consumer.ProxyAddr + path)
+	if c.proxyH2C {
+		request = requests.NewH2CRequest(c.proxyAddr + path)
 	} else {
-		request = requests.NewHTTPRequest(c.conf.Consumer.ProxyAddr + path)
+		request = requests.NewHTTPRequest(c.proxyAddr + path)
 	}
-	request = request.SetBody(msg.Value)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
+	defer cancel()
+	request = request.SetBody(msg.Value).WithContext(ctx)
 	for index := 0; index < len(msg.Headers); index++ {
 		request = request.AddHeader(string(msg.Headers[index].Key), string(msg.Headers[index].Value))
 	}
@@ -144,13 +172,12 @@ func (c *Consumer) call(msg *sarama.ConsumerMessage, conf *consumerConf) {
 	_, resp := request.Post().ToString()
 
 	if resp.Error != nil || resp.StatusCode != 200 {
-		freedom.Logger().Errorf("[Freedom] Call message processing failed, path:%s, topic:%s, addr:%v, body:%v, error:%v", path, msg.Topic, conf.Servers, string(msg.Value), resp.Error)
+		freedom.Logger().Errorf("[Freedom] Call message processing failed, path:%s, topic:%s, addr:%v, body:%v, error:%v", path, msg.Topic, c.addrs, string(msg.Value), resp.Error)
 	}
 }
 
 type consumerHandle struct {
-	consumer *Consumer
-	conf     *consumerConf
+	consumer *ConsumerImpl
 }
 
 func (consumerHandle *consumerHandle) Setup(sarama.ConsumerGroupSession) error {
@@ -170,9 +197,9 @@ func (consumerHandle *consumerHandle) ConsumeClaim(session sarama.ConsumerGroupS
 	// The `ConsumeClaim` itself is called within a goroutine, see:
 	// https://github.com/Shopify/sarama/blob/master/consumer_group.go#L27-L29
 	for message := range claim.Messages() {
-		consumerHandle.consumer.limiter.Open(1)
+		consumerHandle.consumer.limiter.add()
 		session.MarkMessage(message, "")
-		go consumerHandle.consumer.call(message, consumerHandle.conf)
+		go consumerHandle.consumer.do(message)
 	}
 	return nil
 }

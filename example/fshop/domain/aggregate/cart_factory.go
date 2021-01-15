@@ -27,7 +27,7 @@ type CartFactory struct {
 func (factory *CartFactory) NewCartAddCmd(goodsID, userID int) (*CartAddCmd, error) {
 	user, e := factory.UserRepo.Get(userID)
 	if e != nil {
-		user.GetWorker().Logger().Error(e, "userId", userID)
+		user.Worker().Logger().Error(e, "userId", userID)
 		//用户不存在
 		return nil, e
 	}
@@ -35,7 +35,7 @@ func (factory *CartFactory) NewCartAddCmd(goodsID, userID int) (*CartAddCmd, err
 	goods, e := factory.GoodsRepo.Get(goodsID)
 	if e != nil {
 		//商品不存在
-		goods.GetWorker().Logger().Error(e, "userId", userID, "goodsId", goodsID)
+		goods.Worker().Logger().Error(e, "userId", userID, "goodsId", goodsID)
 		return nil, e
 	}
 	cmd := &CartAddCmd{
@@ -50,7 +50,7 @@ func (factory *CartFactory) NewCartAddCmd(goodsID, userID int) (*CartAddCmd, err
 func (factory *CartFactory) NewCartItemQuery(userID int) (*CartItemQuery, error) {
 	user, e := factory.UserRepo.Get(userID)
 	if e != nil {
-		user.GetWorker().Logger().Error(e, "userId", userID)
+		user.Worker().Logger().Error(e, "userId", userID)
 		//用户不存在
 		return nil, e
 	}

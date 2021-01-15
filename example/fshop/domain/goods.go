@@ -3,9 +3,9 @@ package domain
 import (
 	"github.com/8treenet/freedom/example/fshop/domain/aggregate"
 	"github.com/8treenet/freedom/example/fshop/domain/dependency"
-	"github.com/8treenet/freedom/example/fshop/domain/dto"
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
 	"github.com/8treenet/freedom/example/fshop/domain/event"
+	"github.com/8treenet/freedom/example/fshop/domain/vo"
 	"github.com/8treenet/freedom/example/fshop/infra/domainevent"
 
 	"github.com/8treenet/freedom"
@@ -40,14 +40,14 @@ func (g *Goods) New(name string, price int) (e error) {
 }
 
 // Items 分页商品列表
-func (g *Goods) Items(page, pagesize int, tag string) (items []dto.GoodsItemRes, e error) {
+func (g *Goods) Items(page, pagesize int, tag string) (items []vo.GoodsItemRes, e error) {
 	entitys, e := g.GoodsRepo.FindsByPage(page, pagesize, tag)
 	if e != nil {
 		return
 	}
 
 	for i := 0; i < len(entitys); i++ {
-		items = append(items, dto.GoodsItemRes{
+		items = append(items, vo.GoodsItemRes{
 			ID:    entitys[i].ID,
 			Name:  entitys[i].Name,
 			Price: entitys[i].Price,

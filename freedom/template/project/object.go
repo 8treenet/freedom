@@ -2,7 +2,7 @@ package project
 
 func init() {
 	content["/domain/po/po.go"] = objectsTemplate()
-	content["/domain/po/shcema.json"] = objectsShcema()
+	content["/domain/po/schema.json"] = objectsschema()
 }
 
 func objectsTemplate() string {
@@ -12,7 +12,7 @@ func objectsTemplate() string {
 	`
 }
 
-func objectsShcema() string {
+func objectsschema() string {
 	return `[{
 		"tableName": "user",
 		"primaryKey": "userId",

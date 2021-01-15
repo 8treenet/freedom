@@ -2,44 +2,33 @@ package kafka
 
 import (
 	"math/rand"
-	"sync/atomic"
+	"runtime"
 	"time"
 )
 
-func newLimiter(maximum int32) *Limiter {
-	return &Limiter{processing: 0, maximum: maximum}
-}
-
-// Limiter .
-type Limiter struct {
-	processing int32
-	maximum    int32
-}
-
-// Open .
-func (l *Limiter) Open(deltas ...int32) {
-	var delta int32 = 1
-	if len(deltas) > 0 {
-		delta = deltas[0]
-	}
-	atomic.AddInt32(&l.processing, delta)
-	for index := 0; index < 5; index++ {
-		num := atomic.LoadInt32(&l.processing)
-		if num > l.maximum {
-			sleep(index, 500*time.Millisecond, 1500*time.Millisecond)
-			continue
-		}
-		break
+func newLimiter() *LimiterImpl {
+	return &LimiterImpl{
+		progress: make(chan int8, runtime.NumCPU()*512),
 	}
 }
 
-// Close .
-func (l *Limiter) Close(deltas ...int32) {
-	var delta int32 = 1
-	if len(deltas) > 0 {
-		delta = deltas[0]
-	}
-	atomic.AddInt32(&l.processing, -delta)
+// LimiterImpl .
+type LimiterImpl struct {
+	maximum  int32
+	progress chan int8
+}
+
+// SetChanSize .
+func (l *LimiterImpl) SetChanSize(maximum int) {
+	l.progress = make(chan int8, maximum)
+}
+
+func (l *LimiterImpl) add() {
+	l.progress <- 1
+}
+
+func (l *LimiterImpl) sub() {
+	_ = <-l.progress
 }
 
 func sleep(retry int, minBackoff time.Duration, maxBackoff time.Duration) {

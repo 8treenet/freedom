@@ -3,7 +3,6 @@ package internal
 import (
 	"fmt"
 	"reflect"
-	"strings"
 
 	uuid "github.com/iris-contrib/go.uuid"
 )
@@ -15,15 +14,16 @@ type DomainEvent interface {
 	Topic() string
 	SetPrototypes(map[string]interface{})
 	GetPrototypes() map[string]interface{}
-	Marshal() []byte
-	Identity() interface{}
-	SetIdentity(identity interface{})
+	Marshal() ([]byte, error)
+	Unmarshal([]byte) error
+	Identity() string
+	SetIdentity(identity string)
 }
 
 //Entity is the entity's father interface.
 type Entity interface {
 	Identity() string
-	GetWorker() Worker
+	Worker() Worker
 	Marshal() []byte
 	AddPubEvent(DomainEvent)
 	GetPubEvent() []DomainEvent
@@ -82,13 +82,13 @@ func (e *entity) DomainEvent(fun string, object interface{}, header ...map[strin
 func (e *entity) Identity() string {
 	if e.identity == "" {
 		u, _ := uuid.NewV1()
-		e.identity = strings.ToLower(strings.ReplaceAll(u.String(), "-", ""))
+		e.identity = u.String()
 	}
 	return e.identity
 }
 
-// GetWorker .
-func (e *entity) GetWorker() Worker {
+// Worker .
+func (e *entity) Worker() Worker {
 	return e.worker
 }
 
@@ -103,6 +103,15 @@ func (e *entity) Marshal() []byte {
 
 // AddPubEvent.
 func (e *entity) AddPubEvent(event DomainEvent) {
+	if reflect.ValueOf(event.Identity()).IsZero() {
+		//如果未设置id
+		u, err := uuid.NewV1()
+		if err != nil {
+			panic(err)
+		}
+		event.SetIdentity(u.String())
+	}
+
 	e.pubEvents = append(e.pubEvents, event)
 }
 

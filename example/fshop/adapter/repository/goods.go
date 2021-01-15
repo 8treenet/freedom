@@ -60,7 +60,7 @@ func (repo *Goods) Get(ID int) (goodsEntity *entity.Goods, e error) {
 
 // Save 持久化实体.
 func (repo *Goods) Save(entity *entity.Goods) error {
-	_, e := saveGoods(repo, &entity.Goods)
+	_, e := saveGoods(repo, entity)
 	if e != nil {
 		return e
 	}

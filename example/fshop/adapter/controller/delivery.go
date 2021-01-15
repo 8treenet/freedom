@@ -3,7 +3,7 @@ package controller
 import (
 	"github.com/8treenet/freedom"
 	"github.com/8treenet/freedom/example/fshop/domain"
-	"github.com/8treenet/freedom/example/fshop/domain/dto"
+	"github.com/8treenet/freedom/example/fshop/domain/vo"
 	"github.com/8treenet/freedom/example/fshop/infra"
 )
 
@@ -25,7 +25,7 @@ type Delivery struct {
 
 // PostOrderPayBy 返货提醒, POST: /delivery/order/pay route.
 func (d *Delivery) PostOrderPayBy(eventID string) error {
-	var msg dto.OrderPayMsg
+	var msg vo.OrderPayMsg
 	d.Request.ReadJSON(&msg)
 	d.Worker.Logger().Info("发货提醒:", freedom.LogFields{"eventId": eventID, "msgBody": msg})
 	return nil
@@ -33,7 +33,7 @@ func (d *Delivery) PostOrderPayBy(eventID string) error {
 
 // Post 发货, POST: /delivery route.
 func (d *Delivery) Post() freedom.Result {
-	var req dto.DeliveryReq
+	var req vo.DeliveryReq
 	if e := d.Request.ReadJSON(&req); e != nil {
 		return &infra.JSONResponse{Error: e}
 	}

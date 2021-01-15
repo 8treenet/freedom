@@ -72,7 +72,7 @@ func (repo *Order) Save(orderEntity *entity.Order) (e error) {
 		return repo.EventManager.Save(&repo.Repository, orderEntity) //持久化实体的事件
 	}
 
-	_, e = saveOrder(repo, &orderEntity.Order)
+	_, e = saveOrder(repo, orderEntity)
 	if e != nil {
 		return
 	}

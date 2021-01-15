@@ -22,8 +22,13 @@ func (obj *Order) TableName() string {
 	return "order"
 }
 
-// TakeChanges .
-func (obj *Order) TakeChanges() map[string]interface{} {
+// Location .
+func (obj *Order) Location() map[string]interface{} {
+	return map[string]interface{}{"id": obj.ID}
+}
+
+// GetChanges .
+func (obj *Order) GetChanges() map[string]interface{} {
 	if obj.changes == nil {
 		return nil
 	}
@@ -35,8 +40,8 @@ func (obj *Order) TakeChanges() map[string]interface{} {
 	return result
 }
 
-// updateChanges .
-func (obj *Order) setChanges(name string, value interface{}) {
+// update .
+func (obj *Order) update(name string, value interface{}) {
 	if obj.changes == nil {
 		obj.changes = make(map[string]interface{})
 	}
@@ -46,47 +51,47 @@ func (obj *Order) setChanges(name string, value interface{}) {
 // SetUserID .
 func (obj *Order) SetUserID(userID int) {
 	obj.UserID = userID
-	obj.setChanges("user_id", userID)
+	obj.update("user_id", userID)
 }
 
 // SetGoodsID .
 func (obj *Order) SetGoodsID(goodsID int) {
 	obj.GoodsID = goodsID
-	obj.setChanges("goods_id", goodsID)
+	obj.update("goods_id", goodsID)
 }
 
 // SetNum .
 func (obj *Order) SetNum(num int) {
 	obj.Num = num
-	obj.setChanges("num", num)
+	obj.update("num", num)
 }
 
 // SetCreated .
 func (obj *Order) SetCreated(created time.Time) {
 	obj.Created = created
-	obj.setChanges("created", created)
+	obj.update("created", created)
 }
 
 // SetUpdated .
 func (obj *Order) SetUpdated(updated time.Time) {
 	obj.Updated = updated
-	obj.setChanges("updated", updated)
+	obj.update("updated", updated)
 }
 
 // AddUserID .
 func (obj *Order) AddUserID(userID int) {
 	obj.UserID += userID
-	obj.setChanges("user_id", gorm.Expr("user_id + ?", userID))
+	obj.update("user_id", gorm.Expr("user_id + ?", userID))
 }
 
 // AddGoodsID .
 func (obj *Order) AddGoodsID(goodsID int) {
 	obj.GoodsID += goodsID
-	obj.setChanges("goods_id", gorm.Expr("goods_id + ?", goodsID))
+	obj.update("goods_id", gorm.Expr("goods_id + ?", goodsID))
 }
 
 // AddNum .
 func (obj *Order) AddNum(num int) {
 	obj.Num += num
-	obj.setChanges("num", gorm.Expr("num + ?", num))
+	obj.update("num", gorm.Expr("num + ?", num))
 }

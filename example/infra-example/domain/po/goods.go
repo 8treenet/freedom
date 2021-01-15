@@ -22,8 +22,13 @@ func (obj *Goods) TableName() string {
 	return "goods"
 }
 
-// TakeChanges .
-func (obj *Goods) TakeChanges() map[string]interface{} {
+// Location .
+func (obj *Goods) Location() map[string]interface{} {
+	return map[string]interface{}{"id": obj.ID}
+}
+
+// GetChanges .
+func (obj *Goods) GetChanges() map[string]interface{} {
 	if obj.changes == nil {
 		return nil
 	}
@@ -35,8 +40,8 @@ func (obj *Goods) TakeChanges() map[string]interface{} {
 	return result
 }
 
-// updateChanges .
-func (obj *Goods) setChanges(name string, value interface{}) {
+// update .
+func (obj *Goods) update(name string, value interface{}) {
 	if obj.changes == nil {
 		obj.changes = make(map[string]interface{})
 	}
@@ -46,41 +51,41 @@ func (obj *Goods) setChanges(name string, value interface{}) {
 // SetName .
 func (obj *Goods) SetName(name string) {
 	obj.Name = name
-	obj.setChanges("name", name)
+	obj.update("name", name)
 }
 
 // SetPrice .
 func (obj *Goods) SetPrice(price int) {
 	obj.Price = price
-	obj.setChanges("price", price)
+	obj.update("price", price)
 }
 
 // SetStock .
 func (obj *Goods) SetStock(stock int) {
 	obj.Stock = stock
-	obj.setChanges("stock", stock)
+	obj.update("stock", stock)
 }
 
 // SetCreated .
 func (obj *Goods) SetCreated(created time.Time) {
 	obj.Created = created
-	obj.setChanges("created", created)
+	obj.update("created", created)
 }
 
 // SetUpdated .
 func (obj *Goods) SetUpdated(updated time.Time) {
 	obj.Updated = updated
-	obj.setChanges("updated", updated)
+	obj.update("updated", updated)
 }
 
 // AddPrice .
 func (obj *Goods) AddPrice(price int) {
 	obj.Price += price
-	obj.setChanges("price", gorm.Expr("price + ?", price))
+	obj.update("price", gorm.Expr("price + ?", price))
 }
 
 // AddStock .
 func (obj *Goods) AddStock(stock int) {
 	obj.Stock += stock
-	obj.setChanges("stock", gorm.Expr("stock + ?", stock))
+	obj.update("stock", gorm.Expr("stock + ?", stock))
 }

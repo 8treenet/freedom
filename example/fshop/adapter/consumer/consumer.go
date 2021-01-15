@@ -7,26 +7,32 @@ import (
 	"github.com/8treenet/freedom/example/fshop/domain"
 	"github.com/8treenet/freedom/example/fshop/domain/event"
 	"github.com/8treenet/freedom/example/fshop/infra/domainevent"
+	"github.com/8treenet/freedom/middleware"
 )
 
+func init() {
+	//注册服务定位器的回调函数, freedom.ServiceLocator().Call 之前触发
+	freedom.ServiceLocator().InstallBeginCallBack(func(worker freedom.Worker) {
+		traceID, _ := middleware.GenerateTraceID()
+		logger := middleware.NewLogger("x-request-id", traceID)
+		worker.Bus().Set("x-request-id", traceID)
+		worker.SetLogger(logger)
+	})
+}
+
 // Start .
-func Start(app freedom.Application) {
-	fixedTime(app)
-	eventLoop(app)
+func Start() {
+	fixedTime()
+	eventLoop()
 }
 
 // fixedTime .
-func fixedTime(app freedom.Application) {
-	/*
-		展示非控制器使用领域服务的示例
-		接口 Application.CallService(fun interface{}, worker ...freedom.Worker)
-		CallService可以自定义Wokrer
-	*/
+func fixedTime() {
 	go func() {
 		time.Sleep(10 * time.Second) //延迟，等待程序Application.Run
-		t := time.NewTimer(15 * time.Second)
+		t := time.NewTimer(10 * time.Second)
 		for range t.C {
-			app.CallService(func(goodsService *domain.Goods) {
+			freedom.ServiceLocator().Call(func(goodsService *domain.Goods) {
 				goodsService.MarkedTag(4, "HOT")
 			})
 			t.Reset(15 * time.Second)
@@ -35,7 +41,7 @@ func fixedTime(app freedom.Application) {
 }
 
 // eventLoop .
-func eventLoop(app freedom.Application) {
+func eventLoop() {
 	eventRepository := domainevent.GetEventManager()
 	go func() {
 		for pubEvent := range eventRepository.GetPublisherChan() {
@@ -47,7 +53,7 @@ func eventLoop(app freedom.Application) {
 					freedom.Logger().Error("领域事件消费错误", err)
 					continue
 				}
-				app.CallService(func(goodsService *domain.Goods) {
+				freedom.ServiceLocator().Call(func(goodsService *domain.Goods) {
 					//购买事件
 					goodsService.ShopEvent(shopEvent)
 				})

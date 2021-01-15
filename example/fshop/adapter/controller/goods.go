@@ -2,7 +2,7 @@ package controller
 
 import (
 	application "github.com/8treenet/freedom/example/fshop/domain"
-	"github.com/8treenet/freedom/example/fshop/domain/dto"
+	"github.com/8treenet/freedom/example/fshop/domain/vo"
 	"github.com/8treenet/freedom/example/fshop/infra"
 
 	"github.com/8treenet/freedom"
@@ -37,7 +37,7 @@ func (g *Goods) GetItems() freedom.Result {
 
 // Post 添加商品, POST: /goods
 func (g *Goods) Post() freedom.Result {
-	var req dto.GoodsAddReq
+	var req vo.GoodsAddReq
 	e := g.Request.ReadJSON(&req)
 	if e != nil {
 		return &infra.JSONResponse{Error: e}
@@ -55,7 +55,7 @@ func (g *Goods) PutStockByBy(id, num int) freedom.Result {
 
 // PutTag 为商品打tag, PUT: /goods/tag
 func (g *Goods) PutTag() freedom.Result {
-	var req dto.GoodsTagReq
+	var req vo.GoodsTagReq
 	e := g.Request.ReadJSON(&req)
 	if e != nil {
 		return &infra.JSONResponse{Error: e}
@@ -67,7 +67,7 @@ func (g *Goods) PutTag() freedom.Result {
 
 // PostShop 为商品打tag, POST: /goods/shop
 func (g *Goods) PostShop() freedom.Result {
-	var req dto.GoodsShopReq
+	var req vo.GoodsShopReq
 	e := g.Request.ReadJSON(&req)
 	if e != nil {
 		return &infra.JSONResponse{Error: e}

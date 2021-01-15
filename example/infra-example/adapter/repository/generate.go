@@ -2,18 +2,23 @@ package repository
 
 import (
 	"fmt"
-	"strings"
-	"time"
-
 	"github.com/8treenet/freedom"
 	"github.com/8treenet/freedom/example/infra-example/domain/po"
 	"github.com/jinzhu/gorm"
+	"strings"
+	"time"
 )
 
 // GORMRepository .
 type GORMRepository interface {
 	db() *gorm.DB
 	Worker() freedom.Worker
+}
+
+type saveObject interface {
+	TableName() string
+	Location() map[string]interface{}
+	GetChanges() map[string]interface{}
 }
 
 // Builder .
@@ -141,9 +146,12 @@ func findGoods(repo GORMRepository, result interface{}, builders ...Builder) (e 
 // findGoodsListByPrimarys .
 func findGoodsListByPrimarys(repo GORMRepository, results interface{}, primarys ...interface{}) (e error) {
 	now := time.Now()
+	defer func() {
+		freedom.Prometheus().OrmWithLabelValues("Goods", "findGoodsListByPrimarys", e, now)
+		ormErrorLog(repo, "Goods", "findGoodssByPrimarys", e, primarys)
+	}()
+
 	e = repo.db().Find(results, primarys).Error
-	freedom.Prometheus().OrmWithLabelValues("Goods", "findGoodsListByPrimarys", e, now)
-	ormErrorLog(repo, "Goods", "findGoodssByPrimarys", e, primarys)
 	return
 }
 
@@ -243,22 +251,28 @@ func findGoodsListByMap(repo GORMRepository, query map[string]interface{}, resul
 // createGoods .
 func createGoods(repo GORMRepository, object *po.Goods) (rowsAffected int64, e error) {
 	now := time.Now()
+	defer func() {
+		freedom.Prometheus().OrmWithLabelValues("Goods", "createGoods", e, now)
+		ormErrorLog(repo, "Goods", "createGoods", e, *object)
+	}()
+
 	db := repo.db().Create(object)
 	rowsAffected = db.RowsAffected
 	e = db.Error
-	freedom.Prometheus().OrmWithLabelValues("Goods", "createGoods", e, now)
-	ormErrorLog(repo, "Goods", "createGoods", e, *object)
 	return
 }
 
 // saveGoods .
-func saveGoods(repo GORMRepository, object *po.Goods) (affected int64, e error) {
+func saveGoods(repo GORMRepository, object saveObject) (affected int64, e error) {
 	now := time.Now()
-	db := repo.db().Model(object).Updates(object.TakeChanges())
+	defer func() {
+		freedom.Prometheus().OrmWithLabelValues("Goods", "saveGoods", e, now)
+		ormErrorLog(repo, "Goods", "saveGoods", e, object)
+	}()
+
+	db := repo.db().Table(object.TableName()).Where(object.Location()).Updates(object.GetChanges())
 	e = db.Error
 	affected = db.RowsAffected
-	freedom.Prometheus().OrmWithLabelValues("Goods", "saveGoods", e, now)
-	ormErrorLog(repo, "Goods", "saveGoods", e, *object)
 	return
 }
 
@@ -281,9 +295,12 @@ func findOrder(repo GORMRepository, result interface{}, builders ...Builder) (e 
 // findOrderListByPrimarys .
 func findOrderListByPrimarys(repo GORMRepository, results interface{}, primarys ...interface{}) (e error) {
 	now := time.Now()
+	defer func() {
+		freedom.Prometheus().OrmWithLabelValues("Order", "findOrderListByPrimarys", e, now)
+		ormErrorLog(repo, "Order", "findOrdersByPrimarys", e, primarys)
+	}()
+
 	e = repo.db().Find(results, primarys).Error
-	freedom.Prometheus().OrmWithLabelValues("Order", "findOrderListByPrimarys", e, now)
-	ormErrorLog(repo, "Order", "findOrdersByPrimarys", e, primarys)
 	return
 }
 
@@ -383,21 +400,27 @@ func findOrderListByMap(repo GORMRepository, query map[string]interface{}, resul
 // createOrder .
 func createOrder(repo GORMRepository, object *po.Order) (rowsAffected int64, e error) {
 	now := time.Now()
+	defer func() {
+		freedom.Prometheus().OrmWithLabelValues("Order", "createOrder", e, now)
+		ormErrorLog(repo, "Order", "createOrder", e, *object)
+	}()
+
 	db := repo.db().Create(object)
 	rowsAffected = db.RowsAffected
 	e = db.Error
-	freedom.Prometheus().OrmWithLabelValues("Order", "createOrder", e, now)
-	ormErrorLog(repo, "Order", "createOrder", e, *object)
 	return
 }
 
 // saveOrder .
-func saveOrder(repo GORMRepository, object *po.Order) (affected int64, e error) {
+func saveOrder(repo GORMRepository, object saveObject) (affected int64, e error) {
 	now := time.Now()
-	db := repo.db().Model(object).Updates(object.TakeChanges())
+	defer func() {
+		freedom.Prometheus().OrmWithLabelValues("Order", "saveOrder", e, now)
+		ormErrorLog(repo, "Order", "saveOrder", e, object)
+	}()
+
+	db := repo.db().Table(object.TableName()).Where(object.Location()).Updates(object.GetChanges())
 	e = db.Error
 	affected = db.RowsAffected
-	freedom.Prometheus().OrmWithLabelValues("Order", "saveOrder", e, now)
-	ormErrorLog(repo, "Order", "saveOrder", e, *object)
 	return
 }

@@ -156,14 +156,12 @@ type Application interface {
 	NewH2CRunner(addr string, configurators ...host.Configurator) iris.Runner
 	NewAutoTLSRunner(addr string, domain string, email string, configurators ...host.Configurator) iris.Runner
 	NewTLSRunner(addr string, certFile, keyFile string, configurators ...host.Configurator) iris.Runner
-	CreateRunner(addr string, configurators ...host.Configurator) iris.Runner //become invalid after a specified date.
 	Iris() *iris.Application
 	Logger() *golog.Logger
 	Run(serve iris.Runner, c iris.Configuration)
 	Start(f func(starter Starter))
 	InstallBusMiddleware(handle ...BusHandler)
 	InstallSerializer(marshal func(v interface{}) ([]byte, error), unmarshal func(data []byte, v interface{}) error)
-	CallService(fun interface{}, worker ...Worker)
 }
 
 //ToWorker the context is converted to a worker.
@@ -177,4 +175,9 @@ func ToWorker(ctx Context) Worker {
 //DefaultConfiguration the default profile.
 func DefaultConfiguration() Configuration {
 	return iris.DefaultConfiguration()
+}
+
+// ServiceLocator .
+func ServiceLocator() *internal.ServiceLocatorImpl {
+	return app.GetServiceLocator()
 }

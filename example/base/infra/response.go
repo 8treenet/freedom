@@ -5,39 +5,46 @@ import (
 	"encoding/json"
 	"strconv"
 
-	"github.com/kataras/iris/v12/context"
+	"github.com/8treenet/freedom"
 	"github.com/kataras/iris/v12/hero"
 )
 
 // JSONResponse .
 type JSONResponse struct {
-	Code        int
-	Error       error
-	contentType string
-	content     []byte
-	Object      interface{}
+	Code             int
+	Error            error
+	Object           interface{}
+	DisableLogOutput bool
 }
 
 // Dispatch .
-func (jrep JSONResponse) Dispatch(ctx context.Context) {
-	jrep.contentType = "application/json"
-	var repData struct {
+func (jrep JSONResponse) Dispatch(ctx freedom.Context) {
+	contentType := "application/json"
+	var content []byte
+
+	var body struct {
 		Code  int         `json:"code"`
 		Error string      `json:"error"`
 		Data  interface{} `json:"data,omitempty"`
 	}
+	body.Data = jrep.Object
+	body.Code = jrep.Code
 
-	repData.Data = jrep.Object
-	repData.Code = jrep.Code
 	if jrep.Error != nil {
-		repData.Error = jrep.Error.Error()
+		body.Error = jrep.Error.Error()
 	}
-	if repData.Error != "" && repData.Code == 0 {
-		repData.Code = 400
+	if jrep.Error != nil && body.Code == 0 {
+		body.Code = 400
 	}
-	ctx.Values().Set("code", strconv.Itoa(repData.Code))
 
-	jrep.content, _ = json.Marshal(repData)
-	ctx.Values().Set("response", string(jrep.content))
-	hero.DispatchCommon(ctx, 0, jrep.contentType, jrep.content, nil, nil, true)
+	if content, jrep.Error = json.Marshal(body); jrep.Error != nil {
+		content = []byte(jrep.Error.Error())
+	}
+
+	ctx.Values().Set("code", strconv.Itoa(body.Code))
+	if !jrep.DisableLogOutput {
+		ctx.Values().Set("response", string(content))
+	}
+
+	hero.DispatchCommon(ctx, 200, contentType, content, nil, nil, true)
 }

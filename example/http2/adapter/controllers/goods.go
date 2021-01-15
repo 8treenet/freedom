@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"github.com/8treenet/freedom"
-	"github.com/8treenet/freedom/example/http2/domain/dto"
+	"github.com/8treenet/freedom/example/http2/domain/vo"
 )
 
 func init() {
@@ -17,7 +17,7 @@ type GoodsController struct {
 }
 
 // GetBy handles the GET: /goods/:id route.
-func (goods *GoodsController) GetBy(id int) (result dto.Goods, e error) {
+func (goods *GoodsController) GetBy(id int) (result vo.Goods, e error) {
 	goods.Worker.Logger().Info("我是GoodsController.GetByID控制器,返回商品名称和价格")
 	//打印出bus的数据
 	goods.Worker.Logger().Error("bus", goods.Worker.Bus())

@@ -1,9 +1,6 @@
 package domainevent
 
 import (
-	"errors"
-	"time"
-
 	"github.com/8treenet/freedom"
 	"github.com/jinzhu/gorm"
 )
@@ -50,7 +47,7 @@ func (manager *EventManager) Booting(sb freedom.SingleBoot) {
 // push .
 func (manager *EventManager) push(event freedom.DomainEvent) {
 	freedom.Logger().Infof("领域事件发布 Topic:%s, %+v", event.Topic(), event)
-	eventID := event.Identity().(int)
+	//eventID := event.Identity()
 	go func() {
 		/*
 			Kafka 消息模式参考 example/infra-example
@@ -65,12 +62,12 @@ func (manager *EventManager) push(event freedom.DomainEvent) {
 		*/
 
 		manager.publisherChan <- event
-		publish := &domainEventPublish{ID: eventID}
+		//publish := &domainEventPublish{ID: eventID}
 
 		// Push成功后删除事件
-		if err := manager.db().Delete(&publish).Error; err != nil {
-			freedom.Logger().Error(err)
-		}
+		// if err := manager.db().Delete(&publish).Error; err != nil {
+		// 	freedom.Logger().Error(err)
+		// }
 	}()
 }
 
@@ -80,61 +77,12 @@ func (manager *EventManager) db() *gorm.DB {
 
 // Save .
 func (manager *EventManager) Save(repo *freedom.Repository, entity freedom.Entity) (e error) {
-	txDB := getTxDB(repo) //获取事务db
 
-	//删除实体里的全部事件
-	defer entity.RemoveAllPubEvent()
-	defer entity.RemoveAllSubEvent()
-
-	//Insert PubEvent
-	for _, domainEvent := range entity.GetPubEvent() {
-		model := domainEventPublish{
-			Topic:   domainEvent.Topic(),
-			Content: string(domainEvent.Marshal()),
-			Created: time.Now(),
-			Updated: time.Now(),
-		}
-		e = txDB.Create(&model).Error //插入发布事件表。
-		if e != nil {
-			return
-		}
-		domainEvent.SetIdentity(model.ID)
-	}
-	manager.addPubToWorker(repo.Worker(), entity.GetPubEvent())
-
-	//Update SubEvent
-	for _, subEvent := range entity.GetSubEvent() {
-		eventID := subEvent.Identity().(int)
-		subscribe := &domainEventSubscribe{PublishID: eventID}
-		subscribe.SetSuccess(1)                                             //状态已处理
-		rowResult := txDB.Model(subscribe).Updates(subscribe.TakeChanges()) //修改消费事件表
-
-		e = rowResult.Error
-		if e != nil {
-			freedom.Logger().Error(rowResult.Error)
-			return
-		}
-		if rowResult.RowsAffected == 0 {
-			e = errors.New("Event not found")
-			return
-		}
-	}
 	return
 }
 
 // InsertSubEvent .
 func (manager *EventManager) InsertSubEvent(event freedom.DomainEvent) error {
-	model := domainEventSubscribe{
-		PublishID: event.Identity().(int),
-		Topic:     event.Topic(),
-		Content:   string(event.Marshal()),
-		Created:   time.Now(),
-		Updated:   time.Now(),
-	}
-	err := manager.db().Create(&model).Error //插入消费事件表。
-	if err != nil {
-		return err
-	}
 	return nil
 }
 

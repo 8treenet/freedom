@@ -2,10 +2,10 @@ package domain
 
 import (
 	"github.com/8treenet/freedom"
-	"github.com/8treenet/freedom/example/fshop/infra/domainevent"
 	"github.com/8treenet/freedom/example/infra-example/adapter/repository"
-	"github.com/8treenet/freedom/example/infra-example/domain/dto"
 	"github.com/8treenet/freedom/example/infra-example/domain/event"
+	"github.com/8treenet/freedom/example/infra-example/domain/vo"
+	"github.com/8treenet/freedom/example/infra-example/infra/domainevent"
 )
 
 func init() {
@@ -28,7 +28,7 @@ type GoodsService struct {
 }
 
 // Get .
-func (srv *GoodsService) Get(ID int) (rep dto.GoodsRep, e error) {
+func (srv *GoodsService) Get(ID int) (rep vo.GoodsRep, e error) {
 	entity, e := srv.GoodsRepo.Get(ID)
 	if e != nil {
 		return
@@ -41,13 +41,13 @@ func (srv *GoodsService) Get(ID int) (rep dto.GoodsRep, e error) {
 }
 
 // GetAll .
-func (srv *GoodsService) GetAll() (result []dto.GoodsRep, e error) {
+func (srv *GoodsService) GetAll() (result []vo.GoodsRep, e error) {
 	entitys, e := srv.GoodsRepo.GetAll()
 	if e != nil {
 		return
 	}
 	for _, goodsModel := range entitys {
-		result = append(result, dto.GoodsRep{
+		result = append(result, vo.GoodsRep{
 			ID:    goodsModel.ID,
 			Name:  goodsModel.Name,
 			Price: goodsModel.Price,

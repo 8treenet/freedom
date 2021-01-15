@@ -1,6 +1,9 @@
 package internal
 
-import "reflect"
+import (
+	"fmt"
+	"reflect"
+)
 
 func newFactoryPool() *FactoryPool {
 	result := new(FactoryPool)
@@ -26,7 +29,7 @@ func (pool *FactoryPool) get(t reflect.Type) (ok bool, result reflect.Value) {
 
 	values := reflect.ValueOf(fun).Call([]reflect.Value{})
 	if len(values) == 0 {
-		globalApp.IrisApp.Logger().Fatalf("[Freedom] BindFactory func return to empty, %v", t)
+		panic(fmt.Sprintf("[Freedom] BindFactory func return to empty, %v", t))
 	}
 
 	return true, values[0]
@@ -46,13 +49,13 @@ func (pool *FactoryPool) allType() (list []reflect.Type) {
 }
 
 // diFactory .
-func (pool *FactoryPool) diFactory(factory interface{}, instance *serviceInstance) {
+func (pool *FactoryPool) diFactory(factory interface{}, instance *serviceElement) {
 	allFields(factory, func(value reflect.Value) {
 		pool.diFactoryFromValue(value, instance)
 	})
 }
 
-func (pool *FactoryPool) diFactoryFromValue(value reflect.Value, instance *serviceInstance) bool {
+func (pool *FactoryPool) diFactoryFromValue(value reflect.Value, instance *serviceElement) bool {
 	//如果是指针的成员变量
 	if value.Kind() == reflect.Ptr && value.IsZero() {
 		ok, newfield := pool.get(value.Type())
@@ -60,7 +63,7 @@ func (pool *FactoryPool) diFactoryFromValue(value reflect.Value, instance *servi
 			return false
 		}
 		if !value.CanSet() {
-			globalApp.IrisApp.Logger().Fatalf("[Freedom] This use factory object must be a capital variable: %v" + value.Type().String())
+			panic(fmt.Sprintf("[Freedom] This use factory object must be a capital variable: %v" + value.Type().String()))
 		}
 		//创建实例并且注入基础设施组件和资源库
 		value.Set(newfield)
@@ -99,7 +102,7 @@ func (pool *FactoryPool) diFactoryFromValue(value reflect.Value, instance *servi
 				continue
 			}
 			if !value.CanSet() {
-				globalApp.IrisApp.Logger().Fatalf("[Freedom] This use factory object must be a capital variable: %v", value.Type().String())
+				panic(fmt.Sprintf("[Freedom] This use factory object must be a capital variable: %v", value.Type().String()))
 			}
 			//创建实例并且注入基础设施组件和资源库
 			value.Set(newfield)

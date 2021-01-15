@@ -7,7 +7,7 @@
     - aggregate - 聚合
     - entity - 实体
     - event - 领域事件
-    - dto - 传输对象
+    - vo - 值对象
     - po - 持久化对象
     - *.go - 领域服务
 
@@ -356,8 +356,8 @@ func (repo *Default) GetIP() string {
     repo.Other()
     repo.NewHttpRequest()
     repo.NewH2CRequest()
-    repo.Worker.Logger().Infof("我是Repository GetIP")
-    return repo.Worker.IrisContext().RemoteAddr()
+    repo.Worker().Logger().Infof("我是Repository GetIP")
+    return repo.Worker().IrisContext().RemoteAddr()
 }
 
 ```

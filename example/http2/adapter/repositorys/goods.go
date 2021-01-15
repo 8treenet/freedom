@@ -4,7 +4,7 @@ import (
 	"strconv"
 
 	"github.com/8treenet/freedom"
-	"github.com/8treenet/freedom/example/http2/domain/dto"
+	"github.com/8treenet/freedom/example/http2/domain/vo"
 	"github.com/jinzhu/gorm"
 )
 
@@ -22,7 +22,7 @@ type GoodsRepository struct {
 }
 
 // GetGoods implment Goods interface
-func (repo *GoodsRepository) GetGoods(goodsID int) (result dto.Goods) {
+func (repo *GoodsRepository) GetGoods(goodsID int) (result vo.Goods) {
 	repo.Worker().Logger().Info("我是GoodsRepository")
 	repo.Worker().Bus().Add("x-sender-name", "GoodsRepository")
 	//通过h2c request 访问本服务 /goods/:id
@@ -32,7 +32,7 @@ func (repo *GoodsRepository) GetGoods(goodsID int) (result dto.Goods) {
 	//开启go 并发,并且没有group wait。请求结束触发相关对象回收，会快于当前并发go的读取数据，所以使用DeferRecycle
 	repo.Worker().DeferRecycle()
 	go func() {
-		var model dto.Goods
+		var model vo.Goods
 		repo.NewH2CRequest(addr).Get().ToJSON(&model)
 		repo.NewHTTPRequest(addr, false).Get().ToJSON(&model)
 	}()

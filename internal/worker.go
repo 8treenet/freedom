@@ -135,12 +135,7 @@ func (rt *worker) StartTime() time.Time {
 
 func (rt *worker) Logger() Logger {
 	if rt.logger == nil {
-		l := rt.values.Get("logger_impl")
-		if l == nil {
-			rt.logger = globalApp.Logger()
-		} else {
-			rt.logger = l.(Logger)
-		}
+		return globalApp.Logger()
 	}
 	return rt.logger
 }

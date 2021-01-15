@@ -143,7 +143,7 @@ func GetStruct() ([]crud.ObjectContent, error) {
 
 func init() {
 	NewCRUDCmd.Flags().StringVarP(&Dsn, "dsn", "d", "", `The address of the data source "root:123123@tcp(127.0.0.1:3306)/xxx?charset=utf8"`)
-	NewCRUDCmd.Flags().StringVarP(&JSONFile, "json", "j", "", `Table structure of JSON, "./domain/po/shcema.json"`)
+	NewCRUDCmd.Flags().StringVarP(&JSONFile, "json", "j", "", `Table structure of JSON, "./domain/po/schema.json"`)
 	NewCRUDCmd.Flags().StringVarP(&Prefix, "prefix", "p", "", `Ignore prefix`)
 
 	AddCommand(NewCRUDCmd)

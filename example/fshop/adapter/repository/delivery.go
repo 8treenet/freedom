@@ -42,7 +42,7 @@ func (repo *Delivery) Save(deliveryEntity *entity.Delivery) error {
 		return err
 	}
 
-	_, err := saveDelivery(repo, &deliveryEntity.Delivery)
+	_, err := saveDelivery(repo, deliveryEntity)
 	return err
 }
 

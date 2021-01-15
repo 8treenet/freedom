@@ -30,14 +30,14 @@ func repositoryTemplate() string {
 	// GetIP .
 	func (repo *Default) GetIP() string {
 		//repo.db().Find()
-		repo.Worker.Logger().Info("我是Repository GetIP")
-		return repo.Worker.IrisContext().RemoteAddr()
+		repo.Worker().Logger().Info("我是Repository GetIP")
+		return repo.Worker().IrisContext().RemoteAddr()
 	}
 	
 	// GetUA - implment DefaultRepoInterface interface
 	func (repo *Default) GetUA() string {
-		repo.Worker.Logger().Info("我是Repository GetUA")
-		return repo.Worker.IrisContext().Request().UserAgent()
+		repo.Worker().Logger().Info("我是Repository GetUA")
+		return repo.Worker().IrisContext().Request().UserAgent()
 	}
 
 	// db .
@@ -47,7 +47,7 @@ func repositoryTemplate() string {
 			panic(err)
 		}
 		db = db.New()
-		db.SetLogger(repo.Worker.Logger())
+		db.SetLogger(repo.Worker().Logger())
 		return db
 	}
 

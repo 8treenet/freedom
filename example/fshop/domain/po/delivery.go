@@ -22,8 +22,13 @@ func (obj *Delivery) TableName() string {
 	return "delivery"
 }
 
-// TakeChanges .
-func (obj *Delivery) TakeChanges() map[string]interface{} {
+// Location .
+func (obj *Delivery) Location() map[string]interface{} {
+	return map[string]interface{}{"id": obj.ID}
+}
+
+// GetChanges .
+func (obj *Delivery) GetChanges() map[string]interface{} {
 	if obj.changes == nil {
 		return nil
 	}
@@ -35,8 +40,8 @@ func (obj *Delivery) TakeChanges() map[string]interface{} {
 	return result
 }
 
-// updateChanges .
-func (obj *Delivery) setChanges(name string, value interface{}) {
+// update .
+func (obj *Delivery) update(name string, value interface{}) {
 	if obj.changes == nil {
 		obj.changes = make(map[string]interface{})
 	}
@@ -46,35 +51,35 @@ func (obj *Delivery) setChanges(name string, value interface{}) {
 // SetAdminID .
 func (obj *Delivery) SetAdminID(adminID int) {
 	obj.AdminID = adminID
-	obj.setChanges("admin_id", adminID)
+	obj.update("admin_id", adminID)
 }
 
 // SetOrderNo .
 func (obj *Delivery) SetOrderNo(orderNo string) {
 	obj.OrderNo = orderNo
-	obj.setChanges("order_no", orderNo)
+	obj.update("order_no", orderNo)
 }
 
 // SetTrackingNumber .
 func (obj *Delivery) SetTrackingNumber(trackingNumber string) {
 	obj.TrackingNumber = trackingNumber
-	obj.setChanges("tracking_number", trackingNumber)
+	obj.update("tracking_number", trackingNumber)
 }
 
 // SetCreated .
 func (obj *Delivery) SetCreated(created time.Time) {
 	obj.Created = created
-	obj.setChanges("created", created)
+	obj.update("created", created)
 }
 
 // SetUpdated .
 func (obj *Delivery) SetUpdated(updated time.Time) {
 	obj.Updated = updated
-	obj.setChanges("updated", updated)
+	obj.update("updated", updated)
 }
 
 // AddAdminID .
 func (obj *Delivery) AddAdminID(adminID int) {
 	obj.AdminID += adminID
-	obj.setChanges("admin_id", gorm.Expr("admin_id + ?", adminID))
+	obj.update("admin_id", gorm.Expr("admin_id + ?", adminID))
 }
