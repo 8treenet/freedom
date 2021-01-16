@@ -7,3 +7,5 @@ debug
 .DS_Store
 go.sum
 /log
+
+/*.ps1
