@@ -1,4 +1,4 @@
-package repositorys
+package repository
 
 import (
 	"strconv"

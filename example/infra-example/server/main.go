@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/8treenet/freedom"
-	_ "github.com/8treenet/freedom/example/infra-example/adapter/controllers"
+	_ "github.com/8treenet/freedom/example/infra-example/adapter/controller"
 	_ "github.com/8treenet/freedom/example/infra-example/adapter/repository"
 	"github.com/8treenet/freedom/example/infra-example/server/conf"
 	"github.com/8treenet/freedom/infra/kafka"

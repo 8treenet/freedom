@@ -1,4 +1,4 @@
-package repositorys
+package repository
 
 import "github.com/8treenet/freedom/example/http2/domain/vo"
 
