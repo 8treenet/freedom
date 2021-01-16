@@ -84,11 +84,6 @@ type (
 	LogRow = GologRow
 )
 
-func init() {
-	initApp()
-	initConfigurator()
-}
-
 // Prepare .
 func Prepare(f func(Initiator)) {
 	internal.Prepare(f)
