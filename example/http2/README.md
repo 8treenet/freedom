@@ -86,7 +86,7 @@ func DefaultLogRowHandle(value *freedom.LogRow) bool {
 
 #### 依赖倒置
 ``` go
-package repositorys
+package repository
 //声明接口
 type GoodsInterface interface {
 	GetGoods(goodsID int) vo.GoodsModel
@@ -109,7 +109,7 @@ func init() {
 // ShopService .
 type ShopService struct {
 	Worker freedom.Worker
-	Goods  repositorys.GoodsInterface //注入接口对象
+	Goods  repository.GoodsInterface //注入接口对象
 }
 
 func (s *ShopService) Shopping(goodsID int) string {

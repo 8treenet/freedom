@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/8treenet/freedom"
-	_ "github.com/8treenet/freedom/example/http2/adapter/controllers"
+	_ "github.com/8treenet/freedom/example/http2/adapter/controller"
 	"github.com/8treenet/freedom/example/http2/server/conf"
 	"github.com/8treenet/freedom/infra/requests"
 	"github.com/8treenet/freedom/middleware"

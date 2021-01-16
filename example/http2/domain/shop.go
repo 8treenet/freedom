@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/8treenet/freedom"
-	"github.com/8treenet/freedom/example/http2/adapter/repositorys"
+	"github.com/8treenet/freedom/example/http2/adapter/repository"
 )
 
 func init() {
@@ -22,7 +22,7 @@ func init() {
 // ShopService .
 type ShopService struct {
 	Worker freedom.Worker
-	Goods  repositorys.GoodsInterface
+	Goods  repository.GoodsInterface
 }
 
 // Shopping implment Shopping interface
