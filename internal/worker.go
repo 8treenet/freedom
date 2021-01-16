@@ -16,6 +16,14 @@ const (
 	WorkerKey = "STORE-WORKER-KEY"
 )
 
+var (
+	workerType reflect.Type
+)
+
+func initWorker() {
+	workerType = reflect.TypeOf(&worker{})
+}
+
 // Worker describes a global context which use to share the internal component
 // (i.e infrastructure, transaction, logger and so on) with middleware,
 // controller, domain service and etc.
@@ -171,5 +179,3 @@ func (rt *worker) Rand() *rand.Rand {
 func (rt *worker) SetLogger(l Logger) {
 	rt.logger = l
 }
-
-var workerType = reflect.TypeOf(&worker{})
