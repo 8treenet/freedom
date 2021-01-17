@@ -55,3 +55,16 @@ func Prometheus() *internal.Prometheus {
 func ServiceLocator() *internal.ServiceLocatorImpl {
 	return app.GetServiceLocator()
 }
+
+// WorkerFromCtx extracts Worker from a Context.
+func WorkerFromCtx(ctx Context) Worker {
+	if result, ok := ctx.Values().Get(internal.WorkerKey).(Worker); ok {
+		return result
+	}
+	return nil
+}
+
+// ToWorker proxy a call to WorkerFromCtx.
+func ToWorker(ctx Context) Worker {
+	return WorkerFromCtx(ctx)
+}

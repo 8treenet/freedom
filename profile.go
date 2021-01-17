@@ -12,9 +12,50 @@ var (
 	// profileFallbackSearchDirs is a series of directory that is used to search
 	// profile file if a profile file has not been found in other directory.
 	profileFallbackSearchDirs = []string{"./conf", "./server/conf"}
+
+	// configurator is a instance of Configurator. It is never nil.
+	configurator Configurator
+
+	// EnvProfileDir is the name of the environment variable for the search
+	// directory of the profile
+	EnvProfileDir = "FREEDOM_PROJECT_CONFIG"
+
+	// ProfileENV is the name of the profile directory in environment variable
+	ProfileENV = EnvProfileDir
+
+	// TODO(coco): this variable seems has no effect, considering remove it.
+	// cachedProfileDir is the cache of the profile path
+	cachedProfileDir string
 )
 
 var _ Configurator = (*fallbackConfigurator)(nil)
+
+// Configurer .
+type Configurer = Configurator
+
+// Configurator .
+type Configurator interface {
+	Configure(obj interface{}, file string, metaData ...interface{}) error
+}
+
+func initConfigurator() {
+	SetConfigurator(newFallbackConfigurator())
+}
+
+// SetConfigurator assigns a Configurator to global configurator
+func SetConfigurator(c Configurator) {
+	configurator = c
+}
+
+// SetConfigurer assigns a Configurator to global configurator
+func SetConfigurer(c Configurer) {
+	SetConfigurator(c)
+}
+
+// Configure .
+func Configure(obj interface{}, file string, metaData ...interface{}) error {
+	return configurator.Configure(obj, file)
+}
 
 // detectProfileInFallbackSearchDirs accepts a string with the name of a
 // profile file, and search the file in profileFallbackSearchDirs. It returns
@@ -110,4 +151,10 @@ func IsFile(path string) bool {
 	}
 
 	return !stat.IsDir()
+}
+
+// ProfileDirFromEnv reads from environment variable with EnvProfileDir
+func ProfileDirFromEnv() string {
+	cachedProfileDir = os.Getenv(EnvProfileDir)
+	return cachedProfileDir
 }
