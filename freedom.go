@@ -9,6 +9,11 @@ import (
 	iris "github.com/kataras/iris/v12"
 )
 
+func init() {
+	initApp()
+	initConfigurator()
+}
+
 type (
 	// IrisResult represents an type alias to hero.Result
 	IrisResult = hero.Result
@@ -76,12 +81,17 @@ type (
 	LogRow = golog.Log
 )
 
-func init() {
-	initApp()
-	initConfigurator()
-}
-
 // Prepare .
 func Prepare(f func(Initiator)) {
 	internal.Prepare(f)
+}
+
+// NewUnitTest .
+func NewUnitTest() UnitTest {
+	return internal.NewUnitTest()
+}
+
+// DefaultConfiguration proxy a call to iris.DefaultConfiguration
+func DefaultConfiguration() iris.Configuration {
+	return iris.DefaultConfiguration()
 }

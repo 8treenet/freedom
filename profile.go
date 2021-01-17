@@ -2,6 +2,8 @@ package freedom
 
 import (
 	"fmt"
+	"os"
+	"path"
 
 	"github.com/BurntSushi/toml"
 )
@@ -80,4 +82,32 @@ func newFallbackConfigurator() *fallbackConfigurator {
 // Configured proxy a call to ReadProfile
 func (*fallbackConfigurator) Configure(obj interface{}, file string, metaData ...interface{}) error {
 	return ReadProfile(file, obj)
+}
+
+// JoinPath returns a string that joins any number of path elements into a
+// single path, separating them with slashes.
+func JoinPath(elems ...string) string {
+	return path.Join(elems...)
+}
+
+// IsDir accepts a string with a directory path and tests the path. It returns
+// true if the path exists and it is a directory, and false otherwise.
+func IsDir(dir string) bool {
+	stat, err := os.Stat(dir)
+	if err != nil {
+		return false
+	}
+
+	return stat.IsDir()
+}
+
+// IsFile accepts a string with a file path and tests the path. It returns
+// true if the path exists and it is a file, and false otherwise.
+func IsFile(path string) bool {
+	stat, err := os.Stat(path)
+	if err != nil {
+		return false
+	}
+
+	return !stat.IsDir()
 }
