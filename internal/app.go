@@ -128,16 +128,11 @@ func (app *Application) Logger() *golog.Logger {
 	return app.Iris().Logger()
 }
 
-// ServiceLocator .
-func (app *Application) ServiceLocator() *ServiceLocatorImpl {
-	return app.serviceLocator
-}
-
 // GetServiceLocator .
 // Because of ambiguous naming, I've been create ServiceLocator as an alternative.
 // Considering remove this function in the future.
 func (app *Application) GetServiceLocator() *ServiceLocatorImpl {
-	return app.ServiceLocator()
+	return app.serviceLocator
 }
 
 // GetService accepts an IrisContext and a pointer to the typed service. GetService

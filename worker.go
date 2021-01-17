@@ -12,7 +12,6 @@ func WorkerFromCtx(ctx Context) Worker {
 	return nil
 }
 
-// TODO(coco): deprecated
 // ToWorker proxy a call to WorkerFromCtx.
 func ToWorker(ctx Context) Worker {
 	return WorkerFromCtx(ctx)

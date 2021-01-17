@@ -35,10 +35,12 @@ func SetH2CClient(client Client) {
 	defaultH2CClient = client
 }
 
+// Client .
 type Client interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
+// ClientImpl .
 type ClientImpl struct {
 	*http.Client
 }

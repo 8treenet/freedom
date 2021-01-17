@@ -1,7 +1,6 @@
 package freedom
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/BurntSushi/toml"
@@ -56,7 +55,7 @@ func ReadProfile(file string, v interface{}) error {
 	filePath, isFilePathExist := detectProfilePath(file)
 
 	if !isFilePathExist {
-		return errors.New(fmt.Sprintf("file does not exist: %s", filePath))
+		return fmt.Errorf("file does not exist: %s", filePath)
 	}
 
 	_, err := toml.DecodeFile(filePath, v)

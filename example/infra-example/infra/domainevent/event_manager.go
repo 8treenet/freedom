@@ -112,8 +112,7 @@ func (manager *EventManager) Save(repo *freedom.Repository, entity freedom.Entit
 
 		content, err := domainEvent.Marshal()
 		if err != nil {
-			freedom.Logger().Error(err)
-			continue
+			return err
 		}
 
 		model := pubEventObject{
@@ -123,8 +122,7 @@ func (manager *EventManager) Save(repo *freedom.Repository, entity freedom.Entit
 			Created:  time.Now(),
 			Updated:  time.Now(),
 		}
-		e = txDB.Create(&model).Error //插入发布事件表。
-		if e != nil {
+		if e = txDB.Create(&model).Error; e != nil { //插入发布事件表。
 			return
 		}
 	}
@@ -137,11 +135,7 @@ func (manager *EventManager) Save(repo *freedom.Repository, entity freedom.Entit
 		}
 
 		eventID := subEvent.Identity()
-		rowResult := GetEventManager().db().Delete(&subEventObject{}, "identity = ?", eventID) //删除消费事件表
-
-		e = rowResult.Error
-		if e != nil {
-			freedom.Logger().Error(rowResult.Error)
+		if e = getTxDB(repo).Delete(&subEventObject{}, "identity = ?", eventID).Error; e != nil { //删除消费事件表
 			return
 		}
 	}

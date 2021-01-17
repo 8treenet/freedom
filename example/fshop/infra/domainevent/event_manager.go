@@ -1,14 +1,17 @@
 package domainevent
 
 import (
+	"time"
+
 	"github.com/8treenet/freedom"
+	"github.com/8treenet/freedom/infra/kafka"
 	"github.com/jinzhu/gorm"
 )
 
 var eventManager *EventManager
 
 func init() {
-	eventManager = &EventManager{publisherChan: make(chan freedom.DomainEvent, 1000)}
+	eventManager = &EventManager{eventRetry: newEventRetry(), publisherChan: make(chan freedom.DomainEvent)}
 	freedom.Prepare(func(initiator freedom.Initiator) {
 		initiator.BindInfra(true, eventManager) //单例绑定
 		initiator.InjectController(func(ctx freedom.Context) (com *EventManager) {
@@ -26,7 +29,27 @@ func GetEventManager() *EventManager {
 // EventManager .
 type EventManager struct {
 	freedom.Infra
+	eventRetry    *eventRetry         //重试处理
+	kafkaProducer *kafka.ProducerImpl //Kafka Producer组件
 	publisherChan chan freedom.DomainEvent
+}
+
+// Booting .
+func (manager *EventManager) Booting(sb freedom.SingleBoot) {
+	if err := manager.db().AutoMigrate(&pubEventObject{}).Error; err != nil {
+		panic(err)
+	}
+	if err := manager.db().AutoMigrate(&subEventObject{}).Error; err != nil {
+		panic(err)
+	}
+
+	//获取Kafka Producer组件, 只支持单例组件的获取.
+	if !manager.GetSingleInfra(&manager.kafkaProducer) {
+		panic("No KafkaProducer found")
+	}
+
+	//重试参考 example/infra-example
+	//manager.eventRetry.Booting() //启动重试
 }
 
 // GetPublisherChan .
@@ -34,21 +57,22 @@ func (manager *EventManager) GetPublisherChan() <-chan freedom.DomainEvent {
 	return manager.publisherChan
 }
 
-// Booting .
-func (manager *EventManager) Booting(sb freedom.SingleBoot) {
-	if err := manager.db().AutoMigrate(&domainEventPublish{}).Error; err != nil {
-		panic(err)
-	}
-	if err := manager.db().AutoMigrate(&domainEventSubscribe{}).Error; err != nil {
-		panic(err)
-	}
+// SetRetryPolicy Set the rules for retry.
+func (manager *EventManager) SetRetryPolicy(delay, interval time.Duration, retries int) {
+	manager.eventRetry.SetRetryPolicy(delay, interval, retries)
 }
 
-// push .
+// push EventTransaction在事务成功后触发 .
 func (manager *EventManager) push(event freedom.DomainEvent) {
-	freedom.Logger().Infof("领域事件发布 Topic:%s, %+v", event.Topic(), event)
-	//eventID := event.Identity()
+	freedom.Logger().Infof("Publish Event Topic:%s, %+v", event.Topic(), event)
+	identity := event.Identity()
 	go func() {
+		defer func() {
+			if perr := recover(); perr != nil {
+				freedom.Logger().Error("Publish Event:", perr)
+			}
+		}()
+
 		/*
 			Kafka 消息模式参考 example/infra-example
 			if err := manager.kafkaProducer.NewMsg(event.Topic(), event.Marshal()).SetHeader(event.GetPrototypes()).Publish(); err != nil {
@@ -60,14 +84,16 @@ func (manager *EventManager) push(event freedom.DomainEvent) {
 			manager.NewHTTPRequest(URL)
 			manager.NewH2CRequest(URL)
 		*/
-
 		manager.publisherChan <- event
-		//publish := &domainEventPublish{ID: eventID}
 
-		// Push成功后删除事件
-		// if err := manager.db().Delete(&publish).Error; err != nil {
-		// 	freedom.Logger().Error(err)
-		// }
+		if !manager.eventRetry.PubExist(event.Topic()) {
+			return //未注册重试,结束
+		}
+
+		// Push成功后删除
+		if err := manager.db().Delete(&pubEventObject{}, "identity = ?", identity).Error; err != nil {
+			freedom.Logger().Error(err)
+		}
 	}()
 }
 
@@ -77,27 +103,86 @@ func (manager *EventManager) db() *gorm.DB {
 
 // Save .
 func (manager *EventManager) Save(repo *freedom.Repository, entity freedom.Entity) (e error) {
+	txDB := getTxDB(repo) //获取事务db
 
+	//删除实体里的全部事件
+	defer entity.RemoveAllPubEvent()
+	defer entity.RemoveAllSubEvent()
+
+	//Insert PubEvent
+	for _, domainEvent := range entity.GetPubEvent() {
+		if !manager.eventRetry.PubExist(domainEvent.Topic()) {
+			continue //未注册重试,无需存储
+		}
+
+		content, err := domainEvent.Marshal()
+		if err != nil {
+			return err
+		}
+
+		model := pubEventObject{
+			Identity: domainEvent.Identity(),
+			Topic:    domainEvent.Topic(),
+			Content:  string(content),
+			Created:  time.Now(),
+			Updated:  time.Now(),
+		}
+		if e = txDB.Create(&model).Error; e != nil { //插入发布事件表。
+			return
+		}
+	}
+	manager.addPubToWorker(repo.Worker(), entity.GetPubEvent())
+
+	//Delete SubEvent
+	for _, subEvent := range entity.GetSubEvent() {
+		if !manager.eventRetry.SubExist(subEvent.Topic()) {
+			continue //未注册重试,无需修改
+		}
+
+		eventID := subEvent.Identity()
+		if e = getTxDB(repo).Delete(&subEventObject{}, "identity = ?", eventID).Error; e != nil { //删除消费事件表
+			return
+		}
+	}
 	return
 }
 
 // InsertSubEvent .
 func (manager *EventManager) InsertSubEvent(event freedom.DomainEvent) error {
-	return nil
+	if !manager.eventRetry.SubExist(event.Topic()) {
+		return nil //未注册重试,无需存储
+	}
+
+	content, err := event.Marshal()
+	if err != nil {
+		return err
+	}
+
+	model := subEventObject{
+		Identity: event.Identity(),
+		Topic:    event.Topic(),
+		Content:  string(content),
+		Created:  time.Now(),
+		Updated:  time.Now(),
+	}
+	return manager.db().Create(&model).Error //插入消费事件表。
 }
 
-// Retry .
-func (manager *EventManager) Retry() {
-	//定时器扫描表中失败的Pub/Sub事件
-	freedom.Logger().Info("EventManager Retry")
+// RetryPubEvent .
+func (manager *EventManager) RetryPubEvent(event freedom.DomainEvent) {
+	manager.eventRetry.RetryPubEvent(event)
 }
 
-// addPubToWorker 增加发布事件到worker的Store.
+// RetrySubEvent .
+func (manager *EventManager) RetrySubEvent(event freedom.DomainEvent, function interface{}) {
+	manager.eventRetry.RetrySubEvent(event, function)
+}
+
+// addPubToWorker 增加发布事件到Worker.Store.
 func (manager *EventManager) addPubToWorker(worker freedom.Worker, pubs []freedom.DomainEvent) {
 	if len(pubs) == 0 {
 		return
 	}
-
 	for _, pubEvent := range pubs {
 		//把worker的请求信息 写到事件的属性里
 		m := map[string]interface{}{}

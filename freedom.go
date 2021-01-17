@@ -24,14 +24,6 @@ type (
 )
 
 type (
-	// LogFields is the column type of the log.
-	GologFields = golog.Fields
-
-	// LogRow is the log per line callback.
-	GologRow = golog.Log
-)
-
-type (
 	// Worker .
 	Worker = internal.Worker
 
@@ -78,10 +70,10 @@ type (
 	BeforeActivation = IrisBeforeActivation
 
 	// LogFields is the column type of the log.
-	LogFields = GologFields
+	LogFields = golog.Fields
 
 	// LogRow is the log per line callback.
-	LogRow = GologRow
+	LogRow = golog.Log
 )
 
 func init() {

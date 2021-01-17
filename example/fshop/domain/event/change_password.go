@@ -12,43 +12,43 @@ type ChangePassword struct {
 }
 
 // Topic .
-func (password *ChangePassword) Topic() string {
+func (event *ChangePassword) Topic() string {
 	return "ChangePassword"
 }
 
 // SetPrototypes .
-func (password *ChangePassword) SetPrototypes(prototypes map[string]interface{}) {
-	if password.prototypes == nil {
-		password.prototypes = prototypes
+func (event *ChangePassword) SetPrototypes(prototypes map[string]interface{}) {
+	if event.prototypes == nil {
+		event.prototypes = prototypes
 		return
 	}
 
 	for key, value := range prototypes {
-		password.prototypes[key] = value
+		event.prototypes[key] = value
 	}
 }
 
 // GetPrototypes .
-func (password *ChangePassword) GetPrototypes() map[string]interface{} {
-	return password.prototypes
+func (event *ChangePassword) GetPrototypes() map[string]interface{} {
+	return event.prototypes
 }
 
 // Marshal .
-func (shop *ChangePassword) Marshal() ([]byte, error) {
-	return json.Marshal(shop)
+func (event *ChangePassword) Marshal() ([]byte, error) {
+	return json.Marshal(event)
 }
 
 // Unmarshal .
-func (shop *ChangePassword) Unmarshal(data []byte) error {
-	return json.Unmarshal(data, shop)
+func (event *ChangePassword) Unmarshal(data []byte) error {
+	return json.Unmarshal(data, event)
 }
 
 // Identity .
-func (password *ChangePassword) Identity() string {
-	return password.ID
+func (event *ChangePassword) Identity() string {
+	return event.ID
 }
 
 // SetIdentity .
-func (password *ChangePassword) SetIdentity(identity string) {
-	password.ID = identity
+func (event *ChangePassword) SetIdentity(identity string) {
+	event.ID = identity
 }

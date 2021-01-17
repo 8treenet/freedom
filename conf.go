@@ -5,7 +5,7 @@ var (
 	configurator Configurator
 )
 
-// TODO(coco): deprecated
+// Configurer .
 type Configurer = Configurator
 
 // Configurator .
@@ -22,7 +22,6 @@ func SetConfigurator(c Configurator) {
 	configurator = c
 }
 
-// TODO(coco): deprecated
 // SetConfigurer assigns a Configurator to global configurator
 func SetConfigurer(c Configurer) {
 	SetConfigurator(c)

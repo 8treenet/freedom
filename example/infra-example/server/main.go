@@ -54,6 +54,14 @@ func installMiddleware(app freedom.Application) {
 	//安装消息监控中间件
 	eventMiddle := NewMsgPrometheus(conf.Get().App.Other["service_name"].(string))
 	kafka.InstallMiddleware(eventMiddle)
+
+	//注册服务定位器的回调函数, freedom.ServiceLocator().Call 之前触发
+	freedom.ServiceLocator().InstallBeginCallBack(func(worker freedom.Worker) {
+		traceID, _ := middleware.GenerateTraceID()
+		logger := middleware.NewLogger("x-request-id", traceID)
+		worker.Bus().Set("x-request-id", traceID)
+		worker.SetLogger(logger)
+	})
 }
 
 func installDatabase(app freedom.Application) {
