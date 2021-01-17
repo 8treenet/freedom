@@ -28,6 +28,7 @@ type UnitTestImpl struct {
 	request *http.Request
 }
 
+// NewUnitTest .
 func NewUnitTest() UnitTest {
 	return new(UnitTestImpl)
 }

@@ -23,8 +23,8 @@ type (
 	// IrisHostConfigurator is a type alias to host.Configurator
 	IrisHostConfigurator = host.Configurator
 
-	// IrisRouter is a type alias to iris.Party.
-	IrisRouter = iris.Party
+	// IrisParty is a type alias to iris.Party.
+	IrisParty = iris.Party
 
 	// IrisHandler is a type alias to context.Handler.
 	IrisHandler = context.Handler

@@ -133,11 +133,9 @@ func (app *Application) ServiceLocator() *ServiceLocatorImpl {
 	return app.serviceLocator
 }
 
-// TODO(coco):
-//  Because of ambiguous naming, I've been create ServiceLocator as an alternative.
-//  Considering remove this function in the future.
-//
 // GetServiceLocator .
+// Because of ambiguous naming, I've been create ServiceLocator as an alternative.
+// Considering remove this function in the future.
 func (app *Application) GetServiceLocator() *ServiceLocatorImpl {
 	return app.ServiceLocator()
 }
@@ -166,11 +164,9 @@ func (app *Application) SetPrefixPath(prefixPath string) {
 	app.prefixPath = prefixPath
 }
 
-// TODO(coco):
-//  Because of ambiguous naming, I've been create SetPrefixPath as an alternative.
-//  Considering remove this function in the future.
-//
 // InstallParty assigns specified prefix to the application-level router.
+// Because of ambiguous naming, I've been create SetPrefixPath as an alternative.
+// Considering remove this function in the future.
 func (app *Application) InstallParty(prefixPath string) {
 	app.SetPrefixPath(prefixPath)
 }
@@ -179,19 +175,15 @@ func (app *Application) InstallParty(prefixPath string) {
 // SubRouter makes a new path by concatenating the application-level router's
 // prefix and the specified route path, creates an IrisRouter with the new path
 // and the those specified IrisHandler, and returns the IrisRouter.
-func (app *Application) SubRouter(relativePath string, handlers ...IrisHandler) IrisRouter {
+func (app *Application) SubRouter(relativePath string, handlers ...IrisHandler) IrisParty {
 	return app.Iris().Party(app.withPrefix(relativePath), handlers...)
 }
 
-// TODO(coco):
-//  Because of ambiguous naming, I've been create SubRouter as an alternative.
-//  Considering remove this function in the future.
-//
 // CreateParty accepts a string with the route path, and one or more IrisHandler.
 // CreateParty makes a new path by concatenating the application-level router's
 // prefix and the specified route path, creates an IrisRouter with the new path
 // and the those specified IrisHandler, and returns the IrisRouter.
-func (app *Application) CreateParty(relativePath string, handlers ...IrisHandler) IrisRouter {
+func (app *Application) CreateParty(relativePath string, handlers ...IrisHandler) IrisParty {
 	return app.SubRouter(relativePath, handlers...)
 }
 
@@ -213,21 +205,17 @@ func (app *Application) BindController(relativePath string, controller IrisContr
 // BindControllerWithRouter resolves the application's dependencies, and creates
 // an IrisRouter and an IrisMVCApplication. the IrisMVCApplication would be attached
 // on IrisRouter and the EventBus after it has created.
-func (app *Application) BindControllerWithRouter(router IrisRouter, controller IrisController) {
+func (app *Application) BindControllerWithRouter(router IrisParty, controller IrisController) {
 	mvcApp := mvc.New(router)
 	mvcApp.Register(app.resolveDependencies()...)
 	mvcApp.Handle(controller)
 }
 
-// TODO(coco):
-//  Because of naming ambiguous, I've been create BindControllerWithRouter as
-//  an alternative. Considering remove this function in the future.
-//
 // BindControllerByParty accepts an IrisRouter and an IrisController.
 // BindControllerByParty resolves the application's dependencies, and creates
 // an IrisRouter and an IrisMVCApplication. the IrisMVCApplication would be attached
 // on IrisRouter and the EventBus after it has created.
-func (app *Application) BindControllerByParty(router IrisRouter, controller interface{}) {
+func (app *Application) BindControllerByParty(router IrisParty, controller interface{}) {
 	app.BindControllerWithRouter(router, controller)
 }
 
@@ -301,11 +289,9 @@ func (app *Application) InjectIntoController(f Dependency) {
 	app.controllerDependencies = append(app.controllerDependencies, f)
 }
 
-// TODO(coco):
-//  Because of ambiguous naming, I've been create InjectIntoController as an
-//  alternative. Considering remove this function in the future.
-//
 // InjectController adds a Dependency for iris controller.
+// Because of ambiguous naming, I've been create InjectIntoController as an
+// alternative. Considering remove this function in the future.
 func (app *Application) InjectController(f Dependency) {
 	app.InjectIntoController(f)
 }
