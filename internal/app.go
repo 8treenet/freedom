@@ -196,11 +196,11 @@ func (app *Application) BindController(relativePath string, controller IrisContr
 	app.msgsBus.addController(controller)
 }
 
-// BindControllerWithRouter accepts an IrisRouter and an IrisController.
-// BindControllerWithRouter resolves the application's dependencies, and creates
+// BindControllerWithParty accepts an IrisRouter and an IrisController.
+// BindControllerWithParty resolves the application's dependencies, and creates
 // an IrisRouter and an IrisMVCApplication. the IrisMVCApplication would be attached
 // on IrisRouter and the EventBus after it has created.
-func (app *Application) BindControllerWithRouter(router IrisParty, controller IrisController) {
+func (app *Application) BindControllerWithParty(router IrisParty, controller IrisController) {
 	mvcApp := mvc.New(router)
 	mvcApp.Register(app.resolveDependencies()...)
 	mvcApp.Handle(controller)
@@ -211,7 +211,7 @@ func (app *Application) BindControllerWithRouter(router IrisParty, controller Ir
 // an IrisRouter and an IrisMVCApplication. the IrisMVCApplication would be attached
 // on IrisRouter and the EventBus after it has created.
 func (app *Application) BindControllerByParty(router IrisParty, controller interface{}) {
-	app.BindControllerWithRouter(router, controller)
+	app.BindControllerWithParty(router, controller)
 }
 
 // BindService .

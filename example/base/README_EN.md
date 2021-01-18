@@ -88,7 +88,7 @@ type Initiator interface {
     // Create Iris.Party. You can specify middleware.
     CreateParty(relativePath string, handlers ...context.Handler) iris.Party
     // Bind Controller By Iris.Party
-    BindControllerByParty(party iris.Party, controller interface{})
+    BindControllerWithParty(party iris.Party, controller interface{})
     // Binding controller via relativePath. You can specify middleware.
     BindController(relativePath string, controller interface{}, handlers ...context.Handler)
     // Bind Service

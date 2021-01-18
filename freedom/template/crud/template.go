@@ -178,7 +178,7 @@ func FunTemplatePackage() string {
 		if e == nil || e == gorm.ErrRecordNotFound {
 			return
 		}
-		repo.Worker().Logger().Errorf("Orm error, model: %s, method: %s, expression :%v, reason for error:%v", model, method, expression, e)
+		repo.Worker().Logger().Errorf("error: %v, model: %s, method: %s", e, model, method)
 	}
 `
 	return strings.ReplaceAll(source, "$$wave", "`")
@@ -324,6 +324,10 @@ func FunTemplate() string {
 
 	// save{{.Name}} .
 	func save{{.Name}}(repo GORMRepository, object saveObject) (affected int64, e error) {
+		if len(object.Location()) == 0 {
+			return 0, errors.New("location cannot be empty")
+		}
+		
 		now := time.Now()
 		defer func() {
 			freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "save{{.Name}}", e, now)

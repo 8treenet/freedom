@@ -84,8 +84,8 @@ type Worker interface {
 type Initiator interface {
     //创建 iris.Party，可以指定中间件。
     CreateParty(relativePath string, handlers ...context.Handler) iris.Party
-    //绑定控制器到 iris.Party
-    BindControllerByParty(party iris.Party, controller interface{})
+   //绑定控制器到 iris.Party。
+    BindControllerWithParty(party iris.Party, controller interface{})
     //绑定控制器到路径，可以指定中间件。
     BindController(relativePath string, controller interface{}, handlers ...context.Handler)
 

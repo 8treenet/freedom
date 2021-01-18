@@ -18,7 +18,7 @@ var (
 type Initiator interface {
 	CreateParty(relativePath string, handlers ...context.Handler) iris.Party
 	BindController(relativePath string, controller interface{}, handlers ...context.Handler)
-	BindControllerByParty(party iris.Party, controller interface{})
+	BindControllerWithParty(party iris.Party, controller interface{})
 	BindService(f interface{})
 	InjectController(f interface{})
 	BindRepository(f interface{})
