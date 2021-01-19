@@ -2,6 +2,7 @@ package controller
 
 import (
 	"github.com/8treenet/freedom"
+	"github.com/8treenet/freedom/example/infra-example/common"
 	"github.com/8treenet/freedom/example/infra-example/domain"
 	"github.com/8treenet/freedom/example/infra-example/infra"
 )
@@ -30,9 +31,17 @@ func (c *ShopController) Post() freedom.Result {
 		return &infra.JSONResponse{Error: e}
 	}
 
-	e := c.OrderSev.Shop(request.GoodsID, request.Num, request.UserID)
-	if e != nil {
-		return &infra.JSONResponse{Error: e}
+	var resErr error
+	for i := 0; i < 3; i++ {
+		resErr = c.OrderSev.Shop(request.GoodsID, request.Num, request.UserID)
+		if resErr == common.VersionExpired {
+			continue //乐观锁重试
+		}
+		break
+	}
+
+	if resErr != nil {
+		return &infra.JSONResponse{Error: resErr}
 	}
 	return &infra.JSONResponse{}
 }

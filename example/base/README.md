@@ -57,13 +57,15 @@ type Application interface {
 }
 
  /*
-    Worker 请求运行时对象，一个请求创建一个运行时对象，可以注入到controller、service、repository。
+    Worker 请求运行时对象，一个请求创建一个运行时对象，可以直接注入到controller、service、factory、repository。
  */
 type Worker interface {
     //获取iris的上下文
     IrisContext() freedom.Context
     //获取带上下文的日志实例。
     Logger() Logger
+    //设置带上下文的日志实例。
+    SetLogger(Logger)
     //获取一级缓存实例，请求结束，该缓存生命周期结束。
     Store() *memstore.Store
     //获取总线，读写上下游透传的数据
@@ -84,24 +86,31 @@ type Initiator interface {
     CreateParty(relativePath string, handlers ...context.Handler) iris.Party
     //绑定控制器到 iris.Party
     BindControllerByParty(party iris.Party, controller interface{})
-    //直接绑定控制器到路径，可以指定中间件。
+    //绑定控制器到路径，可以指定中间件。
     BindController(relativePath string, controller interface{}, handlers ...context.Handler)
-    //绑定服务
+
+    //绑定创建服务函数，绑定后客户可以依赖注入该类型使用。
     BindService(f interface{})
-    //获取服务
-    GetService(ctx iris.Context, service interface{})
-    //注入到控制器
-    InjectController(f interface{})
-    //绑定工厂
+    //绑定创建工厂函数，绑定后客户可以依赖注入该类型使用。
     BindFactory(f interface{})
-    //绑定Repo
+    //绑定创建Repository函数，绑定后客户可以依赖注入该类型使用。
     BindRepository(f interface{})
-    //绑定基础设施组件 如果组件是单例 com是对象， 如果组件是多例com是创建函数。
+    //绑定创建组件函数，绑定后客户可以依赖注入该类型使用。 如果组件是单例 com是对象， 如果组件是多例com是创建函数。
     BindInfra(single bool, com interface{})
-    //获取基础设施组件, 只有控制器获取组件需要在Prepare内调用， service和repository可直接依赖注入
+
+    //注入实例到控制器，适配iris的注入方式。
+    InjectController(f interface{})
+    //配合InjectController
     GetInfra(ctx iris.Context, com interface{})
+    //配合InjectController
+    GetService(ctx iris.Context, service interface{})
+   
+
+
     //启动回调: Prepare之后，Run之前.
     Start(f func(starter Starter))
+    //绑定事件, 可以给控制器绑定topic事件
+    ListenEvent(topic string, controller string})
     Iris() *iris.Application
 }
 
@@ -121,7 +130,7 @@ type Initiator interface {
 |Application.Close|程序关闭|
 
 #### 请求生命周期
-###### 每一个请求开始都会创建若干依赖对象，worker、controller、service、repository、infra等。每一个请求独立使用这些对象，不会多请求并发的读写共享对象。当然也无需担心效率问题，框架已经做了池。请求结束会回收这些对象。 如果过程中使用了go func(){//访问相关对象}，请在之前调用 **Worker.DelayReclaiming()**.
+###### 每一个请求开始都会创建若干依赖对象，worker、controller、service、factory、repository、infra等。每一个请求独立使用这些对象，不会多请求并发的读写共享对象。当然也无需担心效率问题，框架已经做了池。请求结束会回收这些对象。 如果过程中使用了go func(){//访问相关对象}，请在之前调用 **Worker.DelayReclaiming()**.
 
 ---
 #### main

@@ -30,6 +30,7 @@ CREATE TABLE `goods` (
   `name` varchar(32) NOT NULL DEFAULT '' COMMENT '商品名称',
   `price` int(11) NOT NULL COMMENT '价格',
   `stock` int(11) NOT NULL COMMENT '库存',
+  `version` smallint(5) unsigned NOT NULL DEFAULT '0' COMMENT '乐观锁版本号',
   `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
@@ -38,12 +39,12 @@ CREATE TABLE `goods` (
 LOCK TABLES `goods` WRITE;
 /*!40000 ALTER TABLE `goods` DISABLE KEYS */;
 
-INSERT INTO `goods` (`id`, `name`, `price`, `stock`, `created`, `updated`)
+INSERT INTO `goods` (`id`, `name`, `price`, `stock`, `version`, `created`, `updated`)
 VALUES
-	(1,'冈本',15,139445,'2020-01-16 18:06:31','2020-11-07 17:35:21'),
-	(2,'杰士邦',15,186,'2020-01-16 18:06:44','2020-03-20 22:35:51'),
-	(3,'杜蕾斯',20,186,'2020-01-16 18:07:02','2020-03-20 22:35:51'),
-	(4,'第六感',80,186,'2020-01-16 18:07:22','2020-03-23 22:20:30');
+	(1,'冈本',15,139445,0,'2020-01-16 18:06:31','2020-11-07 17:35:21'),
+	(2,'杰士邦',15,186,0,'2020-01-16 18:06:44','2020-03-20 22:35:51'),
+	(3,'杜蕾斯',20,186,0,'2020-01-16 18:07:02','2020-03-20 22:35:51'),
+	(4,'第六感',80,186,0,'2020-01-16 18:07:22','2020-03-23 22:20:30');
 
 /*!40000 ALTER TABLE `goods` ENABLE KEYS */;
 UNLOCK TABLES;

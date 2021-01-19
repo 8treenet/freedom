@@ -2,17 +2,19 @@
 package po
 
 import (
-	"github.com/jinzhu/gorm"
 	"time"
+
+	"github.com/jinzhu/gorm"
 )
 
 // Goods .
 type Goods struct {
 	changes map[string]interface{}
 	ID      int       `gorm:"primary_key;column:id"`
-	Name    string    `gorm:"column:name"`  // 商品名称
-	Price   int       `gorm:"column:price"` // 价格
-	Stock   int       `gorm:"column:stock"` // 库存
+	Name    string    `gorm:"column:name"`    // 商品名称
+	Price   int       `gorm:"column:price"`   // 价格
+	Stock   int       `gorm:"column:stock"`   // 库存
+	Version int       `gorm:"column:version"` // 乐观锁版本号
 	Created time.Time `gorm:"column:created"`
 	Updated time.Time `gorm:"column:updated"`
 }
@@ -24,7 +26,7 @@ func (obj *Goods) TableName() string {
 
 // Location .
 func (obj *Goods) Location() map[string]interface{} {
-	return map[string]interface{}{"id": obj.ID}
+	return map[string]interface{}{"id": obj.ID, "version": obj.Version}
 }
 
 // GetChanges .
@@ -66,6 +68,11 @@ func (obj *Goods) SetStock(stock int) {
 	obj.update("stock", stock)
 }
 
+// SetVersion .
+func (obj *Goods) SetVersion(version int) {
+	obj.update("version", version)
+}
+
 // SetCreated .
 func (obj *Goods) SetCreated(created time.Time) {
 	obj.Created = created
@@ -88,4 +95,9 @@ func (obj *Goods) AddPrice(price int) {
 func (obj *Goods) AddStock(stock int) {
 	obj.Stock += stock
 	obj.update("stock", gorm.Expr("stock + ?", stock))
+}
+
+// AddVersion .
+func (obj *Goods) AddVersion(version int) {
+	obj.update("version", gorm.Expr("version + ?", version))
 }

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"github.com/8treenet/freedom"
+	"github.com/8treenet/freedom/example/infra-example/common"
 	"github.com/8treenet/freedom/example/infra-example/domain/entity"
 	"github.com/8treenet/freedom/example/infra-example/domain/po"
 	"github.com/8treenet/freedom/example/infra-example/infra/domainevent"
@@ -47,11 +48,15 @@ func (repo *GoodsRepository) GetAll() (result []*entity.Goods, e error) {
 
 // Save .
 func (repo *GoodsRepository) Save(goods *entity.Goods) (e error) {
-	_, e = saveGoods(repo, goods)
-	if e != nil {
-		return
-	}
+	goods.AddVersion(1) //版本号加1
 
+	affected, e := saveGoods(repo, goods)
+	if e != nil {
+		return e
+	}
+	if affected == 0 {
+		return common.VersionExpired
+	}
 	return repo.EventManager.Save(&repo.Repository, goods) //持久化实体上的领域事件
 }
 
