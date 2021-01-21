@@ -56,9 +56,9 @@ type Application interface {
     InstallSerializer(marshal func(v interface{}) ([]byte, error), unmarshal func(data []byte, v interface{}) error)
 }
 
- /*
-    Worker 请求运行时对象，一个请求创建一个运行时对象，可以直接注入到controller、service、factory、repository。
- */
+/*
+    Worker 请求运行时对象，一个请求创建一个运行时对象，可以直接注入到controller、service、factory、repository, 无需侵入的传递。
+*/
 type Worker interface {
     //获取iris的上下文
     IrisContext() freedom.Context
@@ -107,9 +107,9 @@ type Initiator interface {
    
 
 
-    //启动回调: Prepare之后，Run之前.
+    //启动回调. Prepare之后，Run之前.
     Start(f func(starter Starter))
-    //绑定事件, 可以给控制器绑定topic事件
+    //监听事件. 监听1个topic的事件，由指定控制器消费.
     ListenEvent(topic string, controller string})
     Iris() *iris.Application
 }
@@ -233,8 +233,8 @@ func init() {
 }
 
 type Default struct {
-	Sev    *domain.Default //注入领域服务 Default
-	Worker freedom.Worker //注入请求运行时 Worker
+	Sev    *domain.Default //依赖注入领域服务 Default
+	Worker freedom.Worker //依赖注入请求运行时 Worker，无需侵入的传递。
 }
 
 // Get handles the GET: / route.
@@ -308,7 +308,7 @@ func init() {
                 return &Default{}
             })
             initiator.InjectController(func(ctx freedom.Context) (service *Default) {
-                //把 Default 注入到控制器
+                //Default 注入到控制器
                 initiator.GetService(ctx, &service)
                 return
             })
@@ -317,8 +317,8 @@ func init() {
 
 // Default .
 type Default struct {
-	Worker    freedom.Worker    //注入请求运行时
-	DefRepo   *repository.Default   //注入资源库对象  DI方式
+	Worker    freedom.Worker    //依赖注入请求运行时,无需侵入的传递。
+	DefRepo   *repository.Default   //依赖注入资源库对象  DI方式
 	DefRepoIF repository.DefaultRepoInterface  //也可以注入资源库接口 DIP方式
 }
 
