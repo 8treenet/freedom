@@ -7,3 +7,6 @@ debug
 .DS_Store
 go.sum
 /log
+
+# For windows powershell scripts
+/*.ps1
