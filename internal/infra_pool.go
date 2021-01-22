@@ -15,14 +15,17 @@ func newInfraPool() *InfraPool {
 	return result
 }
 
-// InfraPool .
+// InfraPool represents a pool of zero or more infrastructure components.
 type InfraPool struct {
 	instancePool map[reflect.Type]*sync.Pool
 	singlemap    map[reflect.Type]interface{}
 	shutdownList []func()
 }
 
-// bind .
+// bind accepts a bool indicating should treat the component as singleton, a
+// reflect.Type representing the component's underlying type, and a specified
+// component instance. bind registers the component into the *InfraPool with the
+// reflect.Type.
 func (pool *InfraPool) bind(single bool, t reflect.Type, com interface{}) {
 	type setSingle interface {
 		setSingle()
@@ -47,7 +50,10 @@ func (pool *InfraPool) bind(single bool, t reflect.Type, com interface{}) {
 	}
 }
 
-// get .
+// get accepts a *worker and a reflect.Value representing what the component
+// should be retrieved. get looks-up the component from the *InfraPool and fill
+// out the reflect.Value with the component found in *InfraPool. get returns
+// true if the component found, and false otherwise.
 func (pool *InfraPool) get(rt *worker, ptr reflect.Value) bool {
 	if scom := pool.single(ptr.Type()); scom != nil {
 		ptr.Set(reflect.ValueOf(scom))

@@ -97,8 +97,7 @@ type Application struct {
 	Prometheus *Prometheus
 }
 
-// NewApplication creates an instance of Application exactly once while the program
-// is running.
+// NewApplication creates an *Application exactly once while the program is running.
 func NewApplication() *Application {
 	globalAppOnce.Do(func() {
 		globalApp = new(Application)
@@ -118,26 +117,32 @@ func NewApplication() *Application {
 	return globalApp
 }
 
-// Iris .
+// Iris returns a *IrisApplication of the *Application.
 func (app *Application) Iris() *IrisApplication {
 	return app.IrisApp
 }
 
-// Logger .
+// Logger returns a *golog.Logger of the *Application.
 func (app *Application) Logger() *golog.Logger {
 	return app.Iris().Logger()
 }
 
-// GetServiceLocator .
-// Because of ambiguous naming, I've been create ServiceLocator as an alternative.
-// Considering remove this function in the future.
-func (app *Application) GetServiceLocator() *ServiceLocatorImpl {
+// ServiceLocator returns a *ServiceLocatorImpl of the *Application.
+func (app *Application) ServiceLocator() *ServiceLocatorImpl {
 	return app.serviceLocator
 }
 
-// GetService accepts an IrisContext and a pointer to the typed service. GetService
-// looks up a service from the ServicePool by the type of the pointer and fill
-// the pointer with the service.
+// GetServiceLocator returns a *ServiceLocatorImpl of the *Application.
+//
+//TODO(coco):
+// Because of ambiguous naming, I've been create ServiceLocator as an alternative.
+// Considering remove this function in the future.
+func (app *Application) GetServiceLocator() *ServiceLocatorImpl {
+	return app.ServiceLocator()
+}
+
+// GetService accepts an IrisContext and a pointer to the typed service, and fill
+// out the pointer with the component retrieved from *ServicePool.
 func (app *Application) GetService(ctx IrisContext, service interface{}) {
 	app.pool.get(ctx.Values().Get(WorkerKey).(*worker), service)
 }
@@ -149,7 +154,8 @@ func (app *Application) GetInfra(ctx IrisContext, com interface{}) {
 	app.comPool.get(ctx.Values().Get(WorkerKey).(*worker), reflect.ValueOf(com).Elem())
 }
 
-// GetSingleInfra .
+// GetSingleInfra accepts a pointer to the typed infrastructure component, and
+// fill out the pointer with the component retrieved from *InfraPool.
 func (app *Application) GetSingleInfra(com interface{}) bool {
 	return app.comPool.GetSingleInfra(reflect.ValueOf(com).Elem())
 }
@@ -160,6 +166,8 @@ func (app *Application) SetPrefixPath(prefixPath string) {
 }
 
 // InstallParty assigns specified prefix to the application-level router.
+//
+//TODO(coco):
 // Because of ambiguous naming, I've been create SetPrefixPath as an alternative.
 // Considering remove this function in the future.
 func (app *Application) InstallParty(prefixPath string) {
@@ -409,7 +417,7 @@ func (app *Application) NewTLSRunner(addr string, certFile, keyFile string, conf
 	}
 }
 
-//NewH2CRunner .
+// NewH2CRunner .
 func (app *Application) NewH2CRunner(addr string, configurators ...IrisHostConfigurator) IrisRunner {
 	h2cSer := &http2.Server{}
 	ser := &http.Server{
