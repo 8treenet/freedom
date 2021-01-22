@@ -65,6 +65,10 @@ func WorkerFromCtx(ctx Context) Worker {
 }
 
 // ToWorker proxy a call to WorkerFromCtx.
+//
+//TODO(coco):
+// Because of ambiguous naming, I've been create WorkerFromCtx as an alternative.
+// Considering remove this function in the future.
 func ToWorker(ctx Context) Worker {
 	return WorkerFromCtx(ctx)
 }

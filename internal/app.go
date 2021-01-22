@@ -186,6 +186,10 @@ func (app *Application) SubRouter(relativePath string, handlers ...IrisHandler) 
 // CreateParty makes a new path by concatenating the application-level router's
 // prefix and the specified route path, creates an IrisRouter with the new path
 // and the those specified IrisHandler, and returns the IrisRouter.
+//
+//TODO(coco):
+// Because of ambiguous naming, I've been create SubRouter as an alternative.
+// Considering remove this function in the future.
 func (app *Application) CreateParty(relativePath string, handlers ...IrisHandler) IrisParty {
 	return app.SubRouter(relativePath, handlers...)
 }
@@ -218,6 +222,10 @@ func (app *Application) BindControllerWithParty(router IrisParty, controller Iri
 // BindControllerByParty resolves the application's dependencies, and creates
 // an IrisRouter and an IrisMVCApplication. the IrisMVCApplication would be attached
 // on IrisRouter and the EventBus after it has created.
+//
+//TODO(coco):
+// Because of ambiguous naming, I've been create BindControllerWithParty as an
+// alternative. Considering remove this function in the future.
 func (app *Application) BindControllerByParty(router IrisParty, controller interface{}) {
 	app.BindControllerWithParty(router, controller)
 }
@@ -293,6 +301,8 @@ func (app *Application) InjectIntoController(f Dependency) {
 }
 
 // InjectController adds a Dependency for iris controller.
+//
+//TODO(coco):
 // Because of ambiguous naming, I've been create InjectIntoController as an
 // alternative. Considering remove this function in the future.
 func (app *Application) InjectController(f Dependency) {
@@ -341,6 +351,10 @@ func (app *Application) AddStarter(f func(starter Starter)) {
 }
 
 // Start adds a builder function which builds a Starter.
+//
+//TODO(coco):
+// Because of ambiguous naming, I've been create AddStarter as an alternative.
+// Considering remove this function in the future.
 func (app *Application) Start(f func(starter Starter)) {
 	starters = append(starters, f)
 }
@@ -431,7 +445,7 @@ func (app *Application) NewH2CRunner(addr string, configurators ...IrisHostConfi
 
 // Run accepts an IrisRunner and an IrisConfiguration. Run initializes the
 // middleware and the infrastructure of the application likes database connection,
-// cache, repository and etc. , and serving an iris application as the HTTP server
+// cache, repository and etc., and serving an iris application as the HTTP server
 // to handle the incoming requests.
 func (app *Application) Run(runner IrisRunner, conf IrisConfiguration) {
 	app.addMiddlewares(conf)
