@@ -24,6 +24,7 @@ type Response struct {
 	ContentLength int64
 	Uncompressed  bool
 	traceInfo     HTTPTraceInfo
+	cookies       []*http.Cookie
 }
 
 // Clone .
@@ -42,6 +43,7 @@ func (res *Response) Clone() *Response {
 		ContentLength: res.ContentLength,
 		Uncompressed:  res.Uncompressed,
 		traceInfo:     res.traceInfo,
+		cookies:       res.cookies,
 	}
 }
 
@@ -59,7 +61,24 @@ func (res *Response) ProtoAtLeast(major, minor int) bool {
 
 // Cookies parses and returns the cookies set in the Set-Cookie headers.
 func (res *Response) Cookies() []*http.Cookie {
-	return readSetCookies(res.Header)
+	if cap(res.cookies) > 0 {
+		return res.cookies
+	}
+
+	res.cookies = make([]*http.Cookie, 0, 1)
+	res.cookies = append(res.cookies, readSetCookies(res.Header)...)
+	return res.cookies
+}
+
+// GetCookie returns cookie's value by its name
+// returns empty string if nothing was found.
+func (res *Response) Cookie(name string) *http.Cookie {
+	for _, cookie := range res.cookies {
+		if cookie.Name == name {
+			return cookie
+		}
+	}
+	return nil
 }
 
 // readSetCookies parses all "Set-Cookie" values from
