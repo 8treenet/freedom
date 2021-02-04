@@ -179,8 +179,8 @@ func (pool *InfraPool) diInfraFromValue(value reflect.Value) {
 	globalApp.comPool.getByInternal(value)
 }
 
-// GetSingleInfra .
-func (pool *InfraPool) GetSingleInfra(ptr reflect.Value) bool {
+// FetchSingleInfra .
+func (pool *InfraPool) FetchSingleInfra(ptr reflect.Value) bool {
 	if scom := pool.single(ptr.Type()); scom != nil {
 		ptr.Set(reflect.ValueOf(scom))
 		return true

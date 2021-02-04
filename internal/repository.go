@@ -122,8 +122,8 @@ func (repo *Repository) InjectBaseEntitys(entitys interface{}) {
 	return
 }
 
-// Other .
-func (repo *Repository) Other(obj interface{}) {
+// FetchCustom .
+func (repo *Repository) FetchCustom(obj interface{}) {
 	globalApp.other.get(obj)
 	return
 }

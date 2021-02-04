@@ -32,8 +32,8 @@ func (infra *Infra) Redis() redis.Cmdable {
 	return globalApp.Cache.client
 }
 
-// Other .
-func (infra *Infra) Other(obj interface{}) {
+// FetchCustom .
+func (infra *Infra) FetchCustom(obj interface{}) {
 	globalApp.other.get(obj)
 	return
 }
@@ -102,9 +102,9 @@ func (infra *Infra) Worker() Worker {
 	return infra.worker
 }
 
-// GetSingleInfra .
-func (infra *Infra) GetSingleInfra(com interface{}) bool {
-	return globalApp.GetSingleInfra(com)
+// FetchSingleInfra .
+func (infra *Infra) FetchSingleInfra(com interface{}) bool {
+	return globalApp.FetchSingleInfra(com)
 }
 
 func (infra *Infra) setSingle() {

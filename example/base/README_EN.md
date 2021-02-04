@@ -120,7 +120,7 @@ type Starter interface {
     // Synchronous Cache Preheat
     CachePreheat(f func(repo *Repository))
     // Get Single Infrastructure
-    GetSingleInfra(com interface{})
+    FetchSingleInfra(com interface{})
 }
 
 ```

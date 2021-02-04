@@ -24,9 +24,11 @@ type Initiator interface {
 	BindRepository(f interface{})
 	BindFactory(f interface{})
 	GetService(ctx iris.Context, service interface{})
+	FetchService(ctx iris.Context, service interface{})
 	// BindInfra if is a singleton, com is an object. if is multiton, com is a function
 	BindInfra(single bool, com interface{})
 	GetInfra(ctx iris.Context, com interface{})
+	FetchInfra(ctx iris.Context, com interface{})
 	// Listen Event
 	ListenEvent(eventName string, objectMethod string, appointInfra ...interface{})
 	Start(f func(starter Starter))
@@ -40,7 +42,7 @@ type Starter interface {
 	AsyncCacheWarmUp(f func(repo *Repository))
 	// Sync cache warm-up
 	CacheWarmUp(f func(repo *Repository))
-	GetSingleInfra(com interface{}) bool
+	FetchSingleInfra(com interface{}) bool
 }
 
 // SingleBoot represents singleton startup component.

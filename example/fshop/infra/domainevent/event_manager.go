@@ -44,7 +44,7 @@ func (manager *EventManager) Booting(sb freedom.SingleBoot) {
 	}
 
 	//获取Kafka Producer组件, 只支持单例组件的获取.
-	if !manager.GetSingleInfra(&manager.kafkaProducer) {
+	if !manager.FetchSingleInfra(&manager.kafkaProducer) {
 		panic("No KafkaProducer found")
 	}
 

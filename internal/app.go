@@ -139,6 +139,13 @@ func (app *Application) GetServiceLocator() *ServiceLocatorImpl {
 // looks up a service from the ServicePool by the type of the pointer and fill
 // the pointer with the service.
 func (app *Application) GetService(ctx IrisContext, service interface{}) {
+	app.FetchService(ctx, service)
+}
+
+// FetchService accepts an IrisContext and a pointer to the typed service. FetchService
+// looks up a service from the ServicePool by the type of the pointer and fill
+// the pointer with the service.
+func (app *Application) FetchService(ctx IrisContext, service interface{}) {
 	app.pool.get(ctx.Values().Get(WorkerKey).(*worker), service)
 }
 
@@ -146,12 +153,19 @@ func (app *Application) GetService(ctx IrisContext, service interface{}) {
 // looks up a service from the InfraPool by the type of the pointer and fill the
 // pointer with the service.
 func (app *Application) GetInfra(ctx IrisContext, com interface{}) {
+	app.FetchInfra(ctx, com)
+}
+
+// FetchInfra accepts an IrisContext and a pointer to the typed service. GetInfra
+// looks up a service from the InfraPool by the type of the pointer and fill the
+// pointer with the service.
+func (app *Application) FetchInfra(ctx IrisContext, com interface{}) {
 	app.comPool.get(ctx.Values().Get(WorkerKey).(*worker), reflect.ValueOf(com).Elem())
 }
 
-// GetSingleInfra .
-func (app *Application) GetSingleInfra(com interface{}) bool {
-	return app.comPool.GetSingleInfra(reflect.ValueOf(com).Elem())
+// FetchSingleInfra .
+func (app *Application) FetchSingleInfra(com interface{}) bool {
+	return app.comPool.FetchSingleInfra(reflect.ValueOf(com).Elem())
 }
 
 // SetPrefixPath assigns specified prefix to the application-level router.
