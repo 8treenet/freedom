@@ -21,7 +21,7 @@ func initApp() {
 type Application interface {
 	InstallDB(f func() (db interface{}))
 	InstallRedis(f func() (client redis.Cmdable))
-	InstallOther(f func() interface{})
+	InstallCustom(f func() interface{})
 	InstallMiddleware(handler iris.Handler)
 	InstallParty(relativePath string)
 	NewRunner(addr string, configurators ...host.Configurator) iris.Runner

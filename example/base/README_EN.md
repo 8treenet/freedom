@@ -53,7 +53,7 @@ type Application interface {
     // Install Domain Events
     InstallDomainEventInfra(eventInfra DomainEventInfra)
     // Install Others, such as mongodb、es
-    InstallOther(f func() interface{})
+    InstallCustom(f func() interface{})
     // Start Callback Function: After Prepare And Before Run
     Start(f func(starter Starter))
     // Install Serializer: Used for serialization and deserialization, such as domain event objects or entity.

@@ -311,8 +311,8 @@ func (app *Application) InstallMiddleware(handler IrisHandler) {
 	app.Middleware = append(app.Middleware, handler)
 }
 
-// InstallOther .
-func (app *Application) InstallOther(f func() interface{}) {
+// InstallCustom .
+func (app *Application) InstallCustom(f func() interface{}) {
 	app.other.add(f)
 }
 

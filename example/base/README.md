@@ -49,7 +49,7 @@ type Application interface {
     //启动
     Run(serve iris.Runner, c iris.Configuration)
     //安装其他, 如mongodb、es 等
-    InstallOther(f func() interface{})
+    InstallCustom(f func() interface{})
     //启动回调: Prepare之后，Run之前.
     Start(f func(starter Starter))
     //安装序列化，未安装默认使用官方json
