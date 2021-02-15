@@ -20,7 +20,7 @@ var (
 	// directory of the profile.
 	EnvProfileDir = "FREEDOM_PROJECT_CONFIG"
 
-	// ProfileENV is the name of the profile directory in environment variable.
+	// ProfileENV is the name to the profile directory in environment variable.
 	ProfileENV = EnvProfileDir
 
 	// cachedProfileDir is the cache of the profile's path.
