@@ -124,7 +124,7 @@ func (repo *Repository) InjectBaseEntitys(entitys interface{}) {
 
 // Other .
 func (repo *Repository) Other(obj interface{}) {
-	globalApp.other.get(obj)
+	globalApp.oneShotPool.get(obj)
 	return
 }
 

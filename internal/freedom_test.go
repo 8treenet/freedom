@@ -110,11 +110,11 @@ func TestParsePoolFunc2(t *testing.T) {
 }
 
 func TestOther(t *testing.T) {
-	ot := newOther()
-	ot.add(func() interface{} {
+	ot := newOneShotPool()
+	ot.addProvider(func() interface{} {
 		return &TestUser{Age: 100}
 	})
-	ot.add(func() interface{} {
+	ot.addProvider(func() interface{} {
 		var list []*B
 		for i := 0; i < 3; i++ {
 			list = append(list, &B{I: i})
@@ -122,7 +122,7 @@ func TestOther(t *testing.T) {
 		return list
 	})
 
-	ot.booting()
+	ot.resolve()
 
 	var tu *TestUser
 	ot.get(&tu)

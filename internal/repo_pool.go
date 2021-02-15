@@ -61,7 +61,7 @@ func (pool *RepositoryPool) diRepoFromValue(value reflect.Value, instance *servi
 		//创建实例并且注入基础设施组件
 		value.Set(newfield)
 		allFieldsFromValue(newfield, func(repoValue reflect.Value) {
-			globalApp.comPool.diInfraFromValue(repoValue)
+			globalApp.infraPool.diInfraFromValue(repoValue)
 			if repoValue.IsNil() {
 				return
 			}
@@ -69,7 +69,7 @@ func (pool *RepositoryPool) diRepoFromValue(value reflect.Value, instance *servi
 				instance.calls = append(instance.calls, br)
 			}
 		})
-		//globalApp.comPool.diInfra(newfield.Interface())
+		//globalApp.infraPool.diInfra(newfield.Interface())
 		return true
 	}
 
@@ -90,7 +90,7 @@ func (pool *RepositoryPool) diRepoFromValue(value reflect.Value, instance *servi
 			//创建实例并且注入基础设施组件
 			value.Set(newfield)
 			allFieldsFromValue(newfield, func(repoValue reflect.Value) {
-				globalApp.comPool.diInfraFromValue(repoValue)
+				globalApp.infraPool.diInfraFromValue(repoValue)
 				if repoValue.IsNil() {
 					return
 				}
@@ -98,7 +98,7 @@ func (pool *RepositoryPool) diRepoFromValue(value reflect.Value, instance *servi
 					instance.calls = append(instance.calls, br)
 				}
 			})
-			//globalApp.comPool.diInfra(newfield.Interface())
+			//globalApp.infraPool.diInfra(newfield.Interface())
 			return true
 		}
 	}

@@ -40,7 +40,7 @@ func (locator *ServiceLocatorImpl) Call(fun interface{}) {
 	if err != nil {
 		panic(fmt.Sprintf("[Freedom] ServiceLocatorImpl.Call, %v : %s", fun, err.Error()))
 	}
-	newService := globalApp.pool.create(worker, serviceObj)
+	newService := globalApp.servicePool.create(worker, serviceObj)
 	for _, beginCallBack := range locator.beginCallBack {
 		beginCallBack(worker)
 	}
@@ -52,5 +52,5 @@ func (locator *ServiceLocatorImpl) Call(fun interface{}) {
 	if worker.IsDeferRecycle() {
 		return
 	}
-	globalApp.pool.free(newService)
+	globalApp.servicePool.free(newService)
 }

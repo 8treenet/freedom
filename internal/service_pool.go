@@ -100,8 +100,8 @@ func (pool *ServicePool) bind(t reflect.Type, f interface{}) {
 					result.workers = append(result.workers, fieldValue)
 					return
 				}
-				globalApp.rpool.diRepoFromValue(fieldValue, &result)
-				globalApp.comPool.diInfraFromValue(fieldValue)
+				globalApp.repoPool.diRepoFromValue(fieldValue, &result)
+				globalApp.infraPool.diInfraFromValue(fieldValue)
 				globalApp.factoryPool.diFactoryFromValue(fieldValue, &result)
 
 				if fieldValue.IsNil() {

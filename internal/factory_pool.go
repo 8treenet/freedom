@@ -75,8 +75,8 @@ func (pool *FactoryPool) diFactoryFromValue(value reflect.Value, instance *servi
 				return
 			}
 
-			globalApp.rpool.diRepoFromValue(fieldValue, instance)
-			globalApp.comPool.diInfraFromValue(fieldValue)
+			globalApp.repoPool.diRepoFromValue(fieldValue, instance)
+			globalApp.infraPool.diInfraFromValue(fieldValue)
 
 			if fieldValue.IsNil() {
 				return
@@ -85,8 +85,8 @@ func (pool *FactoryPool) diFactoryFromValue(value reflect.Value, instance *servi
 				instance.calls = append(instance.calls, br)
 			}
 		})
-		// globalApp.comPool.diInfra(factoryObj)
-		// globalApp.rpool.diRepo(factoryObj)
+		// globalApp.infraPool.diInfra(factoryObj)
+		// globalApp.repoPool.diRepo(factoryObj)
 		return true
 	}
 
@@ -114,8 +114,8 @@ func (pool *FactoryPool) diFactoryFromValue(value reflect.Value, instance *servi
 					return
 				}
 
-				globalApp.rpool.diRepoFromValue(fieldValue, instance)
-				globalApp.comPool.diInfraFromValue(fieldValue)
+				globalApp.repoPool.diRepoFromValue(fieldValue, instance)
+				globalApp.infraPool.diInfraFromValue(fieldValue)
 
 				if fieldValue.IsNil() {
 					return

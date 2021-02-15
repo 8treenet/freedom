@@ -4,7 +4,7 @@ import (
 	"reflect"
 )
 
-func newMessageBus() *EventBus {
+func newEventBus() *EventBus {
 	return &EventBus{
 		eventsPath:     make(map[string]string),
 		eventsAddr:     make(map[string]string),

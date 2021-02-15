@@ -34,7 +34,7 @@ func (infra *Infra) Redis() redis.Cmdable {
 
 // Other .
 func (infra *Infra) Other(obj interface{}) {
-	globalApp.other.get(obj)
+	globalApp.oneShotPool.get(obj)
 	return
 }
 

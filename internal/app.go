@@ -43,23 +43,23 @@ type Application struct {
 	// serviceLocator .
 	serviceLocator *ServiceLocatorImpl
 
-	// pool .
-	pool *ServicePool
+	// servicePool .
+	servicePool *ServicePool
 
-	// rpool .
-	rpool *RepositoryPool
+	// repoPool .
+	repoPool *RepositoryPool
 
 	// factoryPool .
 	factoryPool *FactoryPool
 
-	// comPool .
-	comPool *InfraPool
+	// infraPool .
+	infraPool *InfraPool
 
-	// msgsBus .
-	msgsBus *EventBus
+	// eventBus .
+	eventBus *EventBus
 
-	// other .
-	other *other
+	// oneShotPool .
+	oneShotPool *oneShotPool
 
 	// unmarshal is a global deserializer for deserialize every []byte into object.
 	unmarshal func(data []byte, v interface{}) error
@@ -71,11 +71,10 @@ type Application struct {
 	// iris controller.
 	controllerDependencies []interface{}
 
-	// TODO(coco):
-	//  Here is bad smell I felt, so we shouldn't export this member. Considering
-	//  sets this member unexported in the future.
+	// IrisApp is an iris application.
 	//
-	// IrisApp is an iris application
+	// TODO(coco):
+	//  Shouldn't export this member. Considering makes it unexported in the future.
 	IrisApp *IrisApplication
 
 	// Database represents a database connection
@@ -102,12 +101,12 @@ func NewApplication() *Application {
 	globalAppOnce.Do(func() {
 		globalApp = new(Application)
 		globalApp.IrisApp = iris.New()
-		globalApp.pool = newServicePool()
-		globalApp.rpool = newRepoPool()
+		globalApp.servicePool = newServicePool()
+		globalApp.repoPool = newRepoPool()
 		globalApp.factoryPool = newFactoryPool()
-		globalApp.comPool = newInfraPool()
-		globalApp.msgsBus = newMessageBus()
-		globalApp.other = newOther()
+		globalApp.infraPool = newInfraPool()
+		globalApp.eventBus = newEventBus()
+		globalApp.oneShotPool = newOneShotPool()
 		globalApp.marshal = json.Marshal
 		globalApp.unmarshal = json.Unmarshal
 		globalApp.Prometheus = newPrometheus()
@@ -144,20 +143,20 @@ func (app *Application) GetServiceLocator() *ServiceLocatorImpl {
 // GetService accepts an IrisContext and a pointer to the typed service, and fill
 // out the pointer with the component retrieved from *ServicePool.
 func (app *Application) GetService(ctx IrisContext, service interface{}) {
-	app.pool.get(ctx.Values().Get(WorkerKey).(*worker), service)
+	app.servicePool.get(ctx.Values().Get(WorkerKey).(*worker), service)
 }
 
 // GetInfra accepts an IrisContext and a pointer to the typed service. GetInfra
 // looks up a service from the InfraPool by the type of the pointer and fill the
 // pointer with the service.
 func (app *Application) GetInfra(ctx IrisContext, com interface{}) {
-	app.comPool.get(ctx.Values().Get(WorkerKey).(*worker), reflect.ValueOf(com).Elem())
+	app.infraPool.get(ctx.Values().Get(WorkerKey).(*worker), reflect.ValueOf(com).Elem())
 }
 
 // GetSingleInfra accepts a pointer to the typed infrastructure component, and
 // fill out the pointer with the component retrieved from *InfraPool.
 func (app *Application) GetSingleInfra(com interface{}) bool {
-	return app.comPool.GetSingleInfra(reflect.ValueOf(com).Elem())
+	return app.infraPool.GetSingleInfra(reflect.ValueOf(com).Elem())
 }
 
 // SetPrefixPath assigns specified prefix to the application-level router.
@@ -205,7 +204,7 @@ func (app *Application) BindController(relativePath string, controller IrisContr
 	mvcApp.Register(app.resolveDependencies()...)
 	mvcApp.Handle(controller)
 
-	app.msgsBus.addController(controller)
+	app.eventBus.addController(controller)
 }
 
 // BindControllerWithParty accepts an IrisRouter and an IrisController.
@@ -236,7 +235,7 @@ func (app *Application) BindService(f interface{}) {
 	if err != nil {
 		globalApp.Logger().Fatalf("[Freedom] BindService: The binding function is incorrect, %v : %s", f, err.Error())
 	}
-	app.pool.bind(outType, f)
+	app.servicePool.bind(outType, f)
 }
 
 // BindRepository .
@@ -245,7 +244,7 @@ func (app *Application) BindRepository(f interface{}) {
 	if err != nil {
 		globalApp.Logger().Fatalf("[Freedom] BindRepository: The binding function is incorrect, %v : %s", f, err.Error())
 	}
-	app.rpool.bind(outType, f)
+	app.repoPool.bind(outType, f)
 }
 
 // BindFactory .
@@ -264,23 +263,23 @@ func (app *Application) BindInfra(single bool, com interface{}) {
 		if err != nil {
 			globalApp.Logger().Fatalf("[Freedom] BindInfra: The binding function is incorrect, %v : %s", reflect.TypeOf(com), err.Error())
 		}
-		app.comPool.bind(single, outType, com)
+		app.infraPool.bind(single, outType, com)
 		return
 	}
 	if reflect.TypeOf(com).Kind() != reflect.Ptr {
 		globalApp.Logger().Fatalf("[Freedom] BindInfra: This is not a single-case object, %v", reflect.TypeOf(com))
 	}
-	app.comPool.bind(single, reflect.TypeOf(com), com)
+	app.infraPool.bind(single, reflect.TypeOf(com), com)
 }
 
 // ListenEvent .
 func (app *Application) ListenEvent(eventName string, objectMethod string, appointInfra ...interface{}) {
-	app.msgsBus.addEvent(objectMethod, eventName, appointInfra...)
+	app.eventBus.addEvent(objectMethod, eventName, appointInfra...)
 }
 
 // EventsPath .
 func (app *Application) EventsPath(infra interface{}) map[string]string {
-	return app.msgsBus.EventsPath(infra)
+	return app.eventBus.EventsPath(infra)
 }
 
 // CacheWarmUp .
@@ -311,7 +310,7 @@ func (app *Application) InjectController(f Dependency) {
 
 // RegisterShutdown .
 func (app *Application) RegisterShutdown(f func()) {
-	app.comPool.registerShutdown(f)
+	app.infraPool.registerShutdown(f)
 }
 
 // InstallDB .
@@ -331,7 +330,7 @@ func (app *Application) InstallMiddleware(handler IrisHandler) {
 
 // InstallOther .
 func (app *Application) InstallOther(f func() interface{}) {
-	app.other.add(f)
+	app.oneShotPool.addProvider(f)
 }
 
 // InstallBusMiddleware .
@@ -450,7 +449,7 @@ func (app *Application) NewH2CRunner(addr string, configurators ...IrisHostConfi
 func (app *Application) Run(runner IrisRunner, conf IrisConfiguration) {
 	app.addMiddlewares(conf)
 	app.installDB()
-	app.other.booting()
+	app.oneShotPool.resolve()
 	for index := 0; index < len(prepares); index++ {
 		prepares[index](app)
 	}
@@ -465,8 +464,8 @@ func (app *Application) Run(runner IrisRunner, conf IrisConfiguration) {
 	for i := 0; i < len(starters); i++ {
 		starters[i](app)
 	}
-	app.msgsBus.building()
-	app.comPool.singleBooting(app)
+	app.eventBus.building()
+	app.infraPool.singleBooting(app)
 	shutdownSecond := int64(2)
 	if level, ok := conf.Other["shutdown_second"]; ok {
 		shutdownSecond = level.(int64)
@@ -489,7 +488,7 @@ func (app *Application) shutdown(timeout int64) {
 			if err := recover(); err != nil {
 				app.Logger().Errorf("[Freedom] An error was encountered during the program shutdown, %v", err)
 			}
-			app.comPool.shutdown()
+			app.infraPool.shutdown()
 		}
 		close()
 		//通知组件服务即将关闭
@@ -521,8 +520,8 @@ func (app *Application) installDB() {
 
 func (app *Application) addMiddlewares(irisConf IrisConfiguration) {
 	app.Iris().Use(newWorkerHandle())
-	app.Iris().Use(globalApp.pool.freeHandle())
-	app.Iris().Use(globalApp.comPool.freeHandle())
+	app.Iris().Use(globalApp.servicePool.freeHandle())
+	app.Iris().Use(globalApp.infraPool.freeHandle())
 	if pladdr, ok := irisConf.Other["prometheus_listen_addr"]; ok {
 		registerPrometheus(app.Prometheus, irisConf.Other["service_name"].(string), pladdr.(string))
 		globalApp.IrisApp.Use(newPrometheusHandle(app.Prometheus))

@@ -42,7 +42,7 @@ func (u *UnitTestImpl) GetService(service interface{}) {
 func (u *UnitTestImpl) GetRepository(repository interface{}) {
 	instance := serviceElement{calls: []BeginRequest{}, workers: []reflect.Value{}}
 	value := reflect.ValueOf(repository).Elem()
-	ok := globalApp.rpool.diRepoFromValue(value, &instance)
+	ok := globalApp.repoPool.diRepoFromValue(value, &instance)
 	if !ok {
 		globalApp.IrisApp.Logger().Fatalf("[Freedom] No dependency injection was found for the object,%v", value.Type().String())
 	}
@@ -53,7 +53,7 @@ func (u *UnitTestImpl) GetRepository(repository interface{}) {
 	if br, ok := value.Interface().(BeginRequest); ok {
 		instance.calls = append(instance.calls, br)
 	}
-	globalApp.pool.beginRequest(u.rt, instance)
+	globalApp.servicePool.beginRequest(u.rt, instance)
 }
 
 // GetFactory .
@@ -68,7 +68,7 @@ func (u *UnitTestImpl) GetFactory(factory interface{}) {
 		globalApp.IrisApp.Logger().Fatalf("[Freedom] This use repository object must be a capital variable, %v" + value.Type().String())
 	}
 
-	globalApp.pool.beginRequest(u.rt, instance)
+	globalApp.servicePool.beginRequest(u.rt, instance)
 }
 
 // InstallDB .
@@ -90,7 +90,7 @@ func (u *UnitTestImpl) Run() {
 	logLevel := "debug"
 	globalApp.IrisApp.Logger().SetLevel(logLevel)
 	globalApp.installDB()
-	globalApp.comPool.singleBooting(globalApp)
+	globalApp.infraPool.singleBooting(globalApp)
 }
 
 func (u *UnitTestImpl) newRuntime() *worker {
