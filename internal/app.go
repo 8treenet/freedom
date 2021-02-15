@@ -3,12 +3,8 @@ package internal
 import (
 	stdcontext "context"
 	"encoding/json"
-	"net/http"
 	"reflect"
 	"time"
-
-	"golang.org/x/net/http2"
-	"golang.org/x/net/http2/h2c"
 
 	"github.com/go-redis/redis"
 	"github.com/kataras/golog"
@@ -73,8 +69,7 @@ type Application struct {
 
 	// IrisApp is an iris application.
 	//
-	// TODO(coco):
-	//  Shouldn't export this member. Considering makes it unexported in the future.
+	// TODO(coco): makes this field as unexported.
 	IrisApp *IrisApplication
 
 	// Database represents a database connection
@@ -99,19 +94,22 @@ type Application struct {
 // NewApplication creates an *Application exactly once while the program is running.
 func NewApplication() *Application {
 	globalAppOnce.Do(func() {
-		globalApp = new(Application)
-		globalApp.IrisApp = iris.New()
-		globalApp.servicePool = newServicePool()
-		globalApp.repoPool = newRepoPool()
-		globalApp.factoryPool = newFactoryPool()
-		globalApp.infraPool = newInfraPool()
-		globalApp.eventBus = newEventBus()
-		globalApp.oneShotPool = newOneShotPool()
-		globalApp.marshal = json.Marshal
-		globalApp.unmarshal = json.Unmarshal
-		globalApp.Prometheus = newPrometheus()
-		globalApp.serviceLocator = newServiceLocator()
-		globalApp.IrisApp.Logger().SetTimeFormat("2006-01-02 15:04:05.000")
+		irisApp := iris.New()
+		irisApp.Logger().SetTimeFormat("2006-01-02 15:04:05.000")
+
+		globalApp = &Application{
+			IrisApp:        irisApp,
+			servicePool:    newServicePool(),
+			repoPool:       newRepoPool(),
+			factoryPool:    newFactoryPool(),
+			infraPool:      newInfraPool(),
+			eventBus:       newEventBus(),
+			oneShotPool:    newOneShotPool(),
+			marshal:        json.Marshal,
+			unmarshal:      json.Unmarshal,
+			Prometheus:     newPrometheus(),
+			serviceLocator: newServiceLocator(),
+		}
 	})
 	return globalApp
 }
@@ -370,7 +368,7 @@ func (app *Application) Start(f func(starter Starter)) {
 // Via host configurators you can configure the back-end host supervisor,
 // i.e to add events for shutdown, serve or error.
 func (app *Application) NewRunner(addr string, configurators ...IrisHostConfigurator) IrisRunner {
-	return iris.Addr(addr, configurators...)
+	return NewRunner(addr, configurators...)
 }
 
 // NewAutoTLSRunner can be used as an argument for the `Run` method.
@@ -401,11 +399,7 @@ func (app *Application) NewRunner(addr string, configurators ...IrisHostConfigur
 // i.e to add events for shutdown, serve or error.
 // Look at the `ConfigureHost` too.
 func (app *Application) NewAutoTLSRunner(addr string, domain string, email string, configurators ...IrisHostConfigurator) IrisRunner {
-	return func(irisApp *IrisApplication) error {
-		return irisApp.NewHost(&http.Server{Addr: addr}).
-			Configure(configurators...).
-			ListenAndServeAutoTLS(domain, email, "letscache")
-	}
+	return NewAutoTLSRunner(addr, domain, email, configurators...)
 }
 
 // NewTLSRunner can be used as an argument for the `Run` method.
@@ -423,23 +417,12 @@ func (app *Application) NewAutoTLSRunner(addr string, domain string, email strin
 // i.e to add events for shutdown, serve or error.
 // An example of this use case can be found at:
 func (app *Application) NewTLSRunner(addr string, certFile, keyFile string, configurators ...IrisHostConfigurator) IrisRunner {
-	return func(irisApp *IrisApplication) error {
-		return irisApp.NewHost(&http.Server{Addr: addr}).
-			Configure(configurators...).
-			ListenAndServeTLS(certFile, keyFile)
-	}
+	return NewTLSRunner(addr, certFile, keyFile, configurators...)
 }
 
 // NewH2CRunner .
 func (app *Application) NewH2CRunner(addr string, configurators ...IrisHostConfigurator) IrisRunner {
-	h2cSer := &http2.Server{}
-	ser := &http.Server{
-		Addr:    addr,
-		Handler: h2c.NewHandler(app.Iris(), h2cSer),
-	}
-	return func(irisApp *IrisApplication) error {
-		return irisApp.NewHost(ser).Configure(configurators...).ListenAndServe()
-	}
+	return NewH2CRunner(addr, configurators...)
 }
 
 // Run accepts an IrisRunner and an IrisConfiguration. Run initializes the
