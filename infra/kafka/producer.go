@@ -53,12 +53,12 @@ func (pi *ProducerImpl) Restart() error {
 }
 
 // Booting .
-func (pi *ProducerImpl) Booting(sb freedom.SingleBoot) {
+func (pi *ProducerImpl) Booting(bootManager freedom.BootManager) {
 	if len(pi.addrs) == 0 {
 		return
 	}
 
-	sb.RegisterShutdown(func() {
+	bootManager.RegisterShutdown(func() {
 		if err := pi.Close(); err != nil {
 			freedom.Logger().Error(err)
 		}

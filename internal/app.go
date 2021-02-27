@@ -17,8 +17,7 @@ import (
 )
 
 var _ Initiator = (*Application)(nil)
-var _ SingleBoot = (*Application)(nil)
-var _ Starter = (*Application)(nil)
+var _ BootManager = (*Application)(nil)
 
 type (
 	// Dependency is a function which represents a dependency of the application.
@@ -59,7 +58,7 @@ type Application struct {
 	msgsBus *EventBus
 
 	// other .
-	other *other
+	other *custom
 
 	// unmarshal is a global deserializer for deserialize every []byte into object.
 	unmarshal func(data []byte, v interface{}) error
@@ -108,7 +107,7 @@ func NewApplication() *Application {
 		globalApp.factoryPool = newFactoryPool()
 		globalApp.comPool = newInfraPool()
 		globalApp.msgsBus = newMessageBus()
-		globalApp.other = newOther()
+		globalApp.other = newCustom()
 		globalApp.marshal = json.Marshal
 		globalApp.unmarshal = json.Unmarshal
 		globalApp.Prometheus = newPrometheus()
@@ -281,18 +280,6 @@ func (app *Application) EventsPath(infra interface{}) map[string]string {
 	return app.msgsBus.EventsPath(infra)
 }
 
-// CacheWarmUp .
-func (app *Application) CacheWarmUp(f func(repo *Repository)) {
-	rb := new(Repository)
-	f(rb)
-}
-
-// AsyncCacheWarmUp .
-func (app *Application) AsyncCacheWarmUp(f func(repo *Repository)) {
-	rb := new(Repository)
-	go f(rb)
-}
-
 // InjectIntoController adds a Dependency for iris controller.
 func (app *Application) InjectIntoController(f Dependency) {
 	app.controllerDependencies = append(app.controllerDependencies, f)
@@ -341,14 +328,9 @@ func (app *Application) InstallSerializer(marshal func(v interface{}) ([]byte, e
 	app.unmarshal = unmarshal
 }
 
-// AddStarter adds a builder function which builds a Starter.
-func (app *Application) AddStarter(f func(starter Starter)) {
-	starters = append(starters, f)
-}
-
-// Start adds a builder function which builds a Starter.
-func (app *Application) Start(f func(starter Starter)) {
-	starters = append(starters, f)
+// BindBooting adds a builder function which builds a BootManager.
+func (app *Application) BindBooting(f func(bootManager BootManager)) {
+	bootManagers = append(bootManagers, f)
 }
 
 // NewRunner can be used as an argument for the `Run` method.
@@ -454,11 +436,13 @@ func (app *Application) Run(runner IrisRunner, conf IrisConfiguration) {
 	globalApp.IrisApp.Logger().SetLevel(logLevel)
 
 	repositoryAPIRun(conf)
-	for i := 0; i < len(starters); i++ {
-		starters[i](app)
-	}
 	app.msgsBus.building()
+
 	app.comPool.singleBooting(app)
+	for i := 0; i < len(bootManagers); i++ {
+		bootManagers[i](app)
+	}
+
 	shutdownSecond := int64(2)
 	if level, ok := conf.Other["shutdown_second"]; ok {
 		shutdownSecond = level.(int64)

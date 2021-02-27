@@ -5,6 +5,8 @@ import (
 	"sync"
 	"time"
 
+	"go.uber.org/ratelimit"
+
 	"github.com/8treenet/freedom/infra/requests"
 
 	"github.com/8treenet/freedom"
@@ -29,22 +31,27 @@ type Consumer interface {
 	Start(addrs []string, groupID string, config *sarama.Config, proxyAddr string, proxyH2C bool)
 	Restart() error
 	Close() error
-	SetChanSize(size int)
+	SetRateLimit(rate int)
+	SetProxyTimeout(time.Duration)
 }
 
 // ConsumerImpl .
 type ConsumerImpl struct {
 	freedom.Infra
-	topicPath map[string]string
-	config    *sarama.Config
-	client    sarama.ConsumerGroup
-	cancel    context.CancelFunc
-	wg        sync.WaitGroup
-	proxyH2C  bool
-	proxyAddr string
-	addrs     []string
-	groupID   string
-	limiter   *LimiterImpl
+	topicPath    map[string]string
+	config       *sarama.Config
+	client       sarama.ConsumerGroup
+	cancel       context.CancelFunc
+	wg           sync.WaitGroup
+	proxyH2C     bool
+	proxyAddr    string
+	addrs        []string
+	groupID      string
+	limiter      ratelimit.Limiter
+	rate         int
+	proxyTimeout time.Duration
+	h2cClient    requests.Client
+	httpClient   requests.Client
 }
 
 // Start .
@@ -54,14 +61,20 @@ func (c *ConsumerImpl) Start(addrs []string, groupID string, config *sarama.Conf
 	c.config = config
 	c.proxyAddr = proxyAddr
 	c.proxyH2C = proxyH2C
-	c.limiter = newLimiter()
-
 	c.config.Consumer.Return.Errors = false
+	c.rate = 800
+	c.proxyTimeout = 60 * time.Second
 }
 
-// SetChanSize .
-func (c *ConsumerImpl) SetChanSize(size int) {
-	c.limiter.SetChanSize(size)
+// SetRateLimit .
+func (c *ConsumerImpl) SetRateLimit(rate int) {
+	c.rate = rate
+	return
+}
+
+// SetProxyTimeout .
+func (c *ConsumerImpl) SetProxyTimeout(timeout time.Duration) {
+	c.proxyTimeout = timeout
 	return
 }
 
@@ -74,12 +87,16 @@ func (c *ConsumerImpl) Restart() error {
 }
 
 // Booting .
-func (c *ConsumerImpl) Booting(sb freedom.SingleBoot) {
+func (c *ConsumerImpl) Booting(bootManager freedom.BootManager) {
 	if len(c.addrs) == 0 {
 		return
 	}
-	c.topicPath = sb.EventsPath(c)
-	sb.RegisterShutdown(func() {
+	c.h2cClient = requests.NewH2CClient(c.proxyTimeout, 5*time.Second)
+	c.httpClient = requests.NewHTTPClient(c.proxyTimeout, 5*time.Second)
+	c.limiter = ratelimit.New(c.rate)
+
+	c.topicPath = bootManager.EventsPath(c)
+	bootManager.RegisterShutdown(func() {
 		if err := c.Close(); err != nil {
 			freedom.Logger().Error(err)
 		}
@@ -148,7 +165,6 @@ func (c *ConsumerImpl) do(msg *sarama.ConsumerMessage) {
 		if err := recover(); err != nil {
 			freedom.Logger().Error(err)
 		}
-		c.limiter.sub()
 	}()
 
 	path, ok := c.topicPath[msg.Topic]
@@ -157,14 +173,12 @@ func (c *ConsumerImpl) do(msg *sarama.ConsumerMessage) {
 	}
 	var request requests.Request
 	if c.proxyH2C {
-		request = requests.NewH2CRequest(c.proxyAddr + path)
+		request = requests.NewH2CRequest(c.proxyAddr + path).SetClient(c.h2cClient)
 	} else {
-		request = requests.NewHTTPRequest(c.proxyAddr + path)
+		request = requests.NewHTTPRequest(c.proxyAddr + path).SetClient(c.httpClient)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
-	defer cancel()
-	request = request.SetBody(msg.Value).WithContext(ctx)
+	request = request.SetBody(msg.Value)
 	for index := 0; index < len(msg.Headers); index++ {
 		request = request.AddHeader(string(msg.Headers[index].Key), string(msg.Headers[index].Value))
 	}
@@ -197,7 +211,8 @@ func (consumerHandle *consumerHandle) ConsumeClaim(session sarama.ConsumerGroupS
 	// The `ConsumeClaim` itself is called within a goroutine, see:
 	// https://github.com/Shopify/sarama/blob/master/consumer_group.go#L27-L29
 	for message := range claim.Messages() {
-		consumerHandle.consumer.limiter.add()
+		consumerHandle.consumer.limiter.Take()
+
 		session.MarkMessage(message, "")
 		go consumerHandle.consumer.do(message)
 	}

@@ -12,9 +12,9 @@ var _ UnitTest = (*UnitTestImpl)(nil)
 
 // UnitTest .
 type UnitTest interface {
-	GetService(service interface{})
-	GetRepository(repository interface{})
-	GetFactory(factory interface{})
+	FetchService(service interface{})
+	FetchRepository(repository interface{})
+	FetchFactory(factory interface{})
 	InstallDB(f func() (db interface{}))
 	InstallRedis(f func() (client redis.Cmdable))
 	Run()
@@ -33,13 +33,13 @@ func NewUnitTest() UnitTest {
 	return new(UnitTestImpl)
 }
 
-// GetService .
-func (u *UnitTestImpl) GetService(service interface{}) {
-	globalApp.GetService(u.rt.IrisContext(), service)
+// FetchService .
+func (u *UnitTestImpl) FetchService(service interface{}) {
+	globalApp.FetchService(u.rt.IrisContext(), service)
 }
 
-// GetRepository .
-func (u *UnitTestImpl) GetRepository(repository interface{}) {
+// FetchRepository .
+func (u *UnitTestImpl) FetchRepository(repository interface{}) {
 	instance := serviceElement{calls: []BeginRequest{}, workers: []reflect.Value{}}
 	value := reflect.ValueOf(repository).Elem()
 	ok := globalApp.rpool.diRepoFromValue(value, &instance)
@@ -56,8 +56,8 @@ func (u *UnitTestImpl) GetRepository(repository interface{}) {
 	globalApp.pool.beginRequest(u.rt, instance)
 }
 
-// GetFactory .
-func (u *UnitTestImpl) GetFactory(factory interface{}) {
+// FetchFactory .
+func (u *UnitTestImpl) FetchFactory(factory interface{}) {
 	instance := serviceElement{calls: []BeginRequest{}, workers: []reflect.Value{}}
 	value := reflect.ValueOf(factory).Elem()
 	ok := globalApp.factoryPool.diFactoryFromValue(value, &instance)

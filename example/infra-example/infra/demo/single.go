@@ -10,7 +10,7 @@ func init() {
 	freedom.Prepare(func(initiator freedom.Initiator) {
 		initiator.BindInfra(true, &Single{})
 		initiator.InjectController(func(ctx freedom.Context) (com *Single) {
-			initiator.GetInfra(ctx, &com)
+			initiator.FetchInfra(ctx, &com)
 			return
 		})
 	})
@@ -22,7 +22,7 @@ type Single struct {
 }
 
 // Booting .
-func (s *Single) Booting(boot freedom.SingleBoot) {
+func (s *Single) Booting(boot freedom.BootManager) {
 	freedom.Logger().Info("Single.Booting")
 	s.life = rand.Intn(100)
 }

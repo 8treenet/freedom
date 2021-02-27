@@ -23,8 +23,8 @@ func (obj *{{.Name}})GetChanges() map[string]interface{} {
 	return result
 }
 
-// update .
-func (obj *{{.Name}}) update(name string, value interface{}) {
+// Update .
+func (obj *{{.Name}}) Update(name string, value interface{}) {
 	if obj.changes == nil {
 		obj.changes = make(map[string]interface{})
 	}
@@ -35,7 +35,7 @@ func (obj *{{.Name}}) update(name string, value interface{}) {
 // Set{{.Name}} .
 func (obj *{{.ObjectName}}) Set{{.Name}} ({{.Variable}} {{.VariableType}}) {
 	obj.{{.Name}} = {{.Variable}} 
-	obj.update("{{.Column}}", {{.Variable}})
+	obj.Update("{{.Column}}", {{.Variable}})
 }
 {{ end }}
 
@@ -43,7 +43,7 @@ func (obj *{{.ObjectName}}) Set{{.Name}} ({{.Variable}} {{.VariableType}}) {
 // Add{{.Name}} .
 func (obj *{{.ObjectName}}) Add{{.Name}} ({{.Variable}} {{.VariableType}}) {
 	obj.{{.Name}} += {{.Variable}} 
-	obj.update("{{.Column}}", gorm.Expr("{{.Column}} + ?", {{.Variable}}))
+	obj.Update("{{.Column}}", gorm.Expr("{{.Column}} + ?", {{.Variable}}))
 }
 {{ end }}
 `
@@ -54,6 +54,7 @@ func FunTemplatePackage() string {
 	source := `
 	package repository
 	import (
+		"errors"
 		"github.com/8treenet/freedom"
 		"github.com/jinzhu/gorm"
 		"time"

@@ -16,7 +16,7 @@ func init() {
 	freedom.Prepare(func(initiator freedom.Initiator) {
 		initiator.BindInfra(true, eventManager) //单例绑定
 		initiator.InjectController(func(ctx freedom.Context) (com *EventManager) {
-			initiator.GetInfra(ctx, &com)
+			initiator.FetchInfra(ctx, &com)
 			return
 		})
 	})
@@ -35,7 +35,7 @@ type EventManager struct {
 }
 
 // Booting .
-func (manager *EventManager) Booting(sb freedom.SingleBoot) {
+func (manager *EventManager) Booting(bootManager freedom.BootManager) {
 	if err := manager.db().AutoMigrate(&pubEventObject{}).Error; err != nil {
 		panic(err)
 	}
@@ -93,7 +93,11 @@ func (manager *EventManager) push(event freedom.DomainEvent) {
 }
 
 func (manager *EventManager) db() *gorm.DB {
-	return manager.SourceDB().(*gorm.DB)
+	var db *gorm.DB
+	if err := manager.FetchOnlyDB(&db); err != nil {
+		panic(err)
+	}
+	return db
 }
 
 // Save .

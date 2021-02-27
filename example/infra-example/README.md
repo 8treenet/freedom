@@ -24,7 +24,7 @@ func init() {
 			return &OrderService{}
 		})
 		initiator.InjectController(func(ctx freedom.Context) (service *OrderService) {
-			initiator.GetService(ctx, &service)
+			initiator.FetchService(ctx, &service)
 			return
 		})
 	})
@@ -216,7 +216,7 @@ func init() {
 			如果不调用 initiator.InjectController, 控制器无法使用。
 		*/
 		initiator.InjectController(func(ctx freedom.Context) (com *Single) {
-			initiator.GetInfra(ctx, &com)
+			initiator.FetchInfra(ctx, &com)
 			return
 		})
 	})
@@ -227,7 +227,7 @@ type Single struct {
 }
 
 // Booting 单例组件入口, 启动时调用一次。
-func (c *Single) Booting(boot freedom.SingleBoot) {
+func (c *Single) Booting(boot freedom.BootManager) {
 	freedom.Logger().Info("Single.Booting")
 	c.life = rand.Intn(100)
 }
@@ -270,7 +270,7 @@ func init() {
 		})
 		initiator.InjectController(func(ctx freedom.Context) (com *JSONRequest) {
 			//从Infra池里取出注入到控制器。
-			initiator.GetInfra(ctx, &com)
+			initiator.FetchInfra(ctx, &com)
 			return
 		})
 	})

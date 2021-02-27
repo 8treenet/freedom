@@ -34,7 +34,7 @@ func (c *ShopController) Post() freedom.Result {
 	var resErr error
 	for i := 0; i < 3; i++ {
 		resErr = c.OrderSev.Shop(request.GoodsID, request.Num, request.UserID)
-		if resErr == common.VersionExpired {
+		if resErr == common.ErrVersionExpired {
 			continue //乐观锁重试
 		}
 		break

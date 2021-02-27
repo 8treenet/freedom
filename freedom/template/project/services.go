@@ -24,7 +24,7 @@ func servicesTemplate() string {
 				return &Default{}
 			})
 			initiator.InjectController(func(ctx freedom.Context) (service *Default) {
-				initiator.GetService(ctx, &service)
+				initiator.FetchService(ctx, &service)
 				return
 			})
 		})

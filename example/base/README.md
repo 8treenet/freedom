@@ -51,7 +51,7 @@ type Application interface {
     //安装其他, 如mongodb、es 等
     InstallCustom(f func() interface{})
     //启动回调: Prepare之后，Run之前.
-    Start(f func(starter Starter))
+    BindBooting(f func(bootManager freedom.BootManager))
     //安装序列化，未安装默认使用官方json
     InstallSerializer(marshal func(v interface{}) ([]byte, error), unmarshal func(data []byte, v interface{}) error)
 }
@@ -101,14 +101,14 @@ type Initiator interface {
     //注入实例到控制器，适配iris的注入方式。
     InjectController(f interface{})
     //配合InjectController
-    GetInfra(ctx iris.Context, com interface{})
+    FetchInfra(ctx iris.Context, com interface{})
     //配合InjectController
-    GetService(ctx iris.Context, service interface{})
+    FetchService(ctx iris.Context, service interface{})
    
 
 
     //启动回调. Prepare之后，Run之前.
-    Start(f func(starter Starter))
+    BindBooting(f func(bootManager BootManager))
     //监听事件. 监听1个topic的事件，由指定控制器消费.
     ListenEvent(topic string, controller string})
     Iris() *iris.Application
@@ -123,8 +123,8 @@ type Initiator interface {
 |Application.InstallMiddleware| 注册安装的全局中间件|
 |Application.InstallDB|触发回调|
 |freedom.Prepare|触发回调|
-|Initiator.Starter|触发回调|
-|infra.Booting|触发组件方法|
+|infra.BindBooting|触发组件方法|
+|Initiator.BindBooting|触发回调|
 |http.Run|开启监听服务|
 |infra.RegisterShutdown|触发回调|
 |Application.Close|程序关闭|
@@ -309,7 +309,7 @@ func init() {
             })
             initiator.InjectController(func(ctx freedom.Context) (service *Default) {
                 //Default 注入到控制器
-                initiator.GetService(ctx, &service)
+                initiator.FetchService(ctx, &service)
                 return
             })
 	})
@@ -358,11 +358,11 @@ type Default struct {
 
 // GetIP .
 func (repo *Default) GetIP() string {
-    //只有继承资源库后才有DB、Redis、NewHttp、Other 访问权限, 并且可以直接获取 Worker
-    repo.FetchDB(&db)
-    repo.FetchSourceDB(&db)
+    //只有继承资源库后才有DB、Redis、NewHttp、Custom 访问权限, 并且可以直接获取 Worker
+    repo.FetchDB(&db) //可包含基于请求运行时的DB句柄,被事务组件横切面控制
+    repo.FetchOnlyDB(&db) //全局唯一句柄
     repo.Redis()
-    repo.Other()
+    repo.FetchCustom(&custom)
     repo.NewHttpRequest()
     repo.NewH2CRequest()
     repo.Worker().Logger().Infof("我是Repository GetIP")

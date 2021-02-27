@@ -18,7 +18,7 @@ func init() {
 			return &Request{}
 		})
 		initiator.InjectController(func(ctx freedom.Context) (com *Request) {
-			initiator.GetInfra(ctx, &com)
+			initiator.FetchInfra(ctx, &com)
 			return
 		})
 	})

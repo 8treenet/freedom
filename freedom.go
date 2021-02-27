@@ -42,7 +42,7 @@ type (
 	Infra = internal.Infra
 
 	//SingleBoot .
-	SingleBoot = internal.SingleBoot
+	SingleBoot = internal.BootManager
 
 	//Entity is the entity's father interface.
 	Entity = internal.Entity
@@ -53,8 +53,8 @@ type (
 	//UnitTest is a unit test tool.
 	UnitTest = internal.UnitTest
 
-	//Starter is the startup interface.
-	Starter = internal.Starter
+	//BootManager is the startup interface.
+	BootManager = internal.BootManager
 
 	// Bus is the bus message type.
 	Bus = internal.Bus

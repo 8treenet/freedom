@@ -43,7 +43,7 @@ func TestGoodsEntity(t *testing.T) {
 
 	var repo *Goods
 	//获取资源库
-	unitTest.GetRepository(&repo)
+	unitTest.FetchRepository(&repo)
 	goodsEnity, err := repo.Get(1)
 	if err != nil {
 		t.Error(err)
@@ -70,7 +70,7 @@ func TestGoodssEntity(t *testing.T) {
 
 	var repo *Goods
 	//获取资源库
-	unitTest.GetRepository(&repo)
+	unitTest.FetchRepository(&repo)
 	goodsEnitys, err := repo.FindsByPage(1, 3, "")
 
 	t.Log("ok", goodsEnitys, err)

@@ -40,8 +40,8 @@ func (repo *Repository) FetchDB(db interface{}) error {
 	return nil
 }
 
-// FetchSourceDB .
-func (repo *Repository) FetchSourceDB(db interface{}) error {
+// FetchOnlyDB .
+func (repo *Repository) FetchOnlyDB(db interface{}) error {
 	resultDB := globalApp.Database.db
 	if resultDB == nil {
 		return errors.New("DB not found, please install")

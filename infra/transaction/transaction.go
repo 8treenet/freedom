@@ -54,7 +54,11 @@ func (t *GormImpl) execute(ctx context.Context, fun func() error, opts *sql.TxOp
 		panic("unknown error")
 	}
 
-	db := t.SourceDB().(*gorm.DB)
+	var db *gorm.DB
+	if err := t.FetchOnlyDB(&db); err != nil {
+		return err
+	}
+
 	if ctx != nil && opts != nil {
 		t.db = db.BeginTx(ctx, opts)
 	} else {

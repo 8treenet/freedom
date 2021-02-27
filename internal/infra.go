@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 
@@ -22,9 +23,16 @@ func (infra *Infra) BeginRequest(rt Worker) {
 	infra.worker = rt
 }
 
-// SourceDB .
-func (infra *Infra) SourceDB() (db interface{}) {
-	return globalApp.Database.db
+// FetchOnlyDB .
+func (infra *Infra) FetchOnlyDB(db interface{}) error {
+	resultDB := globalApp.Database.db
+	if resultDB == nil {
+		return errors.New("DB not found, please install")
+	}
+	if !fetchValue(db, resultDB) {
+		return errors.New("DB not found, please install")
+	}
+	return nil
 }
 
 // Redis .

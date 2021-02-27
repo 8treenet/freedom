@@ -31,7 +31,7 @@ type Application interface {
 	Iris() *iris.Application
 	Logger() *golog.Logger
 	Run(serve iris.Runner, c iris.Configuration)
-	Start(f func(starter Starter))
+	BindBooting(f func(bootManager BootManager))
 	InstallBusMiddleware(handle ...BusHandler)
 	InstallSerializer(marshal func(v interface{}) ([]byte, error), unmarshal func(data []byte, v interface{}) error)
 }

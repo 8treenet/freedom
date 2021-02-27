@@ -43,7 +43,6 @@ func (res *Response) Clone() *Response {
 		ContentLength: res.ContentLength,
 		Uncompressed:  res.Uncompressed,
 		traceInfo:     res.traceInfo,
-		cookies:       res.cookies,
 	}
 }
 
@@ -70,10 +69,10 @@ func (res *Response) Cookies() []*http.Cookie {
 	return res.cookies
 }
 
-// GetCookie returns cookie's value by its name
+// Cookie returns cookie's value by its name
 // returns empty string if nothing was found.
 func (res *Response) Cookie(name string) *http.Cookie {
-	for _, cookie := range res.cookies {
+	for _, cookie := range res.Cookies() {
 		if cookie.Name == name {
 			return cookie
 		}

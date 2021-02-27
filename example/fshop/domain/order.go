@@ -16,7 +16,7 @@ func init() {
 		})
 		//控制器客户需要明确使用 InjectController
 		initiator.InjectController(func(ctx freedom.Context) (service *Order) {
-			initiator.GetService(ctx, &service)
+			initiator.FetchService(ctx, &service)
 			return
 		})
 	})

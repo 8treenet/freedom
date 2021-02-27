@@ -97,7 +97,7 @@ func (pool *InfraPool) getByInternal(ptr reflect.Value) bool {
 // booting .
 func (pool *InfraPool) singleBooting(app *Application) {
 	type boot interface {
-		Booting(SingleBoot)
+		Booting(BootManager)
 	}
 	for _, com := range pool.singlemap {
 		bootimpl, ok := com.(boot)

@@ -60,7 +60,7 @@ func TestUtil(t *testing.T) {
 
 func SSS() JIEKOU {
 	dsbs := new(DSBS)
-	dsbs.a = "sb"
+	dsbs.a = "bootManager"
 	return dsbs
 }
 
@@ -110,7 +110,7 @@ func TestParsePoolFunc2(t *testing.T) {
 }
 
 func TestOther(t *testing.T) {
-	ot := newOther()
+	ot := newCustom()
 	ot.add(func() interface{} {
 		return &TestUser{Age: 100}
 	})

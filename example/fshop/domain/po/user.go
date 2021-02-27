@@ -40,8 +40,8 @@ func (obj *User) GetChanges() map[string]interface{} {
 	return result
 }
 
-// update .
-func (obj *User) update(name string, value interface{}) {
+// Update .
+func (obj *User) Update(name string, value interface{}) {
 	if obj.changes == nil {
 		obj.changes = make(map[string]interface{})
 	}
@@ -51,35 +51,35 @@ func (obj *User) update(name string, value interface{}) {
 // SetName .
 func (obj *User) SetName(name string) {
 	obj.Name = name
-	obj.update("name", name)
+	obj.Update("name", name)
 }
 
 // SetMoney .
 func (obj *User) SetMoney(money int) {
 	obj.Money = money
-	obj.update("money", money)
+	obj.Update("money", money)
 }
 
 // SetPassword .
 func (obj *User) SetPassword(password string) {
 	obj.Password = password
-	obj.update("password", password)
+	obj.Update("password", password)
 }
 
 // SetCreated .
 func (obj *User) SetCreated(created time.Time) {
 	obj.Created = created
-	obj.update("created", created)
+	obj.Update("created", created)
 }
 
 // SetUpdated .
 func (obj *User) SetUpdated(updated time.Time) {
 	obj.Updated = updated
-	obj.update("updated", updated)
+	obj.Update("updated", updated)
 }
 
 // AddMoney .
 func (obj *User) AddMoney(money int) {
 	obj.Money += money
-	obj.update("money", gorm.Expr("money + ?", money))
+	obj.Update("money", gorm.Expr("money + ?", money))
 }

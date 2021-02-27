@@ -40,8 +40,8 @@ func (obj *Cart) GetChanges() map[string]interface{} {
 	return result
 }
 
-// update .
-func (obj *Cart) update(name string, value interface{}) {
+// Update .
+func (obj *Cart) Update(name string, value interface{}) {
 	if obj.changes == nil {
 		obj.changes = make(map[string]interface{})
 	}
@@ -51,47 +51,47 @@ func (obj *Cart) update(name string, value interface{}) {
 // SetUserID .
 func (obj *Cart) SetUserID(userID int) {
 	obj.UserID = userID
-	obj.update("user_id", userID)
+	obj.Update("user_id", userID)
 }
 
 // SetGoodsID .
 func (obj *Cart) SetGoodsID(goodsID int) {
 	obj.GoodsID = goodsID
-	obj.update("goods_id", goodsID)
+	obj.Update("goods_id", goodsID)
 }
 
 // SetNum .
 func (obj *Cart) SetNum(num int) {
 	obj.Num = num
-	obj.update("num", num)
+	obj.Update("num", num)
 }
 
 // SetCreated .
 func (obj *Cart) SetCreated(created time.Time) {
 	obj.Created = created
-	obj.update("created", created)
+	obj.Update("created", created)
 }
 
 // SetUpdated .
 func (obj *Cart) SetUpdated(updated time.Time) {
 	obj.Updated = updated
-	obj.update("updated", updated)
+	obj.Update("updated", updated)
 }
 
 // AddUserID .
 func (obj *Cart) AddUserID(userID int) {
 	obj.UserID += userID
-	obj.update("user_id", gorm.Expr("user_id + ?", userID))
+	obj.Update("user_id", gorm.Expr("user_id + ?", userID))
 }
 
 // AddGoodsID .
 func (obj *Cart) AddGoodsID(goodsID int) {
 	obj.GoodsID += goodsID
-	obj.update("goods_id", gorm.Expr("goods_id + ?", goodsID))
+	obj.Update("goods_id", gorm.Expr("goods_id + ?", goodsID))
 }
 
 // AddNum .
 func (obj *Cart) AddNum(num int) {
 	obj.Num += num
-	obj.update("num", gorm.Expr("num + ?", num))
+	obj.Update("num", gorm.Expr("num + ?", num))
 }

@@ -12,7 +12,7 @@ func init() {
 			return &Default{}
 		})
 		initiator.InjectController(func(ctx freedom.Context) (service *Default) {
-			initiator.GetService(ctx, &service)
+			initiator.FetchService(ctx, &service)
 			return
 		})
 	})

@@ -27,7 +27,7 @@ func TestGoodsRepository_Get(t *testing.T) {
 	unitTest.Run()
 
 	var repo *GoodsRepository
-	unitTest.GetRepository(&repo)
+	unitTest.FetchRepository(&repo)
 	for i := 0; i < 30; i++ {
 		if i < 5 {
 			go func() {

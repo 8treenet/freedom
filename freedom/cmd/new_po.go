@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"sort"
 	"strings"
 	"text/template"
 
@@ -127,18 +128,27 @@ func configure(obj interface{}, fileName string) error {
 }
 
 // GetStruct .
-func GetStruct() ([]crud.ObjectContent, error) {
+func GetStruct() (list []crud.ObjectContent, e error) {
+	defer func() {
+		sort.Slice(list, func(i, j int) bool {
+			return list[i].TableRealName > list[j].TableRealName
+		})
+	}()
 	cmd := crud.NewGenerate()
 	if Prefix != "" {
 		cmd.SetPrefix(Prefix)
 	}
 	if Dsn != "" {
-		return cmd.Dsn(Dsn).RunDsn()
+		list, e = cmd.Dsn(Dsn).RunDsn()
+		return
 	}
 	if JSONFile != "" {
+		list, e = cmd.Dsn(Dsn).RunDsn()
 		return cmd.RunJSON(JSONFile)
 	}
-	return nil, errors.New("Wrong instruction")
+
+	e = errors.New("Wrong instruction")
+	return
 }
 
 func init() {

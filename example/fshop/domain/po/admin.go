@@ -37,8 +37,8 @@ func (obj *Admin) GetChanges() map[string]interface{} {
 	return result
 }
 
-// update .
-func (obj *Admin) update(name string, value interface{}) {
+// Update .
+func (obj *Admin) Update(name string, value interface{}) {
 	if obj.changes == nil {
 		obj.changes = make(map[string]interface{})
 	}
@@ -48,17 +48,17 @@ func (obj *Admin) update(name string, value interface{}) {
 // SetName .
 func (obj *Admin) SetName(name string) {
 	obj.Name = name
-	obj.update("name", name)
+	obj.Update("name", name)
 }
 
 // SetCreated .
 func (obj *Admin) SetCreated(created time.Time) {
 	obj.Created = created
-	obj.update("created", created)
+	obj.Update("created", created)
 }
 
 // SetUpdated .
 func (obj *Admin) SetUpdated(updated time.Time) {
 	obj.Updated = updated
-	obj.update("updated", updated)
+	obj.Update("updated", updated)
 }

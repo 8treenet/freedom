@@ -48,14 +48,14 @@ func (repo *GoodsRepository) GetAll() (result []*entity.Goods, e error) {
 
 // Save .
 func (repo *GoodsRepository) Save(goods *entity.Goods) (e error) {
-	goods.AddVersion(1) //版本号加1
+	goods.Update("version", gorm.Expr("version + ?", 1)) //版本号加1
 
 	affected, e := saveGoods(repo, goods)
 	if e != nil {
 		return e
 	}
 	if affected == 0 {
-		return common.VersionExpired
+		return common.ErrVersionExpired
 	}
 	return repo.EventManager.Save(&repo.Repository, goods) //持久化实体上的领域事件
 }

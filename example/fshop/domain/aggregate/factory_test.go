@@ -44,7 +44,7 @@ func TestCartItemAggregate(t *testing.T) {
 
 	var aggregate *aggregate.CartFactory
 	//获取工厂
-	unitTest.GetFactory(&aggregate)
+	unitTest.FetchFactory(&aggregate)
 	cartItemQuery, err := aggregate.NewCartItemQuery(1)
 	if err != nil {
 		t.Error(err)

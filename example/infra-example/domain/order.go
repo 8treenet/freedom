@@ -16,7 +16,7 @@ func init() {
 			return &OrderService{}
 		})
 		initiator.InjectController(func(ctx freedom.Context) (service *OrderService) {
-			initiator.GetService(ctx, &service)
+			initiator.FetchService(ctx, &service)
 			return
 		})
 	})

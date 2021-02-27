@@ -41,8 +41,8 @@ func (obj *Order) GetChanges() map[string]interface{} {
 	return result
 }
 
-// update .
-func (obj *Order) update(name string, value interface{}) {
+// Update .
+func (obj *Order) Update(name string, value interface{}) {
 	if obj.changes == nil {
 		obj.changes = make(map[string]interface{})
 	}
@@ -52,47 +52,47 @@ func (obj *Order) update(name string, value interface{}) {
 // SetOrderNo .
 func (obj *Order) SetOrderNo(orderNo string) {
 	obj.OrderNo = orderNo
-	obj.update("order_no", orderNo)
+	obj.Update("order_no", orderNo)
 }
 
 // SetUserID .
 func (obj *Order) SetUserID(userID int) {
 	obj.UserID = userID
-	obj.update("user_id", userID)
+	obj.Update("user_id", userID)
 }
 
 // SetTotalPrice .
 func (obj *Order) SetTotalPrice(totalPrice int) {
 	obj.TotalPrice = totalPrice
-	obj.update("total_price", totalPrice)
+	obj.Update("total_price", totalPrice)
 }
 
 // SetStatus .
 func (obj *Order) SetStatus(status string) {
 	obj.Status = status
-	obj.update("status", status)
+	obj.Update("status", status)
 }
 
 // SetCreated .
 func (obj *Order) SetCreated(created time.Time) {
 	obj.Created = created
-	obj.update("created", created)
+	obj.Update("created", created)
 }
 
 // SetUpdated .
 func (obj *Order) SetUpdated(updated time.Time) {
 	obj.Updated = updated
-	obj.update("updated", updated)
+	obj.Update("updated", updated)
 }
 
 // AddUserID .
 func (obj *Order) AddUserID(userID int) {
 	obj.UserID += userID
-	obj.update("user_id", gorm.Expr("user_id + ?", userID))
+	obj.Update("user_id", gorm.Expr("user_id + ?", userID))
 }
 
 // AddTotalPrice .
 func (obj *Order) AddTotalPrice(totalPrice int) {
 	obj.TotalPrice += totalPrice
-	obj.update("total_price", gorm.Expr("total_price + ?", totalPrice))
+	obj.Update("total_price", gorm.Expr("total_price + ?", totalPrice))
 }

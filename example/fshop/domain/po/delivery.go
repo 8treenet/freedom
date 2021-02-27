@@ -40,8 +40,8 @@ func (obj *Delivery) GetChanges() map[string]interface{} {
 	return result
 }
 
-// update .
-func (obj *Delivery) update(name string, value interface{}) {
+// Update .
+func (obj *Delivery) Update(name string, value interface{}) {
 	if obj.changes == nil {
 		obj.changes = make(map[string]interface{})
 	}
@@ -51,35 +51,35 @@ func (obj *Delivery) update(name string, value interface{}) {
 // SetAdminID .
 func (obj *Delivery) SetAdminID(adminID int) {
 	obj.AdminID = adminID
-	obj.update("admin_id", adminID)
+	obj.Update("admin_id", adminID)
 }
 
 // SetOrderNo .
 func (obj *Delivery) SetOrderNo(orderNo string) {
 	obj.OrderNo = orderNo
-	obj.update("order_no", orderNo)
+	obj.Update("order_no", orderNo)
 }
 
 // SetTrackingNumber .
 func (obj *Delivery) SetTrackingNumber(trackingNumber string) {
 	obj.TrackingNumber = trackingNumber
-	obj.update("tracking_number", trackingNumber)
+	obj.Update("tracking_number", trackingNumber)
 }
 
 // SetCreated .
 func (obj *Delivery) SetCreated(created time.Time) {
 	obj.Created = created
-	obj.update("created", created)
+	obj.Update("created", created)
 }
 
 // SetUpdated .
 func (obj *Delivery) SetUpdated(updated time.Time) {
 	obj.Updated = updated
-	obj.update("updated", updated)
+	obj.Update("updated", updated)
 }
 
 // AddAdminID .
 func (obj *Delivery) AddAdminID(adminID int) {
 	obj.AdminID += adminID
-	obj.update("admin_id", gorm.Expr("admin_id + ?", adminID))
+	obj.Update("admin_id", gorm.Expr("admin_id + ?", adminID))
 }

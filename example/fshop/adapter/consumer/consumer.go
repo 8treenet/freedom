@@ -18,6 +18,11 @@ func init() {
 		worker.Bus().Set("x-request-id", traceID)
 		worker.SetLogger(logger)
 	})
+
+	//注册启动回调
+	freedom.Prepare(func(initiator freedom.Initiator) {
+		initiator.BindBooting(warmUp)
+	})
 }
 
 // Start .
@@ -60,4 +65,13 @@ func eventLoop() {
 			}
 		}
 	}()
+}
+
+// warmUp 缓存预热
+func warmUp(bootManager freedom.BootManager) {
+	freedom.ServiceLocator().Call(func(goodsService *domain.Goods) {
+		for i := 1; i < 5; i++ {
+			goodsService.Get(i)
+		}
+	})
 }

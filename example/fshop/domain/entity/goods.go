@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"encoding/json"
 	"errors"
 	"strconv"
 
@@ -35,4 +36,9 @@ func (g *Goods) MarkedTag(tag string) error {
 	}
 	g.SetTag(tag)
 	return nil
+}
+
+// MarshalJSON 序列化json.
+func (g *Goods) MarshalJSON() ([]byte, error) {
+	return json.Marshal(g.Goods)
 }
