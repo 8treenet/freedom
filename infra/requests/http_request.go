@@ -14,6 +14,8 @@ import (
 	"strings"
 )
 
+var ErrDefaultMiddleware = errors.New("middleware stop")
+
 // HTTPRequest .
 type HTTPRequest struct {
 	StdRequest      *http.Request
@@ -347,9 +349,11 @@ func (req *HTTPRequest) Stop(e ...error) {
 	req.stop = true
 	if len(e) > 0 {
 		req.Response.Error = e[0]
-		return
+	} else {
+		req.Response.Error = ErrDefaultMiddleware
 	}
-	req.Response.Error = errors.New("Middleware stop")
+
+	req.Response.Error = fmt.Errorf("%s %s: %w", req.StdRequest.Method, req.StdRequest.URL.String(), req.Response.Error)
 }
 
 // IsStopped .
