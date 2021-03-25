@@ -118,17 +118,18 @@ type Initiator interface {
 
 ---
 #### 应用生命周期
-|外部使用 | 内部调用 |
+|作用 | 相关API|
 | ----- | :---: |
-|Application.InstallMiddleware| 注册安装的全局中间件|
-|Application.InstallDB|触发回调|
-|freedom.Prepare|触发回调|
-|infra.BindBooting|触发组件方法|
-|Initiator.BindBooting|触发回调|
-|http.Run|开启监听服务|
-|infra.RegisterShutdown|触发回调|
-|Application.Close|程序关闭|
+|注册全局中间件|Application.InstallMiddleware|
+|安装DB|Application.InstallDB|
+|单例组件方法(需要重写方法)|infra.Booting|
+|回调已注册的匿名函数|Initiator.BindBooting|
+|局部初始化|freedom.Prepare|
+|开启监听服务|http.Run|
+|回调已注册的匿名函数|infra.RegisterShutdown|
+|程序关闭|Application.Close|
 
+&nbsp;
 #### 请求生命周期
 ###### 每一个请求开始都会创建若干依赖对象，worker、controller、service、factory、repository、infra等。每一个请求独立使用这些对象，不会多请求并发的读写共享对象。当然也无需担心效率问题，框架已经做了池。请求结束会回收这些对象。 如果过程中使用了go func(){//访问相关对象}，请在之前调用 **Worker.DelayReclaiming()**.
 
