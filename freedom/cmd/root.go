@@ -12,8 +12,8 @@ var (
 
 	// rootCmd represents the base command when called without any subcommands
 	rootCmd = &cobra.Command{
-		Use:   "freedom",
-		Short: "freedom脚手架，辅助创建代码",
+		Use:   "The tool used to generate the code.",
+		Short: "The tool used to generate the code.",
 	}
 )
 
