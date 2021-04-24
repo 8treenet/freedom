@@ -8,7 +8,7 @@ import (
 
 func init() {
 	//不注册 不会触发重试
-	domainevent.GetEventManager().RetryPubEvent(&ShopGoods{})
+	domainevent.GetEventManager().BindRetryPubEvent(&ShopGoods{})
 }
 
 // ShopGoods 购买事件

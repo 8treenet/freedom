@@ -16,7 +16,7 @@ func init() {
 	})
 
 	//重试消费事件
-	domainevent.GetEventManager().RetrySubEvent(&event.ShopGoods{}, func(shopGoodsEvent *event.ShopGoods) {
+	domainevent.GetEventManager().BindRetrySubEvent(&event.ShopGoods{}, func(shopGoodsEvent *event.ShopGoods) {
 		freedom.ServiceLocator().Call(func(goodsSev *domain.GoodsService) {
 			goodsSev.ShopEvent(shopGoodsEvent)
 		})

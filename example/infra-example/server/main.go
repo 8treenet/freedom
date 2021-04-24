@@ -7,6 +7,7 @@ import (
 	"github.com/8treenet/freedom"
 	_ "github.com/8treenet/freedom/example/infra-example/adapter/controller"
 	_ "github.com/8treenet/freedom/example/infra-example/adapter/repository"
+	"github.com/8treenet/freedom/example/infra-example/infra/domainevent"
 	"github.com/8treenet/freedom/example/infra-example/server/conf"
 	"github.com/8treenet/freedom/infra/kafka"
 	"github.com/8treenet/freedom/infra/requests"
@@ -26,6 +27,16 @@ func main() {
 	addrRunner := app.NewRunner(addr)
 	//app.InstallParty("/example")
 	liveness(app)
+
+	go func() {
+		//领域事件重试
+		time.Sleep(5 * time.Second)
+		timer := time.NewTimer(5 * time.Minute)
+		for range timer.C {
+			domainevent.GetEventManager().Retry()
+			timer.Reset(5 * time.Minute)
+		}
+	}()
 
 	kafkaConf := sarama.NewConfig()
 	kafkaConf.Version = sarama.V0_11_0_2

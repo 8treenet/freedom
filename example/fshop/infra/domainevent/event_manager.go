@@ -49,7 +49,6 @@ func (manager *EventManager) Booting(bootManager freedom.BootManager) {
 	}
 
 	//重试参考 example/infra-example
-	//manager.eventRetry.Booting() //启动重试
 }
 
 // GetPublisherChan .
@@ -58,13 +57,13 @@ func (manager *EventManager) GetPublisherChan() <-chan freedom.DomainEvent {
 }
 
 // SetRetryPolicy Set the rules for retry.
-func (manager *EventManager) SetRetryPolicy(delay, interval time.Duration, retries int) {
-	manager.eventRetry.SetRetryPolicy(delay, interval, retries)
+func (manager *EventManager) SetRetryPolicy(delay time.Duration, retries int) {
+	manager.eventRetry.setRetryPolicy(delay, retries)
 }
 
 // push EventTransaction在事务成功后触发 .
 func (manager *EventManager) push(event freedom.DomainEvent) {
-	freedom.Logger().Infof("Publish Event Topic:%s, %+v", event.Topic(), event)
+	freedom.Logger().Debugf("Publish Event Topic:%s, %+v", event.Topic(), event)
 	identity := event.Identity()
 	go func() {
 		defer func() {
@@ -86,7 +85,7 @@ func (manager *EventManager) push(event freedom.DomainEvent) {
 		*/
 		manager.publisherChan <- event
 
-		if !manager.eventRetry.PubExist(event.Topic()) {
+		if !manager.eventRetry.pubExist(event.Topic()) {
 			return //未注册重试,结束
 		}
 
@@ -115,7 +114,7 @@ func (manager *EventManager) Save(repo *freedom.Repository, entity freedom.Entit
 
 	//Insert PubEvent
 	for _, domainEvent := range entity.GetPubEvent() {
-		if !manager.eventRetry.PubExist(domainEvent.Topic()) {
+		if !manager.eventRetry.pubExist(domainEvent.Topic()) {
 			continue //未注册重试,无需存储
 		}
 
@@ -139,7 +138,7 @@ func (manager *EventManager) Save(repo *freedom.Repository, entity freedom.Entit
 
 	//Delete SubEvent
 	for _, subEvent := range entity.GetSubEvent() {
-		if !manager.eventRetry.SubExist(subEvent.Topic()) {
+		if !manager.eventRetry.subExist(subEvent.Topic()) {
 			continue //未注册重试,无需修改
 		}
 
@@ -153,7 +152,7 @@ func (manager *EventManager) Save(repo *freedom.Repository, entity freedom.Entit
 
 // InsertSubEvent .
 func (manager *EventManager) InsertSubEvent(event freedom.DomainEvent) error {
-	if !manager.eventRetry.SubExist(event.Topic()) {
+	if !manager.eventRetry.subExist(event.Topic()) {
 		return nil //未注册重试,无需存储
 	}
 
@@ -172,14 +171,19 @@ func (manager *EventManager) InsertSubEvent(event freedom.DomainEvent) error {
 	return manager.db().Create(&model).Error //插入消费事件表。
 }
 
-// RetryPubEvent .
-func (manager *EventManager) RetryPubEvent(event freedom.DomainEvent) {
-	manager.eventRetry.RetryPubEvent(event)
+// Retry .
+func (manager *EventManager) Retry() {
+	manager.eventRetry.retry()
 }
 
-// RetrySubEvent .
-func (manager *EventManager) RetrySubEvent(event freedom.DomainEvent, function interface{}) {
-	manager.eventRetry.RetrySubEvent(event, function)
+// BindRetryPubEvent .
+func (manager *EventManager) BindRetryPubEvent(event freedom.DomainEvent) {
+	manager.eventRetry.bindRetryPubEvent(event)
+}
+
+// BindRetrySubEvent .
+func (manager *EventManager) BindRetrySubEvent(event freedom.DomainEvent, function interface{}) {
+	manager.eventRetry.bindRetrySubEvent(event, function)
 }
 
 // addPubToWorker 增加发布事件到Worker.Store.

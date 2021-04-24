@@ -48,7 +48,7 @@ func (shop *shopGoods) SetIdentity(identity string) {
 }
 
 func TestRetry(t *testing.T) {
-	GetEventManager().RetrySubEvent(&shopGoods{}, func(event *shopGoods) {
+	GetEventManager().BindRetrySubEvent(&shopGoods{}, func(event *shopGoods) {
 		t.Log("fuck", event)
 	})
 

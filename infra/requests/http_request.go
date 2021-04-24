@@ -14,6 +14,7 @@ import (
 	"strings"
 )
 
+// ErrDefaultMiddleware .
 var ErrDefaultMiddleware = errors.New("middleware stop")
 
 // HTTPRequest .

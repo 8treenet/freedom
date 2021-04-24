@@ -65,5 +65,4 @@ func (et *EventTransaction) pushEvent() {
 	for _, pubEvent := range pubEvents {
 		eventManager.push(pubEvent) //使用manager推送
 	}
-	return
 }

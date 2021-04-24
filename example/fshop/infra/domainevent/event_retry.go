@@ -32,7 +32,7 @@ type subRetry struct {
 	function interface{}
 }
 
-func (retry *eventRetry) RetryPubEvent(event freedom.DomainEvent) {
+func (retry *eventRetry) bindRetryPubEvent(event freedom.DomainEvent) {
 	topic := event.Topic()
 	if topic == "" {
 		panic("Topic Cannot be empty")
@@ -43,7 +43,7 @@ func (retry *eventRetry) RetryPubEvent(event freedom.DomainEvent) {
 	retry.pubPool[topic] = reflect.TypeOf(event)
 }
 
-func (retry *eventRetry) RetrySubEvent(event freedom.DomainEvent, fun interface{}) {
+func (retry *eventRetry) bindRetrySubEvent(event freedom.DomainEvent, fun interface{}) {
 	topic := event.Topic()
 	if topic == "" {
 		panic("Topic Cannot be empty")
@@ -67,32 +67,24 @@ func (retry *eventRetry) RetrySubEvent(event freedom.DomainEvent, fun interface{
 	}
 }
 
-func (retry *eventRetry) PubExist(topic string) bool {
+func (retry *eventRetry) pubExist(topic string) bool {
 	_, ok := retry.pubPool[topic]
 	return ok
 }
 
-func (retry *eventRetry) SubExist(topic string) bool {
+func (retry *eventRetry) subExist(topic string) bool {
 	_, ok := retry.subPool[topic]
 	return ok
 }
 
-func (retry *eventRetry) SetRetryPolicy(delay, interval time.Duration, retries int) {
+func (retry *eventRetry) setRetryPolicy(delay time.Duration, retries int) {
 	retry.delay = delay
 	retry.retries = retries
-	retry.interval = interval
 }
 
-func (retry *eventRetry) Booting() {
-	go func() {
-		time.Sleep(5 * time.Second)
-		timer := time.NewTimer(retry.interval)
-		for range timer.C {
-			retry.scanSub()
-			retry.scanPub()
-			timer.Reset(retry.interval)
-		}
-	}()
+func (retry *eventRetry) retry() {
+	retry.scanSub()
+	retry.scanPub()
 }
 
 func (retry *eventRetry) scanSub() {
@@ -106,7 +98,7 @@ func (retry *eventRetry) scanSub() {
 
 	var filterList []*subEventObject
 	for _, po := range list {
-		if !retry.SubExist(po.Topic) {
+		if !retry.subExist(po.Topic) {
 			GetEventManager().db().Delete(&subEventObject{}, "identity = ?", po.Identity) //未注册重试，直接删除
 			continue
 		}
@@ -150,13 +142,13 @@ func (retry *eventRetry) scanPub() {
 	var list []*pubEventObject
 	err := GetEventManager().db().Where("retries < ? and created < ?", retry.retries, time.Now().Add(-retry.delay)).Order("sequence ASC").Limit(rows).Find(&list).Error
 	if err != nil {
-		freedom.Logger().Info("RetryPubEvent:", err)
+		freedom.Logger().Error("RetryPubEvent:", err)
 		return
 	}
 
 	var filterList []*pubEventObject
 	for _, po := range list {
-		if !retry.PubExist(po.Topic) {
+		if !retry.pubExist(po.Topic) {
 			GetEventManager().db().Delete(&pubEventObject{}, "identity = ?", po.Identity) //未注册重试，直接删除
 			continue
 		}
@@ -196,20 +188,20 @@ func (retry *eventRetry) callPub(po *pubEventObject) {
 func parseRetryCallFunc(f interface{}) (inType reflect.Type, e error) {
 	ftype := reflect.TypeOf(f)
 	if ftype.Kind() != reflect.Func {
-		e = errors.New("It's not a func")
+		e = errors.New("it's not a func")
 		return
 	}
 	if ftype.NumIn() != 1 {
-		e = errors.New("The function's argument is wrong")
+		e = errors.New("the function's argument is wrong")
 		return
 	}
 	if ftype.NumOut() != 0 {
-		e = errors.New("The function's argument is wrong")
+		e = errors.New("the function's argument is wrong")
 		return
 	}
 	inType = ftype.In(0)
 	if inType.Kind() != reflect.Ptr {
-		e = errors.New("The function's argument is wrong")
+		e = errors.New("the function's argument is wrong")
 		return
 	}
 	return
