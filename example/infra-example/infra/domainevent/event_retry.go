@@ -11,20 +11,18 @@ import (
 
 func newEventRetry() *eventRetry {
 	return &eventRetry{
-		pubPool:  make(map[string]reflect.Type),
-		subPool:  make(map[string]subRetry),
-		delay:    60 * time.Second, //新插入数据，延迟60秒被扫描
-		retries:  3,                //重试次数
-		interval: time.Second * 30, //定时间隔
+		pubPool: make(map[string]reflect.Type),
+		subPool: make(map[string]subRetry),
+		delay:   60 * time.Second, //新插入数据，延迟60秒被扫描
+		retries: 3,                //重试次数
 	}
 }
 
 type eventRetry struct {
-	pubPool  map[string]reflect.Type
-	subPool  map[string]subRetry
-	delay    time.Duration
-	retries  int
-	interval time.Duration
+	pubPool map[string]reflect.Type
+	subPool map[string]subRetry
+	delay   time.Duration
+	retries int
 }
 
 type subRetry struct {
