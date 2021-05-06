@@ -3,13 +3,13 @@ package domainevent
 import (
 	"time"
 
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 )
 
 // pubEventObject .
 type pubEventObject struct {
 	changes  map[string]interface{}
-	Sequence int       `gorm:"primary_key;column:sequence;auto increment"`
+	Sequence int       `gorm:"primaryKey;column:sequence;autoIncrement"`
 	Identity string    `gorm:"unique;not null;column:identity"`
 	Topic    string    `gorm:"column:topic;not null"`             // 主题
 	Retries  int       `gorm:"column:retries;not null"`           // 重试次数

@@ -5,7 +5,7 @@ import (
 
 	"github.com/8treenet/freedom"
 	"github.com/8treenet/freedom/infra/kafka"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 )
 
 var eventManager *EventManager
@@ -36,10 +36,10 @@ type EventManager struct {
 
 // Booting .
 func (manager *EventManager) Booting(bootManager freedom.BootManager) {
-	if err := manager.db().AutoMigrate(&pubEventObject{}).Error; err != nil {
+	if err := manager.db().AutoMigrate(&pubEventObject{}); err != nil {
 		panic(err)
 	}
-	if err := manager.db().AutoMigrate(&subEventObject{}).Error; err != nil {
+	if err := manager.db().AutoMigrate(&subEventObject{}); err != nil {
 		panic(err)
 	}
 
@@ -142,8 +142,7 @@ func (manager *EventManager) Save(repo *freedom.Repository, entity freedom.Entit
 			continue //未注册重试,无需修改
 		}
 
-		eventID := subEvent.Identity()
-		if e = getTxDB(repo).Delete(&subEventObject{}, "identity = ?", eventID).Error; e != nil { //删除消费事件表
+		if e = getTxDB(repo).Where("identity = ?", subEvent.Identity()).Delete(&subEventObject{}).Error; e != nil { //删除消费事件表
 			return
 		}
 	}
@@ -223,7 +222,5 @@ func getTxDB(repo *freedom.Repository) *gorm.DB {
 	if err := repo.FetchDB(&db); err != nil {
 		panic(err)
 	}
-	db = db.New()
-	db.SetLogger(repo.Worker().Logger())
 	return db
 }

@@ -6,7 +6,6 @@ import (
 	"github.com/8treenet/freedom/example/http2/server/conf"
 	"github.com/8treenet/freedom/infra/requests"
 	"github.com/8treenet/freedom/middleware"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
 
 func main() {

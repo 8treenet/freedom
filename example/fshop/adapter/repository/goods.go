@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/8treenet/freedom/infra/store"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 
 	"github.com/8treenet/freedom/example/fshop/domain/dependency"
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
@@ -39,7 +39,7 @@ func (repo *Goods) BeginRequest(worker freedom.Worker) {
 
 	//设置缓存的持久化数据源,旁路缓存模型，如果缓存未有数据，将回调该函数。
 	repo.Cache.SetSource(func(result freedom.Entity) error {
-		return findGoods(repo, result)
+		return findGoods(repo, &result.(*entity.Goods).Goods)
 	})
 	//缓存30秒, 不设置默认5分钟
 	repo.Cache.SetExpiration(30 * time.Second)
@@ -76,9 +76,12 @@ func (repo *Goods) Finds(IDs []int) (entitys []*entity.Goods, e error) {
 	for i := 0; i < len(IDs); i++ {
 		primarys = append(primarys, IDs[i])
 	}
-	e = findGoodsListByPrimarys(repo, &entitys, primarys...)
+	list, e := findGoodsListByPrimarys(repo, primarys...)
 	if e != nil {
 		return
+	}
+	for _, v := range list {
+		entitys = append(entitys, &entity.Goods{Goods: v})
 	}
 
 	//注入基础Entity
@@ -89,10 +92,14 @@ func (repo *Goods) Finds(IDs []int) (entitys []*entity.Goods, e error) {
 // FindsByPage .
 func (repo *Goods) FindsByPage(page, pageSize int, tag string) (entitys []*entity.Goods, e error) {
 	pager := NewDescPager("id").SetPage(page, pageSize)
-	e = findGoodsList(repo, po.Goods{Tag: tag}, &entitys, pager)
+	list, e := findGoodsList(repo, po.Goods{Tag: tag}, pager)
 	if e != nil {
 		return
 	}
+	for _, v := range list {
+		entitys = append(entitys, &entity.Goods{Goods: v})
+	}
+
 	repo.Worker().Logger().Info("FindsByPage", freedom.LogFields{
 		"page":      page,
 		"pageSize":  pageSize,
@@ -121,7 +128,5 @@ func (repo *Goods) db() *gorm.DB {
 	if err := repo.FetchDB(&db); err != nil {
 		panic(err)
 	}
-	db = db.New()
-	db.SetLogger(repo.Worker().Logger())
 	return db
 }

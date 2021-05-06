@@ -7,7 +7,7 @@ import (
 	"github.com/8treenet/freedom/example/infra-example/domain/entity"
 	"github.com/8treenet/freedom/example/infra-example/domain/po"
 	"github.com/8treenet/freedom/example/infra-example/infra/domainevent"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 )
 
 func init() {
@@ -33,15 +33,18 @@ func (repo *OrderRepository) Get(ID, userID int) (result *entity.Order, e error)
 	//注入基础Entity
 	repo.InjectBaseEntity(result)
 
-	e = findOrder(repo, &result)
+	e = findOrder(repo, &result.Order)
 	return
 }
 
 // GetAll .
 func (repo *OrderRepository) GetAll(userID int) (result []*entity.Order, e error) {
-	e = findOrderList(repo, po.Order{UserID: userID}, &result)
+	list, e := findOrderList(repo, po.Order{UserID: userID})
 	if e != nil {
 		return
+	}
+	for _, v := range list {
+		result = append(result, &entity.Order{Order: v})
 	}
 
 	//注入基础Entity
@@ -66,6 +69,5 @@ func (repo *OrderRepository) db() *gorm.DB {
 	if err := repo.FetchDB(&db); err != nil {
 		panic(err)
 	}
-	db.SetLogger(repo.Worker().Logger())
 	return db
 }

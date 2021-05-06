@@ -2,14 +2,14 @@
 package po
 
 import (
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 	"time"
 )
 
 // OrderDetail .
 type OrderDetail struct {
 	changes   map[string]interface{}
-	ID        int       `gorm:"primary_key;column:id"`
+	ID        int       `gorm:"primaryKey;column:id"`
 	OrderNo   string    `gorm:"column:order_no"`   // 订单id
 	GoodsID   int       `gorm:"column:goods_id"`   // 商品id
 	Num       int       `gorm:"column:num"`        // 数量

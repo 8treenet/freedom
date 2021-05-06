@@ -6,7 +6,7 @@ import (
 	"github.com/8treenet/freedom/example/infra-example/domain/entity"
 	"github.com/8treenet/freedom/example/infra-example/domain/po"
 	"github.com/8treenet/freedom/example/infra-example/infra/domainevent"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 )
 
 func init() {
@@ -30,15 +30,18 @@ func (repo *GoodsRepository) Get(ID int) (result *entity.Goods, e error) {
 	//注入基础Entity
 	repo.InjectBaseEntity(result)
 
-	e = findGoods(repo, result)
+	e = findGoods(repo, &result.Goods)
 	return
 }
 
 // GetAll .
 func (repo *GoodsRepository) GetAll() (result []*entity.Goods, e error) {
-	e = findGoodsList(repo, po.Goods{}, &result)
+	list, e := findGoodsList(repo, po.Goods{})
 	if e != nil {
 		return
+	}
+	for _, v := range list {
+		result = append(result, &entity.Goods{Goods: v})
 	}
 
 	//注入基础Entity
@@ -65,6 +68,5 @@ func (repo *GoodsRepository) db() *gorm.DB {
 	if err := repo.FetchDB(&db); err != nil {
 		panic(err)
 	}
-	db.SetLogger(repo.Worker().Logger())
 	return db
 }

@@ -2,14 +2,14 @@
 package po
 
 import (
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 	"time"
 )
 
 // Delivery .
 type Delivery struct {
 	changes        map[string]interface{}
-	ID             int       `gorm:"primary_key;column:id"`
+	ID             int       `gorm:"primaryKey;column:id"`
 	AdminID        int       `gorm:"column:admin_id"` // 管理员id
 	OrderNo        string    `gorm:"column:order_no"`
 	TrackingNumber string    `gorm:"column:tracking_number"` // 快递单号

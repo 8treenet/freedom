@@ -14,6 +14,11 @@ func init() {
 	initConfigurator()
 }
 
+const (
+	//TransactionKey for transaction DB handles in the first-level cache
+	TransactionKey = internal.TransactionKey
+)
+
 type (
 	// IrisResult represents an type alias to hero.Result
 	IrisResult = hero.Result

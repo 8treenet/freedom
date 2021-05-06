@@ -10,7 +10,7 @@ import (
 	"github.com/8treenet/freedom/example/fshop/domain/po"
 	"github.com/8treenet/freedom/example/fshop/infra/domainevent"
 	"github.com/8treenet/freedom/infra/store"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 )
 
 func init() {
@@ -38,10 +38,17 @@ func (repo *Order) BeginRequest(worker freedom.Worker) {
 	//设置缓存的持久化数据源
 	repo.Cache.SetSource(func(result freedom.Entity) error {
 		orderEntity := result.(*entity.Order)
-		if e := findOrder(repo, orderEntity); e != nil {
+		if e := findOrder(repo, &orderEntity.Order); e != nil {
 			return e
 		}
-		return findOrderDetailList(repo, po.OrderDetail{OrderNo: orderEntity.OrderNo}, &orderEntity.Details)
+		details, e := findOrderDetailList(repo, po.OrderDetail{OrderNo: orderEntity.OrderNo})
+		if e != nil {
+			return e
+		}
+		for _, v := range details {
+			orderEntity.Details = append(orderEntity.Details, &v)
+		}
+		return nil
 	})
 }
 
@@ -90,14 +97,17 @@ func (repo *Order) Save(orderEntity *entity.Order) (e error) {
 // Find .
 func (repo *Order) Find(orderNo string, userID int) (orderEntity *entity.Order, e error) {
 	orderEntity = &entity.Order{Order: po.Order{OrderNo: orderNo, UserID: userID}}
-	e = findOrder(repo, orderEntity)
+	e = findOrder(repo, &orderEntity.Order)
 	if e != nil {
 		return
 	}
 
-	e = findOrderDetailList(repo, po.OrderDetail{OrderNo: orderEntity.OrderNo}, &orderEntity.Details)
+	list, e := findOrderDetailList(repo, po.OrderDetail{OrderNo: orderEntity.OrderNo})
 	if e != nil {
 		return
+	}
+	for _, v := range list {
+		orderEntity.Details = append(orderEntity.Details, &v)
 	}
 
 	//注入基础Entity
@@ -109,15 +119,22 @@ func (repo *Order) Find(orderNo string, userID int) (orderEntity *entity.Order, 
 func (repo *Order) Finds(userID int, page, pageSize int) (entitys []*entity.Order, totalPage int, e error) {
 	pager := NewDescPager("id").SetPage(page, pageSize)
 
-	e = findOrderList(repo, po.Order{UserID: userID}, &entitys, pager)
+	list, e := findOrderList(repo, po.Order{UserID: userID}, pager)
 	if e != nil {
 		return
 	}
+	for _, v := range list {
+		entitys = append(entitys, &entity.Order{Order: v})
+	}
 
 	for i := 0; i < len(entitys); i++ {
-		e = findOrderDetailList(repo, po.OrderDetail{OrderNo: entitys[i].OrderNo}, &entitys[i].Details)
-		if e != nil {
+		details, err := findOrderDetailList(repo, po.OrderDetail{OrderNo: entitys[i].OrderNo})
+		if err != nil {
+			e = err
 			return
+		}
+		for _, detail := range details {
+			entitys[i].Details = append(entitys[i].Details, &detail)
 		}
 	}
 
@@ -141,7 +158,5 @@ func (repo *Order) db() *gorm.DB {
 	if err := repo.FetchDB(&db); err != nil {
 		panic(err)
 	}
-	db = db.New()
-	db.SetLogger(repo.Worker().Logger())
 	return db
 }

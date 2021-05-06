@@ -66,7 +66,7 @@ var (
 					pdata["Import"] = pdata["Import"].(string) + `"time"` + "\n"
 				}
 				if len(list[index].AddMethods) > 0 {
-					pdata["Import"] = pdata["Import"].(string) + `"github.com/jinzhu/gorm"` + "\n"
+					pdata["Import"] = pdata["Import"].(string) + `"gorm.io/gorm"` + "\n"
 				}
 				pdata["Import"] = pdata["Import"].(string) + ")"
 

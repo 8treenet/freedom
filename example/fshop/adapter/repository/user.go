@@ -8,7 +8,7 @@ import (
 	"github.com/8treenet/freedom/example/fshop/domain/po"
 	"github.com/8treenet/freedom/example/fshop/domain/vo"
 	"github.com/8treenet/freedom/example/fshop/infra/domainevent"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 
 	"github.com/8treenet/freedom"
 )
@@ -35,7 +35,7 @@ type User struct {
 func (repo *User) Get(ID int) (userEntity *entity.User, e error) {
 	userEntity = &entity.User{}
 	userEntity.ID = ID
-	e = findUser(repo, userEntity)
+	e = findUser(repo, &userEntity.User)
 	if e != nil {
 		return
 	}
@@ -48,7 +48,7 @@ func (repo *User) Get(ID int) (userEntity *entity.User, e error) {
 // FindByName .
 func (repo *User) FindByName(userName string) (userEntity *entity.User, e error) {
 	userEntity = &entity.User{User: po.User{Name: userName}}
-	e = findUser(repo, userEntity)
+	e = findUser(repo, &userEntity.User)
 	if e != nil {
 		return
 	}
@@ -84,7 +84,5 @@ func (repo *User) db() *gorm.DB {
 	if err := repo.FetchDB(&db); err != nil {
 		panic(err)
 	}
-	db = db.New()
-	db.SetLogger(repo.Worker().Logger())
 	return db
 }

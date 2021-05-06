@@ -1,9 +1,6 @@
 package domainevent
 
 import (
-	"context"
-	"database/sql"
-
 	"github.com/8treenet/freedom"
 	"github.com/8treenet/freedom/infra/transaction"
 )
@@ -32,19 +29,6 @@ func (et *EventTransaction) Execute(fun func() error) (e error) {
 	}()
 
 	if e = et.GormImpl.Execute(fun); e != nil {
-		return
-	}
-	et.pushEvent()
-	return
-}
-
-// ExecuteTx .
-func (et *EventTransaction) ExecuteTx(ctx context.Context, fun func() error, opts *sql.TxOptions) (e error) {
-	defer func() {
-		et.Worker().Store().Remove(workerStorePubEventKey)
-	}()
-
-	if e = et.GormImpl.ExecuteTx(ctx, fun, opts); e != nil {
 		return
 	}
 	et.pushEvent()

@@ -171,7 +171,7 @@ func (t *Generate) schema(tableColumns map[string][]column) (result []ObjectCont
 			if v.Primary == "PRI" {
 				primaryName = v.Tag
 				primaryStructName = v.ColumnName
-				v.Tag = "`" + `gorm:"primary_key;column:` + v.Tag + `"` + "`"
+				v.Tag = "`" + `gorm:"primaryKey;column:` + v.Tag + `"` + "`"
 			} else {
 				v.Tag = "`" + `gorm:"column:` + v.Tag + `"` + "`"
 			}

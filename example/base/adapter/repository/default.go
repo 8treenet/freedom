@@ -3,7 +3,7 @@ package repository
 
 import (
 	"github.com/8treenet/freedom"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 )
 
 func init() {
@@ -38,8 +38,6 @@ func (repo *Default) db() *gorm.DB {
 	if err := repo.FetchDB(&db); err != nil {
 		panic(err)
 	}
-	db = db.New()
-	db.SetLogger(repo.Worker().Logger())
 	return db
 }
 

@@ -3,7 +3,7 @@ package repository
 import (
 	"github.com/8treenet/freedom/example/fshop/domain/dependency"
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 
 	"github.com/8treenet/freedom"
 )
@@ -29,7 +29,7 @@ type Admin struct {
 func (repo *Admin) Get(id int) (adminEntity *entity.Admin, e error) {
 	adminEntity = &entity.Admin{}
 	adminEntity.ID = id
-	e = findUser(repo, adminEntity)
+	e = findAdmin(repo, &adminEntity.Admin)
 	if e != nil {
 		return
 	}
@@ -44,7 +44,5 @@ func (repo *Admin) db() *gorm.DB {
 	if err := repo.FetchDB(&db); err != nil {
 		panic(err)
 	}
-	db = db.New()
-	db.SetLogger(repo.Worker().Logger())
 	return db
 }

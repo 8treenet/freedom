@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/8treenet/freedom"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 )
 
 func init() {
@@ -20,8 +20,7 @@ func init() {
 
 // Transaction .
 type Transaction interface {
-	Execute(fun func() error) (e error)
-	ExecuteTx(ctx context.Context, fun func() error, opts *sql.TxOptions) (e error)
+	Execute(fun func() error, opts ...*sql.TxOptions) (e error)
 }
 
 var _ Transaction = (*GormImpl)(nil)
@@ -29,65 +28,35 @@ var _ Transaction = (*GormImpl)(nil)
 //GormImpl .
 type GormImpl struct {
 	freedom.Infra
-	db *gorm.DB
 }
 
 // BeginRequest .
 func (t *GormImpl) BeginRequest(worker freedom.Worker) {
-	t.db = nil
 	t.Infra.BeginRequest(worker)
 }
 
 // Execute .
-func (t *GormImpl) Execute(fun func() error) (e error) {
-	return t.execute(nil, fun, nil)
-}
-
-// ExecuteTx .
-func (t *GormImpl) ExecuteTx(ctx context.Context, fun func() error, opts *sql.TxOptions) (e error) {
-	return t.execute(ctx, fun, opts)
+func (t *GormImpl) Execute(fun func() error, opts ...*sql.TxOptions) (e error) {
+	return t.execute(t.Worker().Context(), fun, opts...)
 }
 
 // execute .
-func (t *GormImpl) execute(ctx context.Context, fun func() error, opts *sql.TxOptions) (e error) {
-	if t.db != nil {
-		panic("unknown error")
-	}
-
+func (t *GormImpl) execute(ctx context.Context, fun func() error, opts ...*sql.TxOptions) (e error) {
 	var db *gorm.DB
 	if err := t.FetchOnlyDB(&db); err != nil {
 		return err
 	}
 
-	if ctx != nil && opts != nil {
-		t.db = db.BeginTx(ctx, opts)
-	} else {
-		t.db = db.Begin()
-	}
-
-	t.Worker().Store().Set("freedom_local_transaction_db", t.db)
-
-	defer func() {
-		if perr := recover(); perr != nil {
-			t.db.Rollback()
-			t.db = nil
-			e = errors.New(fmt.Sprint(perr))
-			t.Worker().Store().Remove("freedom_local_transaction_db")
-			return
-		}
-
-		deferdb := t.db
-		t.Worker().Store().Remove("freedom_local_transaction_db")
-		t.db = nil
-		if e != nil {
-			e2 := deferdb.Rollback()
-			if e2.Error != nil {
-				e = errors.New(e.Error() + "," + e2.Error.Error())
+	return db.Transaction(func(tx *gorm.DB) (e error) {
+		t.Worker().Store().Set(freedom.TransactionKey, tx)
+		defer func() {
+			if perr := recover(); perr != nil {
+				e = errors.New(fmt.Sprint(perr))
 			}
-			return
-		}
-		e = deferdb.Commit().Error
-	}()
-	e = fun()
-	return
+			t.Worker().Store().Remove(freedom.TransactionKey)
+		}()
+
+		e = fun()
+		return
+	}, opts...)
 }

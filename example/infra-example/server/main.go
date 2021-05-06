@@ -13,9 +13,9 @@ import (
 	"github.com/8treenet/freedom/infra/requests"
 	"github.com/8treenet/freedom/middleware"
 	"github.com/Shopify/sarama"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/prometheus/client_golang/prometheus"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 //mac: zookeeper-server-start /usr/local/etc/kafka/zookeeper.properties & kafka-server-start /usr/local/etc/kafka/server.properties
@@ -78,14 +78,18 @@ func installMiddleware(app freedom.Application) {
 func installDatabase(app freedom.Application) {
 	app.InstallDB(func() interface{} {
 		conf := conf.Get().DB
-		db, e := gorm.Open("mysql", conf.Addr)
+		db, e := gorm.Open(mysql.Open(conf.Addr), &gorm.Config{})
 		if e != nil {
 			freedom.Logger().Fatal(e.Error())
 		}
 
-		db.DB().SetMaxIdleConns(conf.MaxIdleConns)
-		db.DB().SetMaxOpenConns(conf.MaxOpenConns)
-		db.DB().SetConnMaxLifetime(time.Duration(conf.ConnMaxLifeTime) * time.Second)
+		sqlDB, err := db.DB()
+		if err != nil {
+			freedom.Logger().Fatal(e.Error())
+		}
+		sqlDB.SetMaxIdleConns(conf.MaxIdleConns)
+		sqlDB.SetMaxOpenConns(conf.MaxOpenConns)
+		sqlDB.SetConnMaxLifetime(time.Duration(conf.ConnMaxLifeTime) * time.Second)
 		return db
 	})
 }

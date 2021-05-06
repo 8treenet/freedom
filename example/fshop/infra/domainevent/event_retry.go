@@ -97,7 +97,7 @@ func (retry *eventRetry) scanSub() {
 	var filterList []*subEventObject
 	for _, po := range list {
 		if !retry.subExist(po.Topic) {
-			GetEventManager().db().Delete(&subEventObject{}, "identity = ?", po.Identity) //未注册重试，直接删除
+			GetEventManager().db().Where("identity = ?", po.Identity).Delete(&subEventObject{}) //未注册重试，直接删除
 			continue
 		}
 
@@ -147,7 +147,7 @@ func (retry *eventRetry) scanPub() {
 	var filterList []*pubEventObject
 	for _, po := range list {
 		if !retry.pubExist(po.Topic) {
-			GetEventManager().db().Delete(&pubEventObject{}, "identity = ?", po.Identity) //未注册重试，直接删除
+			GetEventManager().db().Where("identity = ?", po.Identity).Delete(&pubEventObject{}) //未注册重试，直接删除
 			continue
 		}
 

@@ -1,12 +1,12 @@
 package internal
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/jinzhu/gorm"
 	"github.com/kataras/iris/v12/context"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -139,11 +139,8 @@ func (p *Prometheus) OrmWithLabelValues(model, method string, e error, starTime 
 	}
 
 	result := "ok"
-	if e != nil {
+	if e != nil && !strings.Contains(fmt.Sprint(e), "record not found") {
 		result = "error"
-	}
-	if e == gorm.ErrRecordNotFound {
-		result = "ok"
 	}
 
 	p.ormReqs.WithLabelValues(model, method, result).Inc()

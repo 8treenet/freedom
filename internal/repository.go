@@ -11,6 +11,11 @@ import (
 	iris "github.com/kataras/iris/v12"
 )
 
+const (
+	//TransactionKey for transaction DB handles in the first-level cache
+	TransactionKey = "freedom_local_transaction_db"
+)
+
 // Repository .
 type Repository struct {
 	worker Worker
@@ -25,7 +30,7 @@ func (repo *Repository) BeginRequest(rt Worker) {
 func (repo *Repository) FetchDB(db interface{}) error {
 	resultDB := globalApp.Database.db
 
-	transactionData := repo.worker.Store().Get("freedom_local_transaction_db")
+	transactionData := repo.worker.Store().Get(TransactionKey)
 	if transactionData != nil {
 		resultDB = transactionData
 	}

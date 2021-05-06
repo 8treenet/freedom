@@ -2,17 +2,17 @@
 package po
 
 import (
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 	"time"
 )
 
 // User .
 type User struct {
 	changes  map[string]interface{}
-	ID       int       `gorm:"primary_key;column:id"` // 用户id
-	Name     string    `gorm:"column:name"`           // 用户名称
-	Money    int       `gorm:"column:money"`          // 金钱
-	Password string    `gorm:"column:password"`       // 密码
+	ID       int       `gorm:"primaryKey;column:id"` // 用户id
+	Name     string    `gorm:"column:name"`          // 用户名称
+	Money    int       `gorm:"column:money"`         // 金钱
+	Password string    `gorm:"column:password"`      // 密码
 	Created  time.Time `gorm:"column:created"`
 	Updated  time.Time `gorm:"column:updated"`
 }

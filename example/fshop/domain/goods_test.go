@@ -7,15 +7,15 @@ import (
 	_ "github.com/8treenet/freedom/example/fshop/adapter/repository" //引入输出适配器 repository资源库。不引入会报错！！！！！！！！！！！！！！
 	"github.com/8treenet/freedom/example/fshop/domain"
 	"github.com/go-redis/redis"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 func getUnitTest() freedom.UnitTest {
 	//创建单元测试工具
 	unitTest := freedom.NewUnitTest()
 	unitTest.InstallDB(func() interface{} {
-		db, e := gorm.Open("mysql", "root:123123@tcp(127.0.0.1:3306)/fshop?charset=utf8&parseTime=True&loc=Local")
+		db, e := gorm.Open(mysql.Open("root:123123@tcp(127.0.0.1:3306)/fshop?charset=utf8&parseTime=True&loc=Local"))
 		if e != nil {
 			freedom.Logger().Fatal(e.Error())
 		}

@@ -56,7 +56,7 @@ func FunTemplatePackage() string {
 	import (
 		"errors"
 		"github.com/8treenet/freedom"
-		"github.com/jinzhu/gorm"
+		"gorm.io/gorm"
 		"time"
 		"{{.PackagePath}}"
 		"fmt"
@@ -144,8 +144,6 @@ func FunTemplatePackage() string {
 		orderValue := p.Order()
 		if orderValue != nil {
 			db = db.Order(orderValue)
-		} else {
-			db = db.Set("gorm:order_by_primary_key", "DESC")
 		}
 		if p.page != 0 && p.pageSize != 0 {
 			pageFind = true
@@ -161,8 +159,9 @@ func FunTemplatePackage() string {
 			return
 		}
 
-		var count int
-		e = resultDB.Offset(0).Limit(1).Count(&count).Error
+		var count64 int64
+		e = resultDB.Offset(0).Limit(1).Count(&count64).Error
+		count := int(count64)
 		if e == nil && count != 0 {
 			//计算分页
 			if count%p.pageSize == 0 {
@@ -189,7 +188,7 @@ func FunTemplatePackage() string {
 func FunTemplate() string {
 	return `
 	// find{{.Name}} .
-	func find{{.Name}}(repo GORMRepository, result interface{}, builders ...Builder) (e error) {
+	func find{{.Name}}(repo GORMRepository, result *po.{{.Name}}, builders ...Builder) (e error) {
 		now := time.Now()
 		defer func() {
 			freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "find{{.Name}}", e, now)
@@ -205,19 +204,19 @@ func FunTemplate() string {
 	}
 	
 	// find{{.Name}}ListByPrimarys .
-	func find{{.Name}}ListByPrimarys(repo GORMRepository, results interface{}, primarys ...interface{}) (e error) {
+	func find{{.Name}}ListByPrimarys(repo GORMRepository, primarys ...interface{}) (results []po.{{.Name}}, e error) {
 		now := time.Now()
 		defer func() {
 			freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "find{{.Name}}ListByPrimarys", e, now)
 			ormErrorLog(repo, "{{.Name}}", "find{{.Name}}sByPrimarys", e, primarys)
 		}()
 
-		e = repo.db().Find(results, primarys).Error
+		e = repo.db().Find(&results, primarys).Error
 		return
 	}
 	
 	// find{{.Name}}ByWhere .
-	func find{{.Name}}ByWhere(repo GORMRepository, query string, args []interface{}, result interface{}, builders ...Builder) (e error) {
+	func find{{.Name}}ByWhere(repo GORMRepository, query string, args []interface{}, builders ...Builder) (result po.{{.Name}}, e error) {
 		now := time.Now()
 		defer func() {
 			freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "find{{.Name}}ByWhere", e, now)
@@ -228,16 +227,16 @@ func FunTemplate() string {
 			db = db.Where(query, args...)
 		}
 		if len(builders) == 0 {
-			e = db.Last(result).Error
+			e = db.Last(&result).Error
 			return
 		}
 	
-		e = builders[0].Execute(db.Limit(1), result)
+		e = builders[0].Execute(db.Limit(1), &result)
 		return
 	}
 	
 	// find{{.Name}}ByMap .
-	func find{{.Name}}ByMap(repo GORMRepository, query map[string]interface{}, result interface{}, builders ...Builder) (e error) {
+	func find{{.Name}}ByMap(repo GORMRepository, query map[string]interface{}, builders ...Builder) (result po.{{.Name}}, e error) {
 		now := time.Now()
 		defer func() {
 			freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "find{{.Name}}ByMap", e, now)
@@ -246,16 +245,16 @@ func FunTemplate() string {
 
 		db := repo.db().Where(query)
 		if len(builders) == 0 {
-			e = db.Last(result).Error
+			e = db.Last(&result).Error
 			return
 		}
 	
-		e = builders[0].Execute(db.Limit(1), result)
+		e = builders[0].Execute(db.Limit(1), &result)
 		return
 	}
 	
 	// find{{.Name}}List .
-	func find{{.Name}}List(repo GORMRepository, query po.{{.Name}}, results interface{}, builders ...Builder) (e error) {
+	func find{{.Name}}List(repo GORMRepository, query po.{{.Name}}, builders ...Builder) (results []po.{{.Name}}, e error) {
 		now := time.Now()
 		defer func() {
 			freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "find{{.Name}}List", e, now)
@@ -264,15 +263,15 @@ func FunTemplate() string {
 		db := repo.db().Where(query)
 	
 		if len(builders) == 0 {
-			e = db.Find(results).Error
+			e = db.Find(&results).Error
 			return
 		}
-		e = builders[0].Execute(db, results)
+		e = builders[0].Execute(db, &results)
 		return
 	}
 	
 	// find{{.Name}}ListByWhere .
-	func find{{.Name}}ListByWhere(repo GORMRepository, query string, args []interface{}, results interface{}, builders ...Builder) (e error) {
+	func find{{.Name}}ListByWhere(repo GORMRepository, query string, args []interface{}, builders ...Builder) (results []po.{{.Name}}, e error) {
 		now := time.Now()
 		defer func() {
 			freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "find{{.Name}}ListByWhere", e, now)
@@ -284,15 +283,15 @@ func FunTemplate() string {
 		}
 	
 		if len(builders) == 0 {
-			e = db.Find(results).Error
+			e = db.Find(&results).Error
 			return
 		}
-		e = builders[0].Execute(db, results)
+		e = builders[0].Execute(db, &results)
 		return
 	}
 	
 	// find{{.Name}}ListByMap .
-	func find{{.Name}}ListByMap(repo GORMRepository, query map[string]interface{}, results interface{}, builders ...Builder) (e error) {
+	func find{{.Name}}ListByMap(repo GORMRepository, query map[string]interface{}, builders ...Builder) (results []po.{{.Name}}, e error) {
 		now := time.Now()
 		defer func() {
 			freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "find{{.Name}}ListByMap", e, now)
@@ -302,10 +301,10 @@ func FunTemplate() string {
 		db := repo.db().Where(query)
 	
 		if len(builders) == 0 {
-			e = db.Find(results).Error
+			e = db.Find(&results).Error
 			return
 		}
-		e = builders[0].Execute(db, results)
+		e = builders[0].Execute(db, &results)
 		return
 	}
 	
@@ -324,7 +323,7 @@ func FunTemplate() string {
 	}
 
 	// save{{.Name}} .
-	func save{{.Name}}(repo GORMRepository, object saveObject) (affected int64, e error) {
+	func save{{.Name}}(repo GORMRepository, object saveObject) (rowsAffected int64, e error) {
 		if len(object.Location()) == 0 {
 			return 0, errors.New("location cannot be empty")
 		}
@@ -337,7 +336,7 @@ func FunTemplate() string {
 
 		db := repo.db().Table(object.TableName()).Where(object.Location()).Updates(object.GetChanges())
 		e = db.Error
-		affected = db.RowsAffected
+		rowsAffected = db.RowsAffected
 		return
 	}
 `

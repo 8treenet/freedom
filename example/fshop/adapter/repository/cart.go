@@ -6,7 +6,7 @@ import (
 	"github.com/8treenet/freedom/example/fshop/domain/dependency"
 	"github.com/8treenet/freedom/example/fshop/domain/entity"
 	"github.com/8treenet/freedom/example/fshop/domain/po"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 
 	"github.com/8treenet/freedom"
 )
@@ -30,11 +30,14 @@ type Cart struct {
 
 // FindAll 获取用户购物车实体
 func (repo *Cart) FindAll(userID int) (entitys []*entity.Cart, e error) {
-	e = findCartList(repo, po.Cart{UserID: userID}, &entitys)
+	list, e := findCartList(repo, po.Cart{UserID: userID})
 	if e != nil {
 		return
 	}
 
+	for _, obj := range list {
+		entitys = append(entitys, &entity.Cart{Cart: obj})
+	}
 	//注入基础Entity
 	repo.InjectBaseEntitys(entitys)
 	return
@@ -43,7 +46,7 @@ func (repo *Cart) FindAll(userID int) (entitys []*entity.Cart, e error) {
 // FindByGoodsID 获取用户某商品的购物车
 func (repo *Cart) FindByGoodsID(userID, goodsID int) (cartEntity *entity.Cart, e error) {
 	cartEntity = &entity.Cart{Cart: po.Cart{UserID: userID, GoodsID: goodsID}}
-	e = findCart(repo, cartEntity)
+	e = findCart(repo, &cartEntity.Cart)
 	if e != nil {
 		return
 	}
@@ -81,7 +84,5 @@ func (repo *Cart) db() *gorm.DB {
 	if err := repo.FetchDB(&db); err != nil {
 		panic(err)
 	}
-	db = db.New()
-	db.SetLogger(repo.Worker().Logger())
 	return db
 }

@@ -59,13 +59,13 @@ func mainTemplate() string {
 
 	import (
 		"time"
-		_ "github.com/jinzhu/gorm/dialects/mysql"
+		"gorm.io/driver/mysql"
 		"github.com/8treenet/freedom"
 		_ "{{.PackagePath}}/adapter/repository" //引入输出适配器 repository资源库
 		_ "{{.PackagePath}}/adapter/controller" //引入输入适配器 http路由
 		"{{.PackagePath}}/server/conf"
 		"github.com/go-redis/redis"
-		"github.com/jinzhu/gorm"
+		"gorm.io/gorm"
 		"github.com/8treenet/freedom/middleware"
 		"github.com/8treenet/freedom/infra/requests"
 	)
@@ -111,14 +111,18 @@ func mainTemplate() string {
 	func installDatabase(app freedom.Application) {
 		app.InstallDB(func() interface{} {
 			conf := conf.Get().DB
-			db, e := gorm.Open("mysql", conf.Addr)
+			db, e := gorm.Open(mysql.Open(conf.Addr), &gorm.Config{})
 			if e != nil {
 				freedom.Logger().Fatal(e.Error())
 			}
 	
-			db.DB().SetMaxIdleConns(conf.MaxIdleConns)
-			db.DB().SetMaxOpenConns(conf.MaxOpenConns)
-			db.DB().SetConnMaxLifetime(time.Duration(conf.ConnMaxLifeTime) * time.Second)
+			sqlDB, err := db.DB()
+			if err != nil {
+				freedom.Logger().Fatal(e.Error())
+			}
+			sqlDB.SetMaxIdleConns(conf.MaxIdleConns)
+			sqlDB.SetMaxOpenConns(conf.MaxOpenConns)
+			sqlDB.SetConnMaxLifetime(time.Duration(conf.ConnMaxLifeTime) * time.Second)
 			return db
 		})
 	}
