@@ -8,22 +8,22 @@ import (
 	"github.com/kataras/iris/v12/context"
 )
 
-func newInfraPool() *InfraPool {
-	result := new(InfraPool)
+func newInfraPool() *infraPool {
+	result := new(infraPool)
 	result.singlemap = make(map[reflect.Type]interface{})
 	result.instancePool = make(map[reflect.Type]*sync.Pool)
 	return result
 }
 
-// InfraPool .
-type InfraPool struct {
+// infraPool .
+type infraPool struct {
 	instancePool map[reflect.Type]*sync.Pool
 	singlemap    map[reflect.Type]interface{}
 	shutdownList []func()
 }
 
 // bind .
-func (pool *InfraPool) bind(single bool, t reflect.Type, com interface{}) {
+func (pool *infraPool) bind(single bool, t reflect.Type, com interface{}) {
 	type setSingle interface {
 		setSingle()
 	}
@@ -48,7 +48,7 @@ func (pool *InfraPool) bind(single bool, t reflect.Type, com interface{}) {
 }
 
 // get .
-func (pool *InfraPool) get(rt *worker, ptr reflect.Value) bool {
+func (pool *infraPool) get(rt *worker, ptr reflect.Value) bool {
 	if scom := pool.single(ptr.Type()); scom != nil {
 		ptr.Set(reflect.ValueOf(scom))
 		return true
@@ -74,7 +74,7 @@ func (pool *InfraPool) get(rt *worker, ptr reflect.Value) bool {
 }
 
 // get .
-func (pool *InfraPool) getByInternal(ptr reflect.Value) bool {
+func (pool *infraPool) getByInternal(ptr reflect.Value) bool {
 	if scom := pool.single(ptr.Type()); scom != nil {
 		ptr.Set(reflect.ValueOf(scom))
 		return true
@@ -94,8 +94,8 @@ func (pool *InfraPool) getByInternal(ptr reflect.Value) bool {
 	return false
 }
 
-// booting .
-func (pool *InfraPool) singleBooting(app *Application) {
+// singleBooting .
+func (pool *infraPool) singleBooting(app *Application) {
 	type boot interface {
 		Booting(BootManager)
 	}
@@ -108,18 +108,18 @@ func (pool *InfraPool) singleBooting(app *Application) {
 	}
 }
 
-func (pool *InfraPool) registerShutdown(f func()) {
+func (pool *infraPool) registerShutdown(f func()) {
 	pool.shutdownList = append(pool.shutdownList, f)
 }
 
 // shutdown .
-func (pool *InfraPool) shutdown() {
+func (pool *infraPool) shutdown() {
 	for i := 0; i < len(pool.shutdownList); i++ {
 		pool.shutdownList[i]()
 	}
 }
 
-func (pool *InfraPool) single(t reflect.Type) interface{} {
+func (pool *infraPool) single(t reflect.Type) interface{} {
 	if t.Kind() != reflect.Interface {
 		return pool.singlemap[t]
 	}
@@ -131,7 +131,7 @@ func (pool *InfraPool) single(t reflect.Type) interface{} {
 	return nil
 }
 
-func (pool *InfraPool) much(t reflect.Type) (*sync.Pool, bool) {
+func (pool *infraPool) much(t reflect.Type) (*sync.Pool, bool) {
 	if t.Kind() != reflect.Interface {
 		pool, ok := pool.instancePool[t]
 		return pool, ok
@@ -146,7 +146,7 @@ func (pool *InfraPool) much(t reflect.Type) (*sync.Pool, bool) {
 }
 
 // freeHandle .
-func (pool *InfraPool) freeHandle() context.Handler {
+func (pool *infraPool) freeHandle() context.Handler {
 	return func(ctx context.Context) {
 		ctx.Next()
 		rt := ctx.Values().Get(WorkerKey).(*worker)
@@ -160,7 +160,7 @@ func (pool *InfraPool) freeHandle() context.Handler {
 }
 
 // free .
-func (pool *InfraPool) free(obj interface{}) {
+func (pool *infraPool) free(obj interface{}) {
 	t := reflect.TypeOf(obj)
 	syncpool, ok := pool.instancePool[t]
 	if !ok {
@@ -169,18 +169,18 @@ func (pool *InfraPool) free(obj interface{}) {
 	syncpool.Put(obj)
 }
 
-func (pool *InfraPool) diInfra(obj interface{}) {
+func (pool *infraPool) diInfra(obj interface{}) {
 	allFields(obj, func(value reflect.Value) {
 		pool.diInfraFromValue(value)
 	})
 }
 
-func (pool *InfraPool) diInfraFromValue(value reflect.Value) {
+func (pool *infraPool) diInfraFromValue(value reflect.Value) {
 	globalApp.comPool.getByInternal(value)
 }
 
 // FetchSingleInfra .
-func (pool *InfraPool) FetchSingleInfra(ptr reflect.Value) bool {
+func (pool *infraPool) FetchSingleInfra(ptr reflect.Value) bool {
 	if scom := pool.single(ptr.Type()); scom != nil {
 		ptr.Set(reflect.ValueOf(scom))
 		return true

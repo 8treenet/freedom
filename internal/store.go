@@ -4,19 +4,19 @@ import (
 	"errors"
 )
 
-// Store .
-type Store struct {
+// store .
+type store struct {
 	cache map[interface{}]interface{}
 }
 
-func newStore() *Store {
-	m := new(Store)
+func newStore() *store {
+	m := new(store)
 	m.cache = make(map[interface{}]interface{})
 	return m
 }
 
 // SetOrStore .
-func (s *Store) SetOrStore(key interface{}, value interface{}) (v interface{}, set bool) {
+func (s *store) SetOrStore(key interface{}, value interface{}) (v interface{}, set bool) {
 	v, set = s.cache[key]
 	if set {
 		set = false
@@ -29,12 +29,12 @@ func (s *Store) SetOrStore(key interface{}, value interface{}) (v interface{}, s
 }
 
 // Set .
-func (s *Store) Set(key interface{}, value interface{}) {
+func (s *store) Set(key interface{}, value interface{}) {
 	s.cache[key] = value
 }
 
 // Get .
-func (s *Store) Get(key interface{}, value interface{}) error {
+func (s *store) Get(key interface{}, value interface{}) error {
 	v, ok := s.cache[key]
 	if !ok {
 		return errors.New("undefined")
@@ -44,13 +44,13 @@ func (s *Store) Get(key interface{}, value interface{}) error {
 }
 
 // Exist .
-func (s *Store) Exist(key interface{}) bool {
+func (s *store) Exist(key interface{}) bool {
 	_, ok := s.cache[key]
 	return ok
 }
 
 // ToInterface .
-func (s *Store) ToInterface(key interface{}) interface{} {
+func (s *store) ToInterface(key interface{}) interface{} {
 	v, ok := s.cache[key]
 	if !ok {
 		return nil
@@ -60,17 +60,17 @@ func (s *Store) ToInterface(key interface{}) interface{} {
 }
 
 // Remove .
-func (s *Store) Remove(key interface{}) {
+func (s *store) Remove(key interface{}) {
 	delete(s.cache, key)
 }
 
 // RemoveAll .
-func (s *Store) RemoveAll() {
+func (s *store) RemoveAll() {
 	s.cache = make(map[interface{}]interface{})
 }
 
 // Keys .
-func (s *Store) Keys() []interface{} {
+func (s *store) Keys() []interface{} {
 	list := make([]interface{}, 0, len(s.cache))
 	for k := range s.cache {
 		list = append(list, k)
@@ -79,7 +79,7 @@ func (s *Store) Keys() []interface{} {
 }
 
 // Values .
-func (s *Store) Values() []interface{} {
+func (s *store) Values() []interface{} {
 	list := make([]interface{}, 0, len(s.cache))
 	for _, v := range s.cache {
 		list = append(list, v)
@@ -88,7 +88,7 @@ func (s *Store) Values() []interface{} {
 }
 
 // ToMap .
-func (s *Store) ToMap() map[interface{}]interface{} {
+func (s *store) ToMap() map[interface{}]interface{} {
 	result := make(map[interface{}]interface{})
 	for key, value := range s.cache {
 		result[key] = value

@@ -50,6 +50,7 @@ var typeForMysqlToGo = map[string]string{
 	"decimal":            "float64",
 	"binary":             "string",
 	"varbinary":          "string",
+	"json":               "datatypes.JSON",
 }
 
 // Generate .

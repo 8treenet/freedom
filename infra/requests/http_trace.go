@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// HTTPTraceInfo .
+// HTTPTraceInfo Link information for the connection.
 type HTTPTraceInfo struct {
 	DNSLookup    time.Duration
 	ConnTime     time.Duration

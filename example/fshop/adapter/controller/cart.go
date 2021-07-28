@@ -38,7 +38,7 @@ func (c *Cart) GetItems() freedom.Result {
 // Post 添加商品到购物车, POST: /cart route.
 func (c *Cart) Post() freedom.Result {
 	var req vo.CartAddReq
-	e := c.Request.ReadJSON(&req)
+	e := c.Request.ReadJSON(&req, true)
 	if e != nil {
 		return &infra.JSONResponse{Error: e}
 	}
@@ -60,7 +60,7 @@ func (c *Cart) DeleteAll() freedom.Result {
 // PostShop 购物购物车全部买商品, POST: /cart/shop route.
 func (c *Cart) PostShop() freedom.Result {
 	var req vo.CartShopReq
-	e := c.Request.ReadJSON(&req)
+	e := c.Request.ReadJSON(&req, true)
 	if e != nil {
 		return &infra.JSONResponse{Error: e}
 	}

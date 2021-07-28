@@ -39,25 +39,25 @@ type Application struct {
 	// prefixPath is the prefix of the application-level router
 	prefixPath string
 
-	// serviceLocator .
+	// Service locator .
 	serviceLocator *ServiceLocatorImpl
 
-	// pool .
-	pool *ServicePool
+	// A pool of reusable services .
+	pool *servicePool
 
-	// rpool .
-	rpool *RepositoryPool
+	// Repository pools that can be reused .
+	rpool *repositoryPool
 
-	// factoryPool .
-	factoryPool *FactoryPool
+	// Reusable Fact pool .
+	factoryPool *factoryPool
 
-	// comPool .
-	comPool *InfraPool
+	// A pool of reusable components .
+	comPool *infraPool
 
-	// msgsBus .
-	msgsBus *EventBus
+	// Subscribe to the message conversion HTTP API .
+	subEventManager *eventPathManager
 
-	// other .
+	// Custom data sources .
 	other *custom
 
 	// unmarshal is a global deserializer for deserialize every []byte into object.
@@ -96,7 +96,7 @@ type Application struct {
 	Prometheus *Prometheus
 }
 
-// NewApplication creates an instance of Application exactly once while the program
+// NewApplication Creates an instance of Application exactly once while the program
 // is running.
 func NewApplication() *Application {
 	globalAppOnce.Do(func() {
@@ -106,7 +106,7 @@ func NewApplication() *Application {
 		globalApp.rpool = newRepoPool()
 		globalApp.factoryPool = newFactoryPool()
 		globalApp.comPool = newInfraPool()
-		globalApp.msgsBus = newMessageBus()
+		globalApp.subEventManager = newEventPathManager()
 		globalApp.other = newCustom()
 		globalApp.marshal = json.Marshal
 		globalApp.unmarshal = json.Unmarshal
@@ -117,12 +117,12 @@ func NewApplication() *Application {
 	return globalApp
 }
 
-// Iris .
+// Iris Go back to the iris app.
 func (app *Application) Iris() *IrisApplication {
 	return app.IrisApp
 }
 
-// Logger .
+// Logger Return to global logger.
 func (app *Application) Logger() *golog.Logger {
 	return app.Iris().Logger()
 }
@@ -206,7 +206,7 @@ func (app *Application) BindController(relativePath string, controller IrisContr
 	mvcApp.Register(app.resolveDependencies()...)
 	mvcApp.Handle(controller)
 
-	app.msgsBus.addController(controller)
+	app.subEventManager.addController(controller)
 }
 
 // BindControllerWithParty accepts an IrisRouter and an IrisController.
@@ -227,7 +227,7 @@ func (app *Application) BindControllerByParty(router IrisParty, controller inter
 	app.BindControllerWithParty(router, controller)
 }
 
-// BindService .
+// BindService Bind a function that creates the service.
 func (app *Application) BindService(f interface{}) {
 	outType, err := parsePoolFunc(f)
 	if err != nil {
@@ -236,7 +236,7 @@ func (app *Application) BindService(f interface{}) {
 	app.pool.bind(outType, f)
 }
 
-// BindRepository .
+// BindRepository Bind a function that creates the repository.
 func (app *Application) BindRepository(f interface{}) {
 	outType, err := parsePoolFunc(f)
 	if err != nil {
@@ -245,7 +245,7 @@ func (app *Application) BindRepository(f interface{}) {
 	app.rpool.bind(outType, f)
 }
 
-// BindFactory .
+// BindFactory Bind a function that creates the repository.
 func (app *Application) BindFactory(f interface{}) {
 	outType, err := parsePoolFunc(f)
 	if err != nil {
@@ -254,7 +254,7 @@ func (app *Application) BindFactory(f interface{}) {
 	app.factoryPool.bind(outType, f)
 }
 
-// BindInfra .
+// BindInfra Bind a function that creates the repository infrastructure.
 func (app *Application) BindInfra(single bool, com interface{}) {
 	if !single {
 		outType, err := parsePoolFunc(com)
@@ -270,17 +270,20 @@ func (app *Application) BindInfra(single bool, com interface{}) {
 	app.comPool.bind(single, reflect.TypeOf(com), com)
 }
 
-// ListenEvent .
+// ListenEvent You need to listen for message events using http agents.
+// eventName is the name of the event.
+// objectMethod is the controller that needs to be received.
+// appointInfra can delegate infrastructure.
 func (app *Application) ListenEvent(eventName string, objectMethod string, appointInfra ...interface{}) {
-	app.msgsBus.addEvent(objectMethod, eventName, appointInfra...)
+	app.subEventManager.addEvent(objectMethod, eventName, appointInfra...)
 }
 
-// EventsPath .
+// EventsPath Gets the event name and HTTP routing address for Listen.
 func (app *Application) EventsPath(infra interface{}) map[string]string {
-	return app.msgsBus.EventsPath(infra)
+	return app.subEventManager.EventsPath(infra)
 }
 
-// InjectIntoController adds a Dependency for iris controller.
+// InjectIntoController Adds a Dependency for iris controller.
 func (app *Application) InjectIntoController(f Dependency) {
 	app.controllerDependencies = append(app.controllerDependencies, f)
 }
@@ -292,32 +295,35 @@ func (app *Application) InjectController(f Dependency) {
 	app.InjectIntoController(f)
 }
 
-// RegisterShutdown .
+// RegisterShutdown Register an inflatable callback function.
 func (app *Application) RegisterShutdown(f func()) {
 	app.comPool.registerShutdown(f)
 }
 
-// InstallDB .
+// InstallDB Install the database.
+// A function that returns the Interface type is passed in as a handle to the database.
 func (app *Application) InstallDB(f func() interface{}) {
 	app.Database.Install = f
 }
 
-// InstallRedis .
+// InstallRedis Install the redis.
+// A function that returns the redis.Cmdable is passed in as a handle to the client.
 func (app *Application) InstallRedis(f func() (client redis.Cmdable)) {
 	app.Cache.Install = f
 }
 
-// InstallMiddleware .
+// InstallMiddleware Install the middleware for http routing globally.
 func (app *Application) InstallMiddleware(handler IrisHandler) {
 	app.Middleware = append(app.Middleware, handler)
 }
 
-// InstallCustom .
+// InstallCustom Install a custom data source.
+// A function that returns the Interface type is passed in as a handle to the custom data sources.
 func (app *Application) InstallCustom(f func() interface{}) {
 	app.other.add(f)
 }
 
-// InstallBusMiddleware .
+// InstallBusMiddleware Install the middleware for the message bus.
 func (app *Application) InstallBusMiddleware(handle ...BusHandler) {
 	busMiddlewares = append(busMiddlewares, handle...)
 }
@@ -328,7 +334,7 @@ func (app *Application) InstallSerializer(marshal func(v interface{}) ([]byte, e
 	app.unmarshal = unmarshal
 }
 
-// BindBooting adds a builder function which builds a BootManager.
+// BindBooting Adds a builder function which builds a BootManager.
 func (app *Application) BindBooting(f func(bootManager BootManager)) {
 	bootManagers = append(bootManagers, f)
 }
@@ -405,7 +411,16 @@ func (app *Application) NewTLSRunner(addr string, certFile, keyFile string, conf
 	}
 }
 
-//NewH2CRunner .
+// NewH2CRunner create a Runner for H2C .
+// intercepting any h2c
+// traffic. If a request is an h2c connection, it's hijacked and redirected to
+// s.ServeConn. Otherwise the returned Handler just forwards requests to h. This
+// works because h2c is designed to be parseable as valid HTTP/1, but ignored by
+// any HTTP server that does not handle h2c. Therefore we leverage the HTTP/1
+// compatible parts of the Go http library to parse and recognize h2c requests.
+// Once a request is recognized as h2c, we hijack the connection and convert it
+// to an HTTP/2 connection which is understandable to s.ServeConn. (s.ServeConn
+// understands HTTP/2 except for the h2c part of it.)
 func (app *Application) NewH2CRunner(addr string, configurators ...IrisHostConfigurator) IrisRunner {
 	h2cSer := &http2.Server{}
 	ser := &http.Server{
@@ -436,7 +451,7 @@ func (app *Application) Run(runner IrisRunner, conf IrisConfiguration) {
 	globalApp.IrisApp.Logger().SetLevel(logLevel)
 
 	repositoryAPIRun(conf)
-	app.msgsBus.building()
+	app.subEventManager.building()
 
 	app.comPool.singleBooting(app)
 	for i := 0; i < len(bootManagers); i++ {

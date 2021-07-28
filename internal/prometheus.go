@@ -14,7 +14,7 @@ import (
 
 var (
 // DefaultBuckets prometheus buckets in seconds.
-//DefaultBuckets = []float64{0.3, 1.2, 5.0}
+// DefaultBuckets = []float64{0.3, 1.2, 5.0}
 )
 
 const (

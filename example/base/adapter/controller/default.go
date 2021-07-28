@@ -69,7 +69,7 @@ func (c *Default) PostHello() freedom.Result {
 		UserName     string `json:"userName" validate:"required"`
 		UserPassword string `json:"userPassword" validate:"required"`
 	}
-	if err := c.Request.ReadJSON(&postJSONData); err != nil {
+	if err := c.Request.ReadJSON(&postJSONData, true); err != nil {
 		return &infra.JSONResponse{Error: err}
 	}
 
@@ -98,7 +98,7 @@ func (c *Default) GetUserBy(username string) freedom.Result {
 		ID    int64   `url:"id" validate:"required"`
 		IP    []int64 `url:"ip"`
 	}
-	if err := c.Request.ReadQuery(&query); err != nil {
+	if err := c.Request.ReadQuery(&query, true); err != nil {
 		return &infra.JSONResponse{Error: err}
 	}
 	var data struct {

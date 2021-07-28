@@ -1,6 +1,6 @@
 package internal
 
-// Logger .
+// Logger The interface definition of the log.
 type Logger interface {
 	Print(v ...interface{})
 	Println(v ...interface{})

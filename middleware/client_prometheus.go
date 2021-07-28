@@ -18,7 +18,7 @@ type prom interface {
 	RegisterCounter(conter *prometheus.CounterVec)
 }
 
-// NewClientPrometheus .
+// NewClientPrometheus HTTP Client middleware that monitors requests made.
 func NewClientPrometheus(serviceName string, p prom) requests.Handler {
 	httpClientReqs := prometheus.NewCounterVec(
 		prometheus.CounterOpts{

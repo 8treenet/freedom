@@ -9,16 +9,16 @@ import (
 )
 
 // newServicePool create a ServiceElementPool
-func newServicePool() *ServicePool {
-	result := new(ServicePool)
+func newServicePool() *servicePool {
+	result := new(servicePool)
 	result.pool = make(map[reflect.Type]*sync.Pool)
 	return result
 }
 
-// ServicePool is domain service pool,a domain service type owns a pool
+// servicePool is domain service pool,a domain service type owns a pool
 // pool key: the reflect.Type of domain service
 // pool value: *sync.Pool
-type ServicePool struct {
+type servicePool struct {
 	pool map[reflect.Type]*sync.Pool
 }
 
@@ -29,7 +29,7 @@ type serviceElement struct {
 }
 
 // get .
-func (pool *ServicePool) get(rt *worker, service interface{}) {
+func (pool *servicePool) get(rt *worker, service interface{}) {
 	svalue := reflect.ValueOf(service)
 	if svalue.Kind() != reflect.Ptr {
 		panic(fmt.Sprintf("[Freedom] No dependency injection was found for the service object,%v", svalue.Type()))
@@ -48,7 +48,7 @@ func (pool *ServicePool) get(rt *worker, service interface{}) {
 }
 
 // create .
-func (pool *ServicePool) create(rt Worker, service reflect.Type) interface{} {
+func (pool *servicePool) create(rt Worker, service reflect.Type) interface{} {
 	newService := pool.malloc(service)
 	if newService == nil {
 		panic(fmt.Sprintf("[Freedom] No dependency injection was found for the service object,%v", service))
@@ -59,7 +59,7 @@ func (pool *ServicePool) create(rt Worker, service reflect.Type) interface{} {
 }
 
 // freeHandle .
-func (pool *ServicePool) freeHandle() context.Handler {
+func (pool *servicePool) freeHandle() context.Handler {
 	return func(ctx context.Context) {
 		ctx.Next()
 		rt := ctx.Values().Get(WorkerKey).(*worker)
@@ -73,7 +73,7 @@ func (pool *ServicePool) freeHandle() context.Handler {
 }
 
 // free .
-func (pool *ServicePool) free(service interface{}) {
+func (pool *servicePool) free(service interface{}) {
 	t := reflect.TypeOf(service.(serviceElement).serviceObject)
 	syncpool, ok := pool.pool[t]
 	if !ok {
@@ -83,7 +83,7 @@ func (pool *ServicePool) free(service interface{}) {
 	syncpool.Put(service)
 }
 
-func (pool *ServicePool) bind(t reflect.Type, f interface{}) {
+func (pool *servicePool) bind(t reflect.Type, f interface{}) {
 	pool.pool[t] = &sync.Pool{
 		New: func() interface{} {
 			values := reflect.ValueOf(f).Call([]reflect.Value{})
@@ -121,7 +121,7 @@ func (pool *ServicePool) bind(t reflect.Type, f interface{}) {
 }
 
 // malloc return a service object from pool or create a new service obj
-func (pool *ServicePool) malloc(t reflect.Type) interface{} {
+func (pool *servicePool) malloc(t reflect.Type) interface{} {
 	// 判断此 领域服务类型是否存在 pool
 	syncpool, ok := pool.pool[t]
 	if !ok {
@@ -135,14 +135,14 @@ func (pool *ServicePool) malloc(t reflect.Type) interface{} {
 	return newService
 }
 
-func (pool *ServicePool) allType() (list []reflect.Type) {
+func (pool *servicePool) allType() (list []reflect.Type) {
 	for t := range pool.pool {
 		list = append(list, t)
 	}
 	return
 }
 
-func (pool *ServicePool) factoryCall(rt Worker, wokrerValue reflect.Value, factoryFieldValue reflect.Value) {
+func (pool *servicePool) factoryCall(rt Worker, wokrerValue reflect.Value, factoryFieldValue reflect.Value) {
 	allFieldsFromValue(factoryFieldValue, func(factoryValue reflect.Value) {
 		factoryKind := factoryValue.Kind()
 		if factoryKind == reflect.Interface && wokrerValue.Type().AssignableTo(factoryValue.Type()) && factoryValue.CanSet() {
@@ -173,7 +173,7 @@ func (pool *ServicePool) factoryCall(rt Worker, wokrerValue reflect.Value, facto
 }
 
 // beginRequest .
-func (pool *ServicePool) beginRequest(worker Worker, obj interface{}) {
+func (pool *servicePool) beginRequest(worker Worker, obj interface{}) {
 	workerValue := reflect.ValueOf(worker)
 	instance := obj.(serviceElement)
 

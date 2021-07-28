@@ -9,7 +9,7 @@ func newBus(head http.Header) *Bus {
 	return result
 }
 
-// Bus message bus, using http header to pass through data.
+// Bus Message bus, using http header to pass through data.
 type Bus struct {
 	http.Header
 }
@@ -39,7 +39,7 @@ type BusHandler func(Worker)
 
 var busMiddlewares []BusHandler
 
-// HandleBusMiddleware .
+// HandleBusMiddleware Process the message bus middleware.
 func HandleBusMiddleware(worker Worker) {
 	for i := 0; i < len(busMiddlewares); i++ {
 		busMiddlewares[i](worker)

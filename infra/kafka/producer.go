@@ -14,21 +14,24 @@ func init() {
 	})
 }
 
-// GetProducer .
+// GetProducer Gets an instance of the producer.
 func GetProducer() Producer {
 	return producer
 }
 
 var producer *ProducerImpl = new(ProducerImpl)
 
-// Producer .
+// Producer The producer's interface definition.
 type Producer interface {
+	// Create a new message
 	NewMsg(topic string, content []byte) *Msg
+	// Start pass in the relevant address, configuration.
 	Start(addrs []string, config *sarama.Config)
+	// Restart the connection.
 	Restart() error
 }
 
-// ProducerImpl .
+// ProducerImpl The realization of the producer.
 type ProducerImpl struct {
 	freedom.Infra
 	syncProducer sarama.SyncProducer
@@ -36,7 +39,7 @@ type ProducerImpl struct {
 	config       *sarama.Config
 }
 
-// Start .
+// Start pass in the relevant address, configuration.
 func (pi *ProducerImpl) Start(addrs []string, config *sarama.Config) {
 	pi.addrs = addrs
 	pi.config = config
@@ -44,7 +47,7 @@ func (pi *ProducerImpl) Start(addrs []string, config *sarama.Config) {
 	pi.config.Producer.Return.Successes = true
 }
 
-// Restart .
+// Restart the connection.
 func (pi *ProducerImpl) Restart() error {
 	if err := pi.Close(); err != nil {
 		return err
@@ -52,7 +55,8 @@ func (pi *ProducerImpl) Restart() error {
 	return pi.dial()
 }
 
-// Booting .
+// Booting The method of overriding the component .
+// The single-case component initiates a callback.
 func (pi *ProducerImpl) Booting(bootManager freedom.BootManager) {
 	if len(pi.addrs) == 0 {
 		return
@@ -96,7 +100,7 @@ func (pi *ProducerImpl) generateMessageKey() string {
 	return strings.ToUpper(strings.ReplaceAll(u.String(), "-", ""))
 }
 
-// NewMsg .
+// NewMsg  Create a new message.
 func (pi *ProducerImpl) NewMsg(topic string, content []byte) *Msg {
 	return &Msg{
 		Topic:   topic,

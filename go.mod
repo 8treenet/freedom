@@ -8,7 +8,7 @@ require (
 	github.com/ajg/form v1.5.1 // indirect
 	github.com/fasthttp-contrib/websocket v0.0.0-20160511215533-1f3b11f56072 // indirect
 	github.com/go-playground/universal-translator v0.17.0 // indirect
-	github.com/go-redis/redis v6.15.6+incompatible
+	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/google/go-querystring v1.0.0 // indirect
 	github.com/imkira/go-interpol v1.1.0 // indirect
@@ -39,6 +39,6 @@ require (
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/go-playground/validator.v9 v9.31.0
-	gorm.io/driver/mysql v1.0.6
-	gorm.io/gorm v1.21.9
+	gorm.io/driver/mysql v1.1.0
+	gorm.io/gorm v1.21.10
 )

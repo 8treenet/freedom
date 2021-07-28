@@ -15,7 +15,7 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
-// NewTrace .
+// NewTrace The default HTTP Trace.
 func NewTrace(traceIDName string) func(context.Context) {
 	return func(ctx context.Context) {
 		bus := freedom.ToWorker(ctx).Bus()
@@ -36,7 +36,7 @@ func NewTrace(traceIDName string) func(context.Context) {
 	}
 }
 
-// GenerateTraceID .
+// GenerateTraceID Build a unique ID.
 func GenerateTraceID() (string, error) {
 	uuidv1, e := uuid.NewV1()
 	if e != nil {

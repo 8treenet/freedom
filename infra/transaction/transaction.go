@@ -18,24 +18,26 @@ func init() {
 	})
 }
 
-// Transaction .
+// Transaction The interface definition of the transaction component.
 type Transaction interface {
+	// Incoming functions to be executed, using the same handle within the function.
 	Execute(fun func() error, opts ...*sql.TxOptions) (e error)
 }
 
 var _ Transaction = (*GormImpl)(nil)
 
-//GormImpl .
+// GormImpl .
 type GormImpl struct {
 	freedom.Infra
 }
 
-// BeginRequest .
+// BeginRequest Polymorphic method, subclasses can override overrides overrides.
+// The request is triggered after entry.
 func (t *GormImpl) BeginRequest(worker freedom.Worker) {
 	t.Infra.BeginRequest(worker)
 }
 
-// Execute .
+// Execute An execution function is passed in, and transactions are executed within the function.
 func (t *GormImpl) Execute(fun func() error, opts ...*sql.TxOptions) (e error) {
 	return t.execute(t.Worker().Context(), fun, opts...)
 }

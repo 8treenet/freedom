@@ -10,12 +10,14 @@ import (
 )
 
 // Infra .
+// The parent class of the infrastructure, which can be inherited using the parent class's methods.
 type Infra struct {
 	worker Worker `json:"-"`
 	single bool
 }
 
-// BeginRequest .子实现多态
+// BeginRequest Polymorphic method, subclasses can override overrides overrides.
+// The request is triggered after entry.
 func (infra *Infra) BeginRequest(rt Worker) {
 	if infra.single {
 		return
@@ -23,7 +25,7 @@ func (infra *Infra) BeginRequest(rt Worker) {
 	infra.worker = rt
 }
 
-// FetchOnlyDB .
+// FetchOnlyDB Gets the installed database handle.
 func (infra *Infra) FetchOnlyDB(db interface{}) error {
 	resultDB := globalApp.Database.db
 	if resultDB == nil {
@@ -35,12 +37,12 @@ func (infra *Infra) FetchOnlyDB(db interface{}) error {
 	return nil
 }
 
-// Redis .
+// Redis Gets the installed redis client.
 func (infra *Infra) Redis() redis.Cmdable {
 	return globalApp.Cache.client
 }
 
-// FetchCustom .
+// FetchCustom gets the installed custom data sources.
 func (infra *Infra) FetchCustom(obj interface{}) {
 	globalApp.other.get(obj)
 	return
@@ -74,7 +76,7 @@ func (infra *Infra) NewH2CRequest(url string, transferBus ...bool) requests.Requ
 	return req
 }
 
-// InjectBaseEntity .
+// InjectBaseEntity The base class object that is injected into the entity.
 func (infra *Infra) InjectBaseEntity(entity Entity) {
 	if infra.worker == nil {
 		panic("The singleton object does not have a Worker component")
@@ -83,7 +85,7 @@ func (infra *Infra) InjectBaseEntity(entity Entity) {
 	return
 }
 
-// InjectBaseEntitys .
+// InjectBaseEntitys The base class object that is injected into the entity.
 func (infra *Infra) InjectBaseEntitys(entitys interface{}) {
 	if infra.worker == nil {
 		panic("The singleton object does not have a Worker component")
@@ -102,7 +104,7 @@ func (infra *Infra) InjectBaseEntitys(entitys interface{}) {
 	return
 }
 
-// Worker .
+// Worker Returns the requested Worer.
 func (infra *Infra) Worker() Worker {
 	if infra.worker == nil {
 		panic("The singleton object does not have a Worker component")
@@ -110,7 +112,7 @@ func (infra *Infra) Worker() Worker {
 	return infra.worker
 }
 
-// FetchSingleInfra .
+// FetchSingleInfra Gets the single-case component.
 func (infra *Infra) FetchSingleInfra(com interface{}) bool {
 	return globalApp.FetchSingleInfra(com)
 }

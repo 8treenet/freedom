@@ -13,21 +13,23 @@ import (
 )
 
 // NewRequestLogger .
+// Request the log.
+// The name of the incoming trace, taken out of HTTP Header.
 func NewRequestLogger(traceIDName string, loggerConf ...*RequestLoggerConfig) func(context.Context) {
 	l := DefaultLoggerConfig()
 	if len(loggerConf) > 0 {
 		l = loggerConf[0]
 	}
 	l.traceName = traceIDName
-	return NewRequest(l)
+	return newRequestLogger(l)
 }
 
 type requestLoggerMiddleware struct {
 	config *RequestLoggerConfig
 }
 
-// NewRequest .
-func NewRequest(cfg *RequestLoggerConfig) context.Handler {
+// newRequestLogger .
+func newRequestLogger(cfg *RequestLoggerConfig) context.Handler {
 	l := &requestLoggerMiddleware{config: cfg}
 	return l.ServeHTTP
 }

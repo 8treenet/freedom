@@ -24,35 +24,35 @@ func initWorker() {
 	workerType = reflect.TypeOf(&worker{})
 }
 
-// Worker describes a global context which use to share the internal component
+// Worker Describes a global context which use to share the internal component
 // (i.e infrastructure, transaction, logger and so on) with middleware,
 // controller, domain service and etc.
 type Worker interface {
 
-	// IrisContext point to current iris.Context.
+	// Point to current iris.Context.
 	IrisContext() iris.Context
 
-	// Logger returns current Logger.
+	// Returns current Logger.
 	Logger() Logger
 
-	// SetLogger set current Logger instead Logger.
+	// Set current Logger instead Logger.
 	SetLogger(Logger)
 
-	// Store returns an address to current memstore.Store.
+	// Store Returns an address to current memstore.Store.
 	//
 	// memstore.Store is a collection of key/value entries. usually use to store metadata produced by freedom runtime.
 	Store() *memstore.Store
 
-	// Bus returns an address to current Bus.
+	// Returns an address to current Bus.
 	Bus() *Bus
 
-	// Context returns current context.
+	// Returns current context.
 	Context() stdContext.Context
 
-	// WithContext set current context instead Context.
+	// Set current context instead Context.
 	WithContext(stdContext.Context)
 
-	// StartTime returns a time since this Worker be created.
+	// Seturns a time since this Worker be created.
 	StartTime() time.Time
 
 	// DeferRecycle marks the resource won't be recycled immediately after
@@ -74,10 +74,10 @@ type Worker interface {
 	// result, because resource has been recycled by GC before to respond to client.
 	DeferRecycle()
 
-	// IsDeferRecycle indicates system need to wait a while for recycle resource.
+	// Indicates system need to wait a while for recycle resource.
 	IsDeferRecycle() bool
 
-	// Rand returns a rand.Rand act a random number seeder.
+	// Returns a rand.Rand act a random number seeder.
 	Rand() *rand.Rand
 }
 

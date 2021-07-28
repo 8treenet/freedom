@@ -1,8 +1,5 @@
 package store
 
-/*
-	缓存组件，实现了一级缓存，二级缓存，防击穿.
-*/
 import (
 	"encoding/json"
 	"errors"
@@ -15,23 +12,28 @@ import (
 	"golang.org/x/sync/singleflight"
 )
 
-// EntityCache .
+// EntityCache The entity cache component.
+// The first and second level caches are implemented.
+// The first-level cache uses the requested memory.
+// Can prevent breakdown.
 type EntityCache interface {
-	//获取实体
+	//Gets the entity.
 	GetEntity(freedom.Entity) error
-	//删除实体缓存
+	//Delete the entity.
 	Delete(result freedom.Entity, async ...bool) error
-	//设置数据源
+	//Set up the data source.
 	SetSource(func(freedom.Entity) error) EntityCache
-	//设置前缀
+	//Set the prefix for cache KEY.
 	SetPrefix(string) EntityCache
-	//设置缓存时间，默认5分钟
+	//Set the time of life, The default is 5 minutes.
 	SetExpiration(time.Duration) EntityCache
-	//设置异步反写缓存。默认关闭，缓存未命中读取数据源后的异步反写缓存
+	// Turn asynchronous writes on or off
+	// The default is to close.
+	// Cache misses read the database.
 	SetAsyncWrite(bool) EntityCache
-	//设置防击穿，默认开启
+	//Turn anti-break on and off.
 	SetSingleFlight(bool) EntityCache
-	//关闭二级缓存. 关闭后只有一级缓存生效
+	//Turn off redis and only request memory takes effect.
 	CloseRedis() EntityCache
 }
 
@@ -58,7 +60,8 @@ type EntityCacheImpl struct {
 	client       redis.Cmdable
 }
 
-// BeginRequest .
+// BeginRequest Polymorphic method, subclasses can override overrides overrides.
+// The request is triggered after entry.
 func (cache *EntityCacheImpl) BeginRequest(worker freedom.Worker) {
 	cache.expiration = 5 * time.Minute
 	cache.singleFlight = true
@@ -67,7 +70,7 @@ func (cache *EntityCacheImpl) BeginRequest(worker freedom.Worker) {
 	cache.client = cache.Redis()
 }
 
-// GetEntity 读取实体缓存
+// GetEntity Gets the entity.
 func (cache *EntityCacheImpl) GetEntity(result freedom.Entity) error {
 	value := reflect.ValueOf(result)
 	//一级缓存读取
@@ -123,7 +126,7 @@ func (cache *EntityCacheImpl) GetEntity(result freedom.Entity) error {
 	return nil
 }
 
-// Delete 删除实体缓存
+// Delete the entity.
 func (cache *EntityCacheImpl) Delete(result freedom.Entity, async ...bool) error {
 	name := cache.getName(reflect.ValueOf(result).Type()) + ":" + result.Identity()
 	if !cache.Worker().IsDeferRecycle() {
@@ -151,37 +154,40 @@ func (cache *EntityCacheImpl) Delete(result freedom.Entity, async ...bool) error
 	return nil
 }
 
-// SetSource 设置数据源
+// SetSource Set up the data source.
 func (cache *EntityCacheImpl) SetSource(call func(result freedom.Entity) error) EntityCache {
 	cache.call = call
 	return cache
 }
 
-// SetAsyncWrite 设置异步写入,默认同步写入缓存。 当缓存未命中读取数据源后是否异步写入缓存
+// SetAsyncWrite .
+// Turn asynchronous writes on or off
+// The default is to close.
+// Cache misses read the database.
 func (cache *EntityCacheImpl) SetAsyncWrite(open bool) EntityCache {
 	cache.asyncWrite = open
 	return cache
 }
 
-// SetPrefix 设置缓存实体前缀
+// SetPrefix Set the prefix for cache KEY.
 func (cache *EntityCacheImpl) SetPrefix(prefix string) EntityCache {
 	cache.prefix = prefix
 	return cache
 }
 
-// SetExpiration 设置缓存实体时间 默认5分钟
+// SetExpiration Set the time of life, The default is 5 minutes.
 func (cache *EntityCacheImpl) SetExpiration(expiration time.Duration) EntityCache {
 	cache.expiration = expiration
 	return cache
 }
 
-// SetSingleFlight 默认开启
+// SetSingleFlight 	Turn anti-break on and off.
 func (cache *EntityCacheImpl) SetSingleFlight(open bool) EntityCache {
 	cache.singleFlight = open
 	return cache
 }
 
-// CloseRedis 关闭二级缓存
+// CloseRedis Turn off redis and only request memory takes effect.
 func (cache *EntityCacheImpl) CloseRedis() EntityCache {
 	cache.client = nil
 	return cache

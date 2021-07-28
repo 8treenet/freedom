@@ -4,23 +4,24 @@ import (
 	"reflect"
 )
 
-func newMessageBus() *EventBus {
-	return &EventBus{
+func newEventPathManager() *eventPathManager {
+	return &eventPathManager{
 		eventsPath:     make(map[string]string),
 		eventsAddr:     make(map[string]string),
 		eventsInfraCom: make(map[string]reflect.Type),
 	}
 }
 
-// EventBus .
-type EventBus struct {
+// eventPathManager.
+// Subscribe to the message conversion HTTP API.
+type eventPathManager struct {
 	eventsPath     map[string]string
 	eventsAddr     map[string]string
 	controllers    []interface{}
 	eventsInfraCom map[string]reflect.Type
 }
 
-func (msgBus *EventBus) addEvent(objectMethod, eventName string, infraCom ...interface{}) {
+func (msgBus *eventPathManager) addEvent(objectMethod, eventName string, infraCom ...interface{}) {
 	if _, ok := msgBus.eventsAddr[eventName]; ok {
 		globalApp.Logger().Fatalf("[Freedom] ListenEvent: Event already bound :%v", eventName)
 	}
@@ -30,12 +31,12 @@ func (msgBus *EventBus) addEvent(objectMethod, eventName string, infraCom ...int
 		msgBus.eventsInfraCom[eventName] = infraComType
 	}
 }
-func (msgBus *EventBus) addController(controller interface{}) {
+func (msgBus *eventPathManager) addController(controller interface{}) {
 	msgBus.controllers = append(msgBus.controllers, controller)
 }
 
 // EventsPath .
-func (msgBus *EventBus) EventsPath(infra interface{}) (msgs map[string]string) {
+func (msgBus *eventPathManager) EventsPath(infra interface{}) (msgs map[string]string) {
 	infraComType := reflect.TypeOf(infra)
 	msgs = make(map[string]string)
 	for k, v := range msgBus.eventsPath {
@@ -48,7 +49,7 @@ func (msgBus *EventBus) EventsPath(infra interface{}) (msgs map[string]string) {
 	return
 }
 
-func (msgBus *EventBus) building() {
+func (msgBus *eventPathManager) building() {
 	eventsRoute := make(map[string]string)
 	for _, controller := range msgBus.controllers {
 		v := reflect.ValueOf(controller)
@@ -75,7 +76,7 @@ func (msgBus *EventBus) building() {
 	}
 }
 
-func (msgBus *EventBus) match(objectMethod string) (eventName string) {
+func (msgBus *eventPathManager) match(objectMethod string) (eventName string) {
 	for name, addrs := range msgBus.eventsAddr {
 		if addrs == objectMethod {
 			eventName = name

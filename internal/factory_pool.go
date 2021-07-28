@@ -5,23 +5,23 @@ import (
 	"reflect"
 )
 
-func newFactoryPool() *FactoryPool {
-	result := new(FactoryPool)
+func newFactoryPool() *factoryPool {
+	result := new(factoryPool)
 	result.creater = make(map[reflect.Type]interface{})
 	return result
 }
 
-// FactoryPool .
-type FactoryPool struct {
+// factoryPool .
+type factoryPool struct {
 	creater map[reflect.Type]interface{}
 }
 
-func (pool *FactoryPool) bind(outType reflect.Type, f interface{}) {
+func (pool *factoryPool) bind(outType reflect.Type, f interface{}) {
 	pool.creater[outType] = f
 }
 
 // get .
-func (pool *FactoryPool) get(t reflect.Type) (ok bool, result reflect.Value) {
+func (pool *factoryPool) get(t reflect.Type) (ok bool, result reflect.Value) {
 	fun, ok := pool.creater[t]
 	if !ok {
 		return false, reflect.ValueOf(nil)
@@ -35,13 +35,13 @@ func (pool *FactoryPool) get(t reflect.Type) (ok bool, result reflect.Value) {
 	return true, values[0]
 }
 
-func (pool *FactoryPool) exist(t reflect.Type) bool {
+func (pool *factoryPool) exist(t reflect.Type) bool {
 	_, ok := pool.creater[t]
 	return ok
 }
 
 // allType .
-func (pool *FactoryPool) allType() (list []reflect.Type) {
+func (pool *factoryPool) allType() (list []reflect.Type) {
 	for t := range pool.creater {
 		list = append(list, t)
 	}
@@ -49,13 +49,13 @@ func (pool *FactoryPool) allType() (list []reflect.Type) {
 }
 
 // diFactory .
-func (pool *FactoryPool) diFactory(factory interface{}, instance *serviceElement) {
+func (pool *factoryPool) diFactory(factory interface{}, instance *serviceElement) {
 	allFields(factory, func(value reflect.Value) {
 		pool.diFactoryFromValue(value, instance)
 	})
 }
 
-func (pool *FactoryPool) diFactoryFromValue(value reflect.Value, instance *serviceElement) bool {
+func (pool *factoryPool) diFactoryFromValue(value reflect.Value, instance *serviceElement) bool {
 	//如果是指针的成员变量
 	if value.Kind() == reflect.Ptr && value.IsZero() {
 		ok, newfield := pool.get(value.Type())

@@ -25,7 +25,7 @@ type Order struct {
 // PutPay 支付订单, PUT: /order/pay route.
 func (o *Order) PutPay() freedom.Result {
 	var req vo.OrderPayReq
-	e := o.Request.ReadJSON(&req)
+	e := o.Request.ReadJSON(&req, true)
 	if e != nil {
 		return &infra.JSONResponse{Error: e}
 	}

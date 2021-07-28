@@ -2,6 +2,7 @@ package internal
 
 import (
 	"net/http"
+	"net/url"
 	"reflect"
 
 	"github.com/go-redis/redis"
@@ -10,7 +11,7 @@ import (
 
 var _ UnitTest = (*UnitTestImpl)(nil)
 
-// UnitTest .
+// UnitTest Unit testing tools.
 type UnitTest interface {
 	FetchService(service interface{})
 	FetchRepository(repository interface{})
@@ -22,10 +23,9 @@ type UnitTest interface {
 	InjectBaseEntity(entity interface{})
 }
 
-// UnitTestImpl .
+// UnitTestImpl Unit testing tools.
 type UnitTestImpl struct {
-	rt      *worker
-	request *http.Request
+	rt *worker
 }
 
 // NewUnitTest .
@@ -95,10 +95,10 @@ func (u *UnitTestImpl) Run() {
 
 func (u *UnitTestImpl) newRuntime() *worker {
 	ctx := context.NewContext(globalApp.IrisApp)
-	if u.request == nil {
-		u.request = new(http.Request)
-	}
-	ctx.BeginRequest(nil, u.request)
+	request := new(http.Request)
+	request.URL = &url.URL{}
+	ctx.ResetRequest(request)
+
 	rt := newWorker(ctx)
 	ctx.Values().Set(WorkerKey, rt)
 	rt.bus = newBus(make(http.Header))
@@ -108,7 +108,7 @@ func (u *UnitTestImpl) newRuntime() *worker {
 
 // SetRequest .
 func (u *UnitTestImpl) SetRequest(request *http.Request) {
-	u.request = request
+	u.rt.IrisContext().ResetRequest(request)
 }
 
 // InjectBaseEntity .

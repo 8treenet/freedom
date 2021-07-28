@@ -19,23 +19,28 @@ func init() {
 	})
 }
 
-// GetConsumer .
+// GetConsumer Returns the Consumer instance.
 func GetConsumer() Consumer {
 	return consumerPtr
 }
 
 var consumerPtr *ConsumerImpl = new(ConsumerImpl)
 
-// Consumer .
+// Consumer Kafka Consumer interface definition.
 type Consumer interface {
+	// Start pass in the relevant address, configuration.
 	Start(addrs []string, groupID string, config *sarama.Config, proxyAddr string, proxyH2C bool)
+	// Restart the connection.
 	Restart() error
+	// Close the connection.
 	Close() error
+	// Set the limit flow per second.
 	SetRateLimit(rate int)
+	// Set the HTTP agent to time out.
 	SetProxyTimeout(time.Duration)
 }
 
-// ConsumerImpl .
+// ConsumerImpl Kafka Consumer implementation.
 type ConsumerImpl struct {
 	freedom.Infra
 	topicPath    map[string]string
@@ -54,7 +59,7 @@ type ConsumerImpl struct {
 	httpClient   requests.Client
 }
 
-// Start .
+// Start pass in the relevant address, configuration.
 func (c *ConsumerImpl) Start(addrs []string, groupID string, config *sarama.Config, proxyAddr string, proxyH2C bool) {
 	c.addrs = addrs
 	c.groupID = groupID
@@ -66,19 +71,19 @@ func (c *ConsumerImpl) Start(addrs []string, groupID string, config *sarama.Conf
 	c.proxyTimeout = 60 * time.Second
 }
 
-// SetRateLimit .
+// SetRateLimit Set the limit flow per second.
 func (c *ConsumerImpl) SetRateLimit(rate int) {
 	c.rate = rate
 	return
 }
 
-// SetProxyTimeout .
+// SetProxyTimeout Set the HTTP agent to time out.
 func (c *ConsumerImpl) SetProxyTimeout(timeout time.Duration) {
 	c.proxyTimeout = timeout
 	return
 }
 
-// Restart .
+// Restart the connection.
 func (c *ConsumerImpl) Restart() error {
 	if err := c.Close(); err != nil {
 		return err
@@ -86,7 +91,8 @@ func (c *ConsumerImpl) Restart() error {
 	return c.listen()
 }
 
-// Booting .
+// Booting The method of overriding the component .
+// The single-case component initiates a callback.
 func (c *ConsumerImpl) Booting(bootManager freedom.BootManager) {
 	if len(c.addrs) == 0 {
 		return
@@ -145,7 +151,7 @@ func (c *ConsumerImpl) listen() error {
 	return nil
 }
 
-// Close .
+// Close the connection.
 func (c *ConsumerImpl) Close() error {
 	if c.client == nil {
 		return nil

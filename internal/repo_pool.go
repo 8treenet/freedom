@@ -5,19 +5,19 @@ import (
 	"reflect"
 )
 
-func newRepoPool() *RepositoryPool {
-	result := new(RepositoryPool)
+func newRepoPool() *repositoryPool {
+	result := new(repositoryPool)
 	result.creater = make(map[reflect.Type]interface{})
 	return result
 }
 
-// RepositoryPool .
-type RepositoryPool struct {
+// repositoryPool .
+type repositoryPool struct {
 	creater map[reflect.Type]interface{}
 }
 
 // get .
-func (pool *RepositoryPool) get(t reflect.Type) (ok bool, result reflect.Value) {
+func (pool *repositoryPool) get(t reflect.Type) (ok bool, result reflect.Value) {
 	fun, ok := pool.creater[t]
 	if !ok {
 		return false, reflect.ValueOf(nil)
@@ -31,24 +31,24 @@ func (pool *RepositoryPool) get(t reflect.Type) (ok bool, result reflect.Value) 
 	return true, values[0]
 }
 
-func (pool *RepositoryPool) bind(outType reflect.Type, f interface{}) {
+func (pool *repositoryPool) bind(outType reflect.Type, f interface{}) {
 	pool.creater[outType] = f
 }
 
-func (pool *RepositoryPool) allType() (list []reflect.Type) {
+func (pool *repositoryPool) allType() (list []reflect.Type) {
 	for t := range pool.creater {
 		list = append(list, t)
 	}
 	return
 }
 
-func (pool *RepositoryPool) diRepo(repo interface{}, instance *serviceElement) {
+func (pool *repositoryPool) diRepo(repo interface{}, instance *serviceElement) {
 	allFields(repo, func(value reflect.Value) {
 		pool.diRepoFromValue(value, instance)
 	})
 }
 
-func (pool *RepositoryPool) diRepoFromValue(value reflect.Value, instance *serviceElement) bool {
+func (pool *repositoryPool) diRepoFromValue(value reflect.Value, instance *serviceElement) bool {
 	//如果是指针的成员变量
 	if value.Kind() == reflect.Ptr && value.IsZero() {
 		ok, newfield := pool.get(value.Type())

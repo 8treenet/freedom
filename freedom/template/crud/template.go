@@ -163,7 +163,7 @@ func FunTemplatePackage() string {
 		e = resultDB.Offset(0).Limit(1).Count(&count64).Error
 		count := int(count64)
 		if e == nil && count != 0 {
-			//计算分页
+			//Calculate the length of the pagination
 			if count%p.pageSize == 0 {
 				p.totalPage = count / p.pageSize
 			} else {

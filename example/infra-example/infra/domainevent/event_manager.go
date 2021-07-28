@@ -107,7 +107,7 @@ func (manager *EventManager) Save(repo *freedom.Repository, entity freedom.Entit
 	defer entity.RemoveAllSubEvent()
 
 	//Insert PubEvent
-	for _, domainEvent := range entity.GetPubEvent() {
+	for _, domainEvent := range entity.GetPubEvents() {
 		if !manager.eventRetry.pubExist(domainEvent.Topic()) {
 			continue //未注册重试,无需存储
 		}
@@ -128,10 +128,10 @@ func (manager *EventManager) Save(repo *freedom.Repository, entity freedom.Entit
 			return
 		}
 	}
-	manager.addPubToWorker(repo.Worker(), entity.GetPubEvent())
+	manager.addPubToWorker(repo.Worker(), entity.GetPubEvents())
 
 	//Delete SubEvent
-	for _, subEvent := range entity.GetSubEvent() {
+	for _, subEvent := range entity.GetSubEvents() {
 		if !manager.eventRetry.subExist(subEvent.Topic()) {
 			continue //未注册重试,无需修改
 		}

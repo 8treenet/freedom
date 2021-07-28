@@ -25,32 +25,34 @@ var (
 	httpclientGroup singleflight.Group
 )
 
-// SetHTTPClient .
+// SetHTTPClient Set up client.
 func SetHTTPClient(client Client) {
 	defaultHTTPClient = client
 }
 
-// SetH2CClient .
+// SetH2CClient Set up H2C client.
 func SetH2CClient(client Client) {
 	defaultH2CClient = client
 }
 
-// Client .
+// Client The client interface is defined.
 type Client interface {
 	Do(req *http.Request) (*http.Response, error)
 }
 
-// ClientImpl .
+// ClientImpl The implementation of the client interface.
 type ClientImpl struct {
 	*http.Client
 }
 
-// Do .
+// Do Launch an http request.
 func (client *ClientImpl) Do(req *http.Request) (*http.Response, error) {
 	return client.Client.Do(req)
 }
 
-// InitHTTPClient .
+// InitHTTPClient Initialize HTTP client.
+// The parameter rwTimeout is io timeout.
+// The parameter connectTimeout is connect timeout.
 func InitHTTPClient(rwTimeout time.Duration, connectTimeout ...time.Duration) {
 	sec := 2 * time.Second
 	if len(connectTimeout) > 0 {
@@ -59,7 +61,9 @@ func InitHTTPClient(rwTimeout time.Duration, connectTimeout ...time.Duration) {
 	defaultHTTPClient = NewHTTPClient(rwTimeout, sec)
 }
 
-// InitH2CClient .
+// InitH2CClient Initialize H2C client.
+// The parameter rwTimeout is io timeout.
+// The parameter connectTimeout is connect timeout.
 func InitH2CClient(rwTimeout time.Duration, connectTimeout ...time.Duration) {
 	sec := 2 * time.Second
 	if len(connectTimeout) > 0 {
@@ -69,6 +73,8 @@ func InitH2CClient(rwTimeout time.Duration, connectTimeout ...time.Duration) {
 }
 
 // NewHTTPClient .
+// The parameter rwTimeout is io timeout.
+// The parameter connectTimeout is connect timeout.
 func NewHTTPClient(rwTimeout time.Duration, connectTimeout time.Duration) *ClientImpl {
 	tran := &http.Transport{
 		Proxy: http.ProxyFromEnvironment,
@@ -92,6 +98,8 @@ func NewHTTPClient(rwTimeout time.Duration, connectTimeout time.Duration) *Clien
 }
 
 // NewH2CClient .
+// The parameter rwTimeout is io timeout.
+// The parameter connectTimeout is connect timeout.
 func NewH2CClient(rwTimeout time.Duration, connectTimeout time.Duration) *ClientImpl {
 	tran := &http2.Transport{
 		AllowHTTP: true,

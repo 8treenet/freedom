@@ -8,7 +8,7 @@ import (
 	"github.com/Shopify/sarama"
 )
 
-// Msg .
+// Msg Kafka Message.
 type Msg struct {
 	httpHeader http.Header
 	Topic      string
@@ -20,13 +20,13 @@ type Msg struct {
 	sendErr    error
 }
 
-// Publish .
+// Publish this message.
 func (msg *Msg) Publish() error {
 	msg.Next()
 	return msg.sendErr
 }
 
-// SetHeader .
+// SetHeader set up HTTP Header.
 func (msg *Msg) SetHeader(head map[string]interface{}) *Msg {
 	if msg.header == nil {
 		msg.header = head
@@ -39,7 +39,7 @@ func (msg *Msg) SetHeader(head map[string]interface{}) *Msg {
 	return msg
 }
 
-// Next .
+// Next Perform the next step, typically for the control of middleware.
 func (msg *Msg) Next() {
 	if len(middlewares) == 0 {
 		msg.sendErr = msg.do()
@@ -56,28 +56,28 @@ func (msg *Msg) Next() {
 	middlewares[msg.nextIndex-1](msg)
 }
 
-// IsStopped .
+// IsStopped whether it has stopped.
 func (msg *Msg) IsStopped() bool {
 	return msg.stop
 }
 
-// Stop .
+// Stop execution, typically used for middleware control
 func (msg *Msg) Stop() *Msg {
 	msg.stop = true
 	return msg
 }
 
-// GetExecution .
+// GetExecution  Get the results of the execution .
 func (msg *Msg) GetExecution() error {
 	return msg.sendErr
 }
 
-// GetMessageKey .
+// GetMessageKey Get kafka key.
 func (msg *Msg) GetMessageKey() string {
 	return msg.key
 }
 
-// SetMessageKey .
+// SetMessageKey Set kafka key.
 func (msg *Msg) SetMessageKey(key string) *Msg {
 	msg.key = key
 	return msg

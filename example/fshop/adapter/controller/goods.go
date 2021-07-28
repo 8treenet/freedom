@@ -38,7 +38,7 @@ func (g *Goods) GetItems() freedom.Result {
 // Post 添加商品, POST: /goods
 func (g *Goods) Post() freedom.Result {
 	var req vo.GoodsAddReq
-	e := g.Request.ReadJSON(&req)
+	e := g.Request.ReadJSON(&req, true)
 	if e != nil {
 		return &infra.JSONResponse{Error: e}
 	}
@@ -56,7 +56,7 @@ func (g *Goods) PutStockByBy(id, num int) freedom.Result {
 // PutTag 为商品打tag, PUT: /goods/tag
 func (g *Goods) PutTag() freedom.Result {
 	var req vo.GoodsTagReq
-	e := g.Request.ReadJSON(&req)
+	e := g.Request.ReadJSON(&req, true)
 	if e != nil {
 		return &infra.JSONResponse{Error: e}
 	}
@@ -68,7 +68,7 @@ func (g *Goods) PutTag() freedom.Result {
 // PostShop 为商品打tag, POST: /goods/shop
 func (g *Goods) PostShop() freedom.Result {
 	var req vo.GoodsShopReq
-	e := g.Request.ReadJSON(&req)
+	e := g.Request.ReadJSON(&req, true)
 	if e != nil {
 		return &infra.JSONResponse{Error: e}
 	}

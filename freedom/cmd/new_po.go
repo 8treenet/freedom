@@ -65,6 +65,11 @@ var (
 				if strings.Contains(list[index].Content, "time.Time") {
 					pdata["Import"] = pdata["Import"].(string) + `"time"` + "\n"
 				}
+
+				if strings.Contains(list[index].Content, "datatypes.JSON") {
+					pdata["Import"] = pdata["Import"].(string) + `"gorm.io/datatypes"` + "\n"
+				}
+
 				if len(list[index].AddMethods) > 0 {
 					pdata["Import"] = pdata["Import"].(string) + `"gorm.io/gorm"` + "\n"
 				}

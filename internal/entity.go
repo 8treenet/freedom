@@ -9,27 +9,41 @@ import (
 
 var _ Entity = (*entity)(nil)
 
-// DomainEvent .
+// DomainEvent Interface definition of domain events for subscription and publishing of entities.
+// To create a domain event, you must implement the interface's methods.
 type DomainEvent interface {
+	//The only noun used to identify an event.
 	Topic() string
+	//Set the property.
 	SetPrototypes(map[string]interface{})
+	//Read the property.
 	GetPrototypes() map[string]interface{}
 	Marshal() ([]byte, error)
 	Unmarshal([]byte) error
+	//The unique ID of the event.
 	Identity() string
+	//Set a unique ID.
 	SetIdentity(identity string)
 }
 
 //Entity is the entity's father interface.
 type Entity interface {
+	//The unique ID of the entity.
 	Identity() string
+	//Returns the requested Worer
 	Worker() Worker
 	Marshal() ([]byte, error)
+	//Add a publishing event.
 	AddPubEvent(DomainEvent)
-	GetPubEvent() []DomainEvent
+	//Get all publishing events..
+	GetPubEvents() []DomainEvent
+	//Delete all publishing events.
 	RemoveAllPubEvent()
+	//Add a subscription event.
 	AddSubEvent(DomainEvent)
-	GetSubEvent() []DomainEvent
+	//Get all subscription events..
+	GetSubEvents() []DomainEvent
+	//Delete all subscription events.
 	RemoveAllSubEvent()
 }
 
@@ -112,7 +126,7 @@ func (e *entity) AddPubEvent(event DomainEvent) {
 }
 
 // GetPubEvent .
-func (e *entity) GetPubEvent() (result []DomainEvent) {
+func (e *entity) GetPubEvents() (result []DomainEvent) {
 	return e.pubEvents
 }
 
@@ -127,7 +141,7 @@ func (e *entity) AddSubEvent(event DomainEvent) {
 }
 
 // GetSubEvent .
-func (e *entity) GetSubEvent() (result []DomainEvent) {
+func (e *entity) GetSubEvents() (result []DomainEvent) {
 	return e.subEvents
 }
 

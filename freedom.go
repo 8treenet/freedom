@@ -34,43 +34,40 @@ type (
 )
 
 type (
-	// Worker .
+	// Worker Request a runtime object.
 	Worker = internal.Worker
 
-	// Initiator .
+	// Initiator Initialize the binding relationship between the user's code and the associated code.
 	Initiator = internal.Initiator
 
-	//Repository .
+	// Repository The parent class of the repository, which can be inherited using the parent class's methods.
 	Repository = internal.Repository
 
-	//Infra .
+	// Infra The parent class of the infrastructure, which can be inherited using the parent class's methods.
 	Infra = internal.Infra
 
-	//SingleBoot .
-	SingleBoot = internal.BootManager
-
-	//Entity is the entity's father interface.
+	// Entity is the entity's father interface.
 	Entity = internal.Entity
 
-	// DomainEvent represents a domain event
+	// DomainEvent Interface definition of domain events for subscription and publishing of entities.
 	DomainEvent = internal.DomainEvent
 
 	//UnitTest is a unit test tool.
 	UnitTest = internal.UnitTest
 
-	//BootManager is the startup interface.
+	// BootManager Can be used to launch in the application.
 	BootManager = internal.BootManager
 
-	// Bus is the bus message type.
+	// Bus Message bus, using http header to pass through data.
 	Bus = internal.Bus
 
 	// BusHandler is the bus message middleware type.
 	BusHandler = internal.BusHandler
 
-	//Result is the controller return type.
+	// Result is the controller return type.
 	Result = IrisResult
 
-	//Context is the context type.
+	// Context is the context type.
 	Context = IrisContext
 
 	// Configuration is the configuration type of the app.
@@ -86,17 +83,17 @@ type (
 	LogRow = golog.Log
 )
 
-// Prepare .
+// Prepare A prepared function is passed in for initialization.
 func Prepare(f func(Initiator)) {
 	internal.Prepare(f)
 }
 
-// NewUnitTest .
+// NewUnitTest Unit testing tools.
 func NewUnitTest() UnitTest {
 	return internal.NewUnitTest()
 }
 
-// DefaultConfiguration proxy a call to iris.DefaultConfiguration
+// DefaultConfiguration Proxy a call to iris.DefaultConfiguration
 func DefaultConfiguration() iris.Configuration {
 	return iris.DefaultConfiguration()
 }

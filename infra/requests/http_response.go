@@ -9,7 +9,7 @@ import (
 	"golang.org/x/net/http/httpguts"
 )
 
-// Response .
+// Response is a return carry information for HTTP requests.
 type Response struct {
 	stdResponse   *http.Response
 	Error         error
@@ -27,7 +27,7 @@ type Response struct {
 	cookies       []*http.Cookie
 }
 
-// Clone .
+// Clone Copy a new one.
 func (res *Response) Clone() *Response {
 	return &Response{
 		stdResponse:   res.stdResponse,
@@ -46,7 +46,7 @@ func (res *Response) Clone() *Response {
 	}
 }
 
-// TraceInfo .
+// TraceInfo Link information for the connection.
 func (res *Response) TraceInfo() HTTPTraceInfo {
 	return res.traceInfo
 }

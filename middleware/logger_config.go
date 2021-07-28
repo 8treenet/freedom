@@ -8,7 +8,7 @@ import (
 // See `Configuration` too.
 type skipperFunc func(ctx context.Context) bool
 
-// RequestLoggerConfig contains the options for the logger middleware
+// RequestLoggerConfig Contains the options for the logger middleware
 // can be optionally be passed to the `New`.
 type RequestLoggerConfig struct {
 	IP                   bool

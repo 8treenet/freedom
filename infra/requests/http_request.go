@@ -14,11 +14,11 @@ import (
 	"strings"
 )
 
-// ErrDefaultMiddleware .
+// ErrDefaultMiddleware The middleware stops and the request returns the default error.
 var ErrDefaultMiddleware = errors.New("middleware stop")
 
-// HTTPRequest .
-type HTTPRequest struct {
+// httpRequest .
+type httpRequest struct {
 	StdRequest      *http.Request
 	Response        Response
 	Params          url.Values
@@ -33,49 +33,49 @@ type HTTPRequest struct {
 }
 
 // Post .
-func (req *HTTPRequest) Post() Request {
+func (req *httpRequest) Post() Request {
 	req.StdRequest.Method = "POST"
 	return req
 }
 
 // Put .
-func (req *HTTPRequest) Put() Request {
+func (req *httpRequest) Put() Request {
 	req.StdRequest.Method = "PUT"
 	return req
 }
 
 // Get .
-func (req *HTTPRequest) Get() Request {
+func (req *httpRequest) Get() Request {
 	req.StdRequest.Method = "GET"
 	return req
 }
 
 // Delete .
-func (req *HTTPRequest) Delete() Request {
+func (req *httpRequest) Delete() Request {
 	req.StdRequest.Method = "DELETE"
 	return req
 }
 
 // Head .
-func (req *HTTPRequest) Head() Request {
+func (req *httpRequest) Head() Request {
 	req.StdRequest.Method = "HEAD"
 	return req
 }
 
 // Options .
-func (req *HTTPRequest) Options() Request {
+func (req *httpRequest) Options() Request {
 	req.StdRequest.Method = "OPTIONS"
 	return req
 }
 
 // AddCookie .
-func (req *HTTPRequest) AddCookie(c *http.Cookie) Request {
+func (req *httpRequest) AddCookie(c *http.Cookie) Request {
 	req.StdRequest.AddCookie(c)
 	return req
 }
 
 // SetJSONBody .
-func (req *HTTPRequest) SetJSONBody(obj interface{}) Request {
+func (req *httpRequest) SetJSONBody(obj interface{}) Request {
 	byts, e := Marshal(obj)
 	if e != nil {
 		req.Response.Error = e
@@ -89,7 +89,7 @@ func (req *HTTPRequest) SetJSONBody(obj interface{}) Request {
 }
 
 // SetBody .
-func (req *HTTPRequest) SetBody(byts []byte) Request {
+func (req *httpRequest) SetBody(byts []byte) Request {
 	req.StdRequest.Body = ioutil.NopCloser(bytes.NewReader(byts))
 	req.StdRequest.ContentLength = int64(len(byts))
 	req.StdRequest.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -97,7 +97,7 @@ func (req *HTTPRequest) SetBody(byts []byte) Request {
 }
 
 // ToJSON .
-func (req *HTTPRequest) ToJSON(obj interface{}) *Response {
+func (req *httpRequest) ToJSON(obj interface{}) *Response {
 	var body []byte
 	body = req.singleflightDo(true)
 	if req.Response.Error != nil {
@@ -105,13 +105,13 @@ func (req *HTTPRequest) ToJSON(obj interface{}) *Response {
 	}
 	req.Response.Error = Unmarshal(body, obj)
 	if req.Response.Error != nil {
-		req.Response.Error = fmt.Errorf("%s, body:%s", req.Response.Error.Error(), string(body))
+		req.Response.Error = fmt.Errorf("ToJSON %s data:%s, %w", req.GetStdRequest().URL.String(), string(body), req.Response.Error)
 	}
 	return &req.Response
 }
 
 // ToString .
-func (req *HTTPRequest) ToString() (string, *Response) {
+func (req *httpRequest) ToString() (string, *Response) {
 	var body []byte
 	body = req.singleflightDo(true)
 	if req.Response.Error != nil {
@@ -122,13 +122,13 @@ func (req *HTTPRequest) ToString() (string, *Response) {
 }
 
 // ToBytes .
-func (req *HTTPRequest) ToBytes() ([]byte, *Response) {
+func (req *httpRequest) ToBytes() ([]byte, *Response) {
 	value := req.singleflightDo(false)
 	return value, &req.Response
 }
 
 // ToXML .
-func (req *HTTPRequest) ToXML(v interface{}) *Response {
+func (req *httpRequest) ToXML(v interface{}) *Response {
 	var body []byte
 	body = req.singleflightDo(true)
 	if req.Response.Error != nil {
@@ -136,11 +136,14 @@ func (req *HTTPRequest) ToXML(v interface{}) *Response {
 	}
 
 	req.Response.Error = xml.Unmarshal(body, v)
+	if req.Response.Error != nil {
+		req.Response.Error = fmt.Errorf("ToXML %s data:%s, %w", req.GetStdRequest().URL.String(), string(body), req.Response.Error)
+	}
 	return &req.Response
 }
 
 // SetQueryParam .
-func (req *HTTPRequest) SetQueryParam(key string, value interface{}) Request {
+func (req *httpRequest) SetQueryParam(key string, value interface{}) Request {
 	reflectValue := reflect.ValueOf(value)
 	if reflectValue.Kind() != reflect.Slice && reflectValue.Kind() != reflect.Array {
 		req.Params.Add(key, fmt.Sprint(value))
@@ -154,7 +157,7 @@ func (req *HTTPRequest) SetQueryParam(key string, value interface{}) Request {
 }
 
 // SetQueryParams .
-func (req *HTTPRequest) SetQueryParams(m map[string]interface{}) Request {
+func (req *httpRequest) SetQueryParams(m map[string]interface{}) Request {
 	for k, v := range m {
 		reflectValue := reflect.ValueOf(v)
 		if reflectValue.Kind() != reflect.Slice && reflectValue.Kind() != reflect.Array {
@@ -169,19 +172,19 @@ func (req *HTTPRequest) SetQueryParams(m map[string]interface{}) Request {
 }
 
 // SetHeader .
-func (req *HTTPRequest) SetHeader(header http.Header) Request {
+func (req *httpRequest) SetHeader(header http.Header) Request {
 	req.StdRequest.Header = header
 	return req
 }
 
 // AddHeader .
-func (req *HTTPRequest) AddHeader(key, value string) Request {
+func (req *httpRequest) AddHeader(key, value string) Request {
 	req.StdRequest.Header.Add(key, value)
 	return req
 }
 
 // URL .
-func (req *HTTPRequest) URL() string {
+func (req *httpRequest) URL() string {
 	params := req.Params.Encode()
 	if params != "" {
 		return req.RawURL + "?" + params
@@ -190,7 +193,7 @@ func (req *HTTPRequest) URL() string {
 }
 
 // SetClient .
-func (req *HTTPRequest) SetClient(client Client) Request {
+func (req *httpRequest) SetClient(client Client) Request {
 	if client == nil {
 		panic("This is an undefined client")
 	}
@@ -203,7 +206,7 @@ type singleflightData struct {
 	Body []byte
 }
 
-func (req *HTTPRequest) singleflightDo(noCopy bool) (body []byte) {
+func (req *httpRequest) singleflightDo(noCopy bool) (body []byte) {
 	if req.SingleflightKey == "" {
 		if req.Response.Error = req.prepare(); req.Response.Error != nil {
 			return
@@ -246,7 +249,7 @@ func (req *HTTPRequest) singleflightDo(noCopy bool) (body []byte) {
 	return copyData
 }
 
-func (req *HTTPRequest) do() {
+func (req *httpRequest) do() {
 	if req.Response.Error != nil {
 		return
 	}
@@ -259,7 +262,7 @@ func (req *HTTPRequest) do() {
 	return
 }
 
-func (req *HTTPRequest) readBody() {
+func (req *httpRequest) readBody() {
 	defer func() {
 		req.Response.stdResponse.Body.Close()
 		if req.connTrace != nil {
@@ -282,7 +285,7 @@ func (req *HTTPRequest) readBody() {
 	return
 }
 
-func (req *HTTPRequest) fillingRespone() {
+func (req *httpRequest) fillingRespone() {
 	if req.Response.Error != nil {
 		return
 
@@ -307,12 +310,12 @@ func (req *HTTPRequest) fillingRespone() {
 }
 
 // Singleflight .
-func (req *HTTPRequest) Singleflight(key ...interface{}) Request {
+func (req *httpRequest) Singleflight(key ...interface{}) Request {
 	req.SingleflightKey = fmt.Sprint(key...)
 	return req
 }
 
-func (req *HTTPRequest) prepare() (e error) {
+func (req *httpRequest) prepare() (e error) {
 	if req.Response.Error != nil {
 		return req.Response.Error
 	}
@@ -327,7 +330,7 @@ func (req *HTTPRequest) prepare() (e error) {
 }
 
 // Next .
-func (req *HTTPRequest) Next() {
+func (req *httpRequest) Next() {
 	if len(middlewares) == 0 {
 		req.do()
 		return
@@ -346,7 +349,7 @@ func (req *HTTPRequest) Next() {
 }
 
 // Stop .
-func (req *HTTPRequest) Stop(e ...error) {
+func (req *httpRequest) Stop(e ...error) {
 	req.stop = true
 	if len(e) > 0 {
 		req.Response.Error = e[0]
@@ -358,42 +361,42 @@ func (req *HTTPRequest) Stop(e ...error) {
 }
 
 // IsStopped .
-func (req *HTTPRequest) IsStopped() bool {
+func (req *httpRequest) IsStopped() bool {
 	return req.stop
 }
 
 // GetRequest .
-func (req *HTTPRequest) GetRequest() *http.Request {
+func (req *httpRequest) GetRequest() *http.Request {
 	return req.StdRequest
 }
 
 // GetRespone .
-func (req *HTTPRequest) GetRespone() *Response {
+func (req *httpRequest) GetRespone() *Response {
 	return &req.Response
 }
 
 // GetStdRequest .
-func (req *HTTPRequest) GetStdRequest() *http.Request {
+func (req *httpRequest) GetStdRequest() *http.Request {
 	return req.StdRequest
 }
 
 // Header .
-func (req *HTTPRequest) Header() http.Header {
+func (req *httpRequest) Header() http.Header {
 	return req.StdRequest.Header
 }
 
 // GetResponeBody .
-func (req *HTTPRequest) GetResponeBody() []byte {
+func (req *httpRequest) GetResponeBody() []byte {
 	return req.responeBody
 }
 
 // Context .
-func (req *HTTPRequest) Context() context.Context {
+func (req *httpRequest) Context() context.Context {
 	return req.StdRequest.Context()
 }
 
 // EnableTrace .
-func (req *HTTPRequest) EnableTrace() Request {
+func (req *httpRequest) EnableTrace() Request {
 	if req.connTrace != nil {
 		return req
 	}
@@ -403,27 +406,27 @@ func (req *HTTPRequest) EnableTrace() Request {
 }
 
 // EnableTraceFromMiddleware .
-func (req *HTTPRequest) EnableTraceFromMiddleware() {
+func (req *httpRequest) EnableTraceFromMiddleware() {
 	req.EnableTrace()
 }
 
 // WithContext .
-func (req *HTTPRequest) WithContext(ctx context.Context) Request {
+func (req *httpRequest) WithContext(ctx context.Context) Request {
 	req.StdRequest = req.StdRequest.WithContext(ctx)
 	return req
 }
 
 // WithContextFromMiddleware .
-func (req *HTTPRequest) WithContextFromMiddleware(ctx context.Context) {
+func (req *httpRequest) WithContextFromMiddleware(ctx context.Context) {
 	req.WithContext(ctx)
 }
 
 // SetClientFromMiddleware .
-func (req *HTTPRequest) SetClientFromMiddleware(client Client) {
+func (req *httpRequest) SetClientFromMiddleware(client Client) {
 	req.SetClient(client)
 }
 
 // IsH2C .
-func (req *HTTPRequest) IsH2C() bool {
+func (req *httpRequest) IsH2C() bool {
 	return req.h2c
 }

@@ -21,7 +21,9 @@ func init() {
 	}
 }
 
-// NewLogger .
+// NewLogger Create a Loger.
+// The name and value of the incoming Trace.
+// Requests should have their own Loger.
 func NewLogger(traceName, traceID string) *Logger {
 	logger := loggerPool.New().(*Logger)
 	logger.traceID = traceID
@@ -29,7 +31,7 @@ func NewLogger(traceName, traceID string) *Logger {
 	return logger
 }
 
-// Logger .
+// Logger The implementation of Logger..
 type Logger struct {
 	traceID   string
 	traceName string

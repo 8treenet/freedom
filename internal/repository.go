@@ -17,16 +17,19 @@ const (
 )
 
 // Repository .
+// The parent class of the repository, which can be inherited using the parent class's methods.
 type Repository struct {
 	worker Worker
 }
 
-// BeginRequest .
+// BeginRequest Polymorphic method, subclasses can override overrides overrides.
+// The request is triggered after entry.
 func (repo *Repository) BeginRequest(rt Worker) {
 	repo.worker = rt
 }
 
-// FetchDB .
+// FetchDB Gets the installed database handle.
+// DB can be changed through AOP, such as transaction processing.
 func (repo *Repository) FetchDB(db interface{}) error {
 	resultDB := globalApp.Database.db
 
@@ -45,7 +48,7 @@ func (repo *Repository) FetchDB(db interface{}) error {
 	return nil
 }
 
-// FetchOnlyDB .
+// FetchOnlyDB Gets the installed database handle.
 func (repo *Repository) FetchOnlyDB(db interface{}) error {
 	resultDB := globalApp.Database.db
 	if resultDB == nil {
@@ -57,7 +60,7 @@ func (repo *Repository) FetchOnlyDB(db interface{}) error {
 	return nil
 }
 
-// Redis .
+// Redis Gets the installed redis client.
 func (repo *Repository) Redis() redis.Cmdable {
 	return globalApp.Cache.client
 }
@@ -105,13 +108,13 @@ func (repo *Repository) NewH2CRequest(url string, transferBus ...bool) requests.
 // 	return nil
 // }
 
-// InjectBaseEntity .
+// InjectBaseEntity The base class object that is injected into the entity.
 func (repo *Repository) InjectBaseEntity(entity Entity) {
 	injectBaseEntity(repo.worker, entity)
 	return
 }
 
-// InjectBaseEntitys .
+// InjectBaseEntitys The base class object that is injected into the entity.
 func (repo *Repository) InjectBaseEntitys(entitys interface{}) {
 	entitysValue := reflect.ValueOf(entitys)
 	if entitysValue.Kind() != reflect.Slice {
@@ -127,7 +130,7 @@ func (repo *Repository) InjectBaseEntitys(entitys interface{}) {
 	return
 }
 
-// FetchCustom .
+// FetchCustom Gets the installed custom data sources.
 func (repo *Repository) FetchCustom(obj interface{}) {
 	globalApp.other.get(obj)
 	return
@@ -142,7 +145,7 @@ func repositoryAPIRun(irisConf iris.Configuration) {
 	requests.InitH2CClient(time.Duration(sec) * time.Second)
 }
 
-// Worker .
+// Worker Returns the requested Worer.
 func (repo *Repository) Worker() Worker {
 	return repo.worker
 }

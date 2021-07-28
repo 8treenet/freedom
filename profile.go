@@ -103,11 +103,11 @@ func ReadProfile(file string, v interface{}) error {
 
 	_, err := toml.DecodeFile(filePath, v)
 	if err != nil {
-		Logger().Errorf("[Freedom] configuration decode error: %s", err.Error())
+		Logger().Errorf("[Freedom] Configuration decode error: %s", err.Error())
 		return err
 	}
 
-	Logger().Infof("[Freedom] configuration was found: %s", filePath)
+	Logger().Infof("[Freedom] Configuration was found: %s", filePath)
 	return nil
 }
 

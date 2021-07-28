@@ -7,10 +7,10 @@ import (
 	"net/url"
 )
 
-// Unmarshal .
+// Unmarshal Deserialization, default to the official JSON processor.
 var Unmarshal func(data []byte, v interface{}) error
 
-// Marshal .
+// Marshal Serialization, the default official JSON processor.
 var Marshal func(v interface{}) ([]byte, error)
 
 func init() {
@@ -22,38 +22,61 @@ func init() {
 	}
 }
 
-// Request .
+// Request The interface definition of the HTTP request package.
 type Request interface {
+	// HTTP POST method.
 	Post() Request
+	// HTTP PUT method.
 	Put() Request
+	// HTTP GET method.
 	Get() Request
+	// HTTP DELETE method.
 	Delete() Request
+	// HTTP HEAD method.
 	Head() Request
+	// HTTP OPTIONS method.
 	Options() Request
+	// Set up JSON data.
 	SetJSONBody(obj interface{}) Request
+	// Set the original data.
 	SetBody(byts []byte) Request
+	// The data is returned after the request and converted to JSON data.
 	ToJSON(obj interface{}) *Response
+	// The data is returned after the request and converted into a string.
 	ToString() (string, *Response)
+	// The data is returned after the request and converted into a []byte.
 	ToBytes() ([]byte, *Response)
+	// The data is returned after the request and converted to XML data.
 	ToXML(v interface{}) *Response
+	// Set the request parameters.
 	SetQueryParam(key string, value interface{}) Request
+	// Set the request parameters.
 	SetQueryParams(map[string]interface{}) Request
 	URL() string
 	Context() context.Context
 	WithContext(context.Context) Request
+	// idempotent request processing, need to fill in KEY.
 	Singleflight(key ...interface{}) Request
+	// Set up HTTP Header information.
 	SetHeader(header http.Header) Request
+	// Add HTTP Header information.
 	AddHeader(key, value string) Request
+	// Returns the header of the current request.
 	Header() http.Header
+	// Returns the Request of the standard library.
 	GetStdRequest() *http.Request
+	// Add cookie information.
 	AddCookie(*http.Cookie) Request
+	// Turn on link tracking.
 	EnableTrace() Request
+	// Set up client.
 	SetClient(client Client) Request
 }
 
-// NewHTTPRequest .
+// NewHTTPRequest Create an HTTP request object.
+// The URL of the incoming HTTP.
 func NewHTTPRequest(rawurl string) Request {
-	result := new(HTTPRequest)
+	result := new(httpRequest)
 	req := &http.Request{
 		Header: make(http.Header),
 	}
@@ -64,9 +87,10 @@ func NewHTTPRequest(rawurl string) Request {
 	return result
 }
 
-// NewH2CRequest .
+// NewH2CRequest Create an HTTP H2C request object.
+// The URL of the incoming HTTP.
 func NewH2CRequest(rawurl string) Request {
-	result := new(HTTPRequest)
+	result := new(httpRequest)
 	req := &http.Request{
 		Header: make(http.Header),
 	}

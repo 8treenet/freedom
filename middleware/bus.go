@@ -6,7 +6,7 @@ import (
 	"github.com/8treenet/freedom"
 )
 
-// NewBusFilter .
+// NewBusFilter Worker's middleware, filtering HTTP Header.
 func NewBusFilter() func(freedom.Worker) {
 	return func(run freedom.Worker) {
 		bus := run.Bus()
