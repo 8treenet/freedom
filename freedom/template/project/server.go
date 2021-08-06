@@ -20,7 +20,7 @@ shutdown_second = 3`
 }
 
 func dbTomlConf() string {
-	return `addr = "root:123123@tcp(127.0.0.1:3306)/xxxx?charset=utf8&parseTime=True&loc=Local"
+	return `addr = "root:123123@tcp(127.0.0.1:3306)/xxxx?charset=utf8&parseTime=True&loc=Local&timeout=5s"
 max_open_conns = 16
 max_idle_conns = 8
 conn_max_life_time = 300
@@ -98,15 +98,19 @@ func mainTemplate() string {
 	func installDatabase(app freedom.Application) {
 		app.InstallDB(func() interface{} {
 			conf := conf.Get().DB
-			db, e := gorm.Open(mysql.Open(conf.Addr), &gorm.Config{})
-			if e != nil {
-				freedom.Logger().Fatal(e.Error())
+			db, err := gorm.Open(mysql.Open(conf.Addr), &gorm.Config{})
+			if err != nil {
+				freedom.Logger().Fatal(err.Error())
 			}
 	
 			sqlDB, err := db.DB()
 			if err != nil {
-				freedom.Logger().Fatal(e.Error())
+				freedom.Logger().Fatal(err)
 			}
+			if err = sqlDB.Ping(); err != nil {
+				freedom.Logger().Fatal(err)
+			}
+
 			sqlDB.SetMaxIdleConns(conf.MaxIdleConns)
 			sqlDB.SetMaxOpenConns(conf.MaxOpenConns)
 			sqlDB.SetConnMaxLifetime(time.Duration(conf.ConnMaxLifeTime) * time.Second)
