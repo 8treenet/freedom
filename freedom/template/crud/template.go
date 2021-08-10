@@ -152,7 +152,7 @@ func FunTemplatePackage() string {
 				if count%p.pageSize == 0 {
 					p.totalPage = count / p.pageSize
 				} else {
-					p.totalPage = count/p.pageSize + 1
+					p.totalPage = count / p.pageSize + 1
 				}
 			}
 			db = db.Offset((p.page - 1) * p.pageSize).Limit(p.pageSize)

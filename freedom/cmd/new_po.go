@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path"
 	"sort"
 	"strings"
 	"text/template"
@@ -94,8 +95,12 @@ var (
 					if err != nil {
 						return err
 					}
+					ip := generatePkg.ImportPath
+					if ip == "." {
+						ip = path.Base(sysPath) + "/domain/po"
+					}
 					generatePdata := map[string]interface{}{
-						"PackagePath": generatePkg.ImportPath,
+						"PackagePath": ip,
 					}
 					if err = generateTmpl.Execute(generateBuffer, generatePdata); err != nil {
 						return err
