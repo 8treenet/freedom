@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	entryPoint()
+	EntryPoint()
 }
 
 // Get .
@@ -84,7 +84,7 @@ func newRedisConf() *RedisConf {
 	return result
 }
 
-func entryPoint() {
+func EntryPoint() {
 	// [./infra-example -c ./server/conf]
 	for i := 0; i < len(os.Args); i++ {
 		if os.Args[i] != "-c" {

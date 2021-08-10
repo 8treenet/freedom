@@ -19,7 +19,7 @@ func confTemplate() string {
 	)
 
 	func init() {
-		entryPoint()
+		EntryPoint()
 	}
 	
 	// Get .
@@ -98,7 +98,7 @@ func confTemplate() string {
 		return result
 	}
 
-	func entryPoint() {
+	func EntryPoint() {
 		// [./{{.PackagePath}} -c ./server/conf]
 		for i := 0; i < len(os.Args); i++ {
 			if os.Args[i] != "-c" {
