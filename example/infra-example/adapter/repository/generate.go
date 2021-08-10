@@ -3,11 +3,12 @@ package repository
 import (
 	"errors"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/8treenet/freedom"
 	"github.com/8treenet/freedom/example/infra-example/domain/po"
 	"gorm.io/gorm"
-	"strings"
-	"time"
 )
 
 // GORMRepository .
@@ -87,35 +88,32 @@ func (p *Pager) SetPage(page, pageSize int) *Pager {
 
 // Execute .
 func (p *Pager) Execute(db *gorm.DB, object interface{}) (e error) {
-	pageFind := false
+	if p.page != 0 && p.pageSize != 0 {
+		var count64 int64
+		e = db.Model(object).Count(&count64).Error
+		count := int(count64)
+		if e != nil {
+			return
+		}
+		if count != 0 {
+			//Calculate the length of the pagination
+			if count%p.pageSize == 0 {
+				p.totalPage = count / p.pageSize
+			} else {
+				p.totalPage = count/p.pageSize + 1
+			}
+		}
+		db = db.Offset((p.page - 1) * p.pageSize).Limit(p.pageSize)
+	}
+
 	orderValue := p.Order()
 	if orderValue != nil {
 		db = db.Order(orderValue)
-	}
-	if p.page != 0 && p.pageSize != 0 {
-		pageFind = true
-		db = db.Offset((p.page - 1) * p.pageSize).Limit(p.pageSize)
 	}
 
 	resultDB := db.Find(object)
 	if resultDB.Error != nil {
 		return resultDB.Error
-	}
-
-	if !pageFind {
-		return
-	}
-
-	var count64 int64
-	e = resultDB.Offset(0).Limit(1).Count(&count64).Error
-	count := int(count64)
-	if e == nil && count != 0 {
-		//计算分页
-		if count%p.pageSize == 0 {
-			p.totalPage = count / p.pageSize
-		} else {
-			p.totalPage = count/p.pageSize + 1
-		}
 	}
 	return
 }
