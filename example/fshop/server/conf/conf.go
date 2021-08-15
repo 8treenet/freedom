@@ -84,6 +84,7 @@ func newRedisConf() *RedisConf {
 	return result
 }
 
+// EntryPoint .
 func EntryPoint() {
 	// [./fshop -c ./server/conf]
 	for i := 0; i < len(os.Args); i++ {
