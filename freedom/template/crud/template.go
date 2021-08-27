@@ -324,6 +324,10 @@ func FunTemplate() string {
 		if len(object.Location()) == 0 {
 			return 0, errors.New("location cannot be empty")
 		}
+		updateValues := object.GetChanges()
+		if len(updateValues) == 0 {
+			return 0, nil
+		}
 		
 		now := time.Now()
 		defer func() {
@@ -331,7 +335,7 @@ func FunTemplate() string {
 			ormErrorLog(repo, "{{.Name}}", "save{{.Name}}", e, object)
 		}()
 
-		db := repo.db().Table(object.TableName()).Where(object.Location()).Updates(object.GetChanges())
+		db := repo.db().Table(object.TableName()).Where(object.Location()).Updates(updateValues)
 		e = db.Error
 		rowsAffected = db.RowsAffected
 		return

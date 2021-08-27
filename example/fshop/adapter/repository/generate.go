@@ -3,12 +3,11 @@ package repository
 import (
 	"errors"
 	"fmt"
-	"strings"
-	"time"
-
 	"github.com/8treenet/freedom"
 	"github.com/8treenet/freedom/example/fshop/domain/po"
 	"gorm.io/gorm"
+	"strings"
+	"time"
 )
 
 // GORMRepository .
@@ -115,7 +114,6 @@ func (p *Pager) Execute(db *gorm.DB, object interface{}) (e error) {
 	if resultDB.Error != nil {
 		return resultDB.Error
 	}
-
 	return
 }
 
@@ -266,6 +264,10 @@ func saveUser(repo GORMRepository, object saveObject) (rowsAffected int64, e err
 	if len(object.Location()) == 0 {
 		return 0, errors.New("location cannot be empty")
 	}
+	updateValues := object.GetChanges()
+	if len(updateValues) == 0 {
+		return 0, nil
+	}
 
 	now := time.Now()
 	defer func() {
@@ -273,7 +275,7 @@ func saveUser(repo GORMRepository, object saveObject) (rowsAffected int64, e err
 		ormErrorLog(repo, "User", "saveUser", e, object)
 	}()
 
-	db := repo.db().Table(object.TableName()).Where(object.Location()).Updates(object.GetChanges())
+	db := repo.db().Table(object.TableName()).Where(object.Location()).Updates(updateValues)
 	e = db.Error
 	rowsAffected = db.RowsAffected
 	return
@@ -419,6 +421,10 @@ func saveOrderDetail(repo GORMRepository, object saveObject) (rowsAffected int64
 	if len(object.Location()) == 0 {
 		return 0, errors.New("location cannot be empty")
 	}
+	updateValues := object.GetChanges()
+	if len(updateValues) == 0 {
+		return 0, nil
+	}
 
 	now := time.Now()
 	defer func() {
@@ -426,7 +432,7 @@ func saveOrderDetail(repo GORMRepository, object saveObject) (rowsAffected int64
 		ormErrorLog(repo, "OrderDetail", "saveOrderDetail", e, object)
 	}()
 
-	db := repo.db().Table(object.TableName()).Where(object.Location()).Updates(object.GetChanges())
+	db := repo.db().Table(object.TableName()).Where(object.Location()).Updates(updateValues)
 	e = db.Error
 	rowsAffected = db.RowsAffected
 	return
@@ -572,6 +578,10 @@ func saveOrder(repo GORMRepository, object saveObject) (rowsAffected int64, e er
 	if len(object.Location()) == 0 {
 		return 0, errors.New("location cannot be empty")
 	}
+	updateValues := object.GetChanges()
+	if len(updateValues) == 0 {
+		return 0, nil
+	}
 
 	now := time.Now()
 	defer func() {
@@ -579,7 +589,7 @@ func saveOrder(repo GORMRepository, object saveObject) (rowsAffected int64, e er
 		ormErrorLog(repo, "Order", "saveOrder", e, object)
 	}()
 
-	db := repo.db().Table(object.TableName()).Where(object.Location()).Updates(object.GetChanges())
+	db := repo.db().Table(object.TableName()).Where(object.Location()).Updates(updateValues)
 	e = db.Error
 	rowsAffected = db.RowsAffected
 	return
@@ -725,6 +735,10 @@ func saveGoods(repo GORMRepository, object saveObject) (rowsAffected int64, e er
 	if len(object.Location()) == 0 {
 		return 0, errors.New("location cannot be empty")
 	}
+	updateValues := object.GetChanges()
+	if len(updateValues) == 0 {
+		return 0, nil
+	}
 
 	now := time.Now()
 	defer func() {
@@ -732,7 +746,7 @@ func saveGoods(repo GORMRepository, object saveObject) (rowsAffected int64, e er
 		ormErrorLog(repo, "Goods", "saveGoods", e, object)
 	}()
 
-	db := repo.db().Table(object.TableName()).Where(object.Location()).Updates(object.GetChanges())
+	db := repo.db().Table(object.TableName()).Where(object.Location()).Updates(updateValues)
 	e = db.Error
 	rowsAffected = db.RowsAffected
 	return
@@ -878,6 +892,10 @@ func saveDelivery(repo GORMRepository, object saveObject) (rowsAffected int64, e
 	if len(object.Location()) == 0 {
 		return 0, errors.New("location cannot be empty")
 	}
+	updateValues := object.GetChanges()
+	if len(updateValues) == 0 {
+		return 0, nil
+	}
 
 	now := time.Now()
 	defer func() {
@@ -885,7 +903,7 @@ func saveDelivery(repo GORMRepository, object saveObject) (rowsAffected int64, e
 		ormErrorLog(repo, "Delivery", "saveDelivery", e, object)
 	}()
 
-	db := repo.db().Table(object.TableName()).Where(object.Location()).Updates(object.GetChanges())
+	db := repo.db().Table(object.TableName()).Where(object.Location()).Updates(updateValues)
 	e = db.Error
 	rowsAffected = db.RowsAffected
 	return
@@ -1031,6 +1049,10 @@ func saveCart(repo GORMRepository, object saveObject) (rowsAffected int64, e err
 	if len(object.Location()) == 0 {
 		return 0, errors.New("location cannot be empty")
 	}
+	updateValues := object.GetChanges()
+	if len(updateValues) == 0 {
+		return 0, nil
+	}
 
 	now := time.Now()
 	defer func() {
@@ -1038,7 +1060,7 @@ func saveCart(repo GORMRepository, object saveObject) (rowsAffected int64, e err
 		ormErrorLog(repo, "Cart", "saveCart", e, object)
 	}()
 
-	db := repo.db().Table(object.TableName()).Where(object.Location()).Updates(object.GetChanges())
+	db := repo.db().Table(object.TableName()).Where(object.Location()).Updates(updateValues)
 	e = db.Error
 	rowsAffected = db.RowsAffected
 	return
@@ -1184,6 +1206,10 @@ func saveAdmin(repo GORMRepository, object saveObject) (rowsAffected int64, e er
 	if len(object.Location()) == 0 {
 		return 0, errors.New("location cannot be empty")
 	}
+	updateValues := object.GetChanges()
+	if len(updateValues) == 0 {
+		return 0, nil
+	}
 
 	now := time.Now()
 	defer func() {
@@ -1191,7 +1217,7 @@ func saveAdmin(repo GORMRepository, object saveObject) (rowsAffected int64, e er
 		ormErrorLog(repo, "Admin", "saveAdmin", e, object)
 	}()
 
-	db := repo.db().Table(object.TableName()).Where(object.Location()).Updates(object.GetChanges())
+	db := repo.db().Table(object.TableName()).Where(object.Location()).Updates(updateValues)
 	e = db.Error
 	rowsAffected = db.RowsAffected
 	return
