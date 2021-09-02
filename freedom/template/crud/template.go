@@ -322,11 +322,11 @@ func FunTemplate() string {
 	// save{{.Name}} .
 	func save{{.Name}}(repo GORMRepository, object saveObject) (rowsAffected int64, e error) {
 		if len(object.Location()) == 0 {
-			return -1, errors.New("location cannot be empty")
+			return 0, errors.New("location cannot be empty")
 		}
 		updateValues := object.GetChanges()
 		if len(updateValues) == 0 {
-			return -1, nil
+			return 0, nil
 		}
 		
 		now := time.Now()
