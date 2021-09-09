@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"github.com/kataras/golog"
 	"github.com/kataras/iris/v12/context"
 )
 
@@ -18,6 +19,7 @@ type RequestLoggerConfig struct {
 	RequestRawBody       bool
 	RequestRawBodyMaxLen int64
 	Title                string
+	CallerWithLevel      []golog.Level
 	traceName            string
 	// Status displays status code (bool).
 	//
@@ -81,6 +83,7 @@ func DefaultLoggerConfig() *RequestLoggerConfig {
 		RequestRawBodyMaxLen: 512,
 		MessageContextKeys:   []string{"response"},
 		Title:                "[ACCESS]",
+		CallerWithLevel:      []golog.Level{golog.DebugLevel, golog.WarnLevel, golog.ErrorLevel, golog.FatalLevel},
 	}
 }
 

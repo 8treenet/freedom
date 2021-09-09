@@ -14,7 +14,7 @@ service_name = "{{.PackageName}}"
 repository_request_timeout = 10
 prometheus_listen_addr = ":9090"
 # "fatal" "error" "warn" "info"  "debug"
-logger_level = "debug"
+logger_level = "info"
 # shutdown_second : Elegant lying off for the longest time
 shutdown_second = 3`
 }

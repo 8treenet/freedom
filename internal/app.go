@@ -437,18 +437,18 @@ func (app *Application) NewH2CRunner(addr string, configurators ...IrisHostConfi
 // cache, repository and etc. , and serving an iris application as the HTTP server
 // to handle the incoming requests.
 func (app *Application) Run(runner IrisRunner, conf IrisConfiguration) {
+	logLevel := "debug"
+	if level, ok := conf.Other["logger_level"]; ok {
+		logLevel = level.(string)
+	}
+	globalApp.IrisApp.Logger().SetLevel(logLevel)
+
 	app.addMiddlewares(conf)
 	app.installDB()
 	app.other.booting()
 	for index := 0; index < len(prepares); index++ {
 		prepares[index](app)
 	}
-
-	logLevel := "debug"
-	if level, ok := conf.Other["logger_level"]; ok {
-		logLevel = level.(string)
-	}
-	globalApp.IrisApp.Logger().SetLevel(logLevel)
 
 	repositoryAPIRun(conf)
 	app.subEventManager.building()
