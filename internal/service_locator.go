@@ -32,7 +32,7 @@ func (locator *ServiceLocatorImpl) InstallEndCallBack(f func(Worker)) {
 }
 
 // Call Called with a service locator.
-func (locator *ServiceLocatorImpl) Call(fun interface{}) {
+func (locator *ServiceLocatorImpl) Call(fun interface{}) error {
 	ctx := context.NewContext(globalApp.IrisApp)
 	request := new(http.Request)
 	request.URL = &url.URL{}
@@ -44,19 +44,31 @@ func (locator *ServiceLocatorImpl) Call(fun interface{}) {
 
 	serviceObj, err := parseCallServiceFunc(fun)
 	if err != nil {
-		panic(fmt.Sprintf("[Freedom] ServiceLocatorImpl.Call, %v : %s", fun, err.Error()))
+		return fmt.Errorf("[Freedom] ServiceLocatorImpl.Call, %v : %w", fun, err)
 	}
-	newService := globalApp.pool.create(worker, serviceObj)
+	newService, err := globalApp.pool.create(worker, serviceObj)
+	if err != nil {
+		return fmt.Errorf("[Freedom] ServiceLocatorImpl.Call, %v : %w", fun, err)
+	}
 	for _, beginCallBack := range locator.beginCallBack {
 		beginCallBack(worker)
 	}
-	reflect.ValueOf(fun).Call([]reflect.Value{reflect.ValueOf(newService.(serviceElement).serviceObject)})
+	returnValue := reflect.ValueOf(fun).Call([]reflect.Value{reflect.ValueOf(newService.(serviceElement).serviceObject)})
 	for _, endCallBack := range locator.endCallBack {
 		endCallBack(worker)
 	}
 
-	if worker.IsDeferRecycle() {
-		return
+	for {
+		if worker.IsDeferRecycle() {
+			break
+		}
+		globalApp.pool.free(newService)
+		break
 	}
-	globalApp.pool.free(newService)
+	if len(returnValue) > 0 && !returnValue[0].IsNil() {
+		returnInterface := returnValue[0].Interface()
+		err, _ := returnInterface.(error)
+		return err
+	}
+	return nil
 }

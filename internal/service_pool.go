@@ -48,14 +48,14 @@ func (pool *servicePool) get(rt *worker, service interface{}) {
 }
 
 // create .
-func (pool *servicePool) create(rt Worker, service reflect.Type) interface{} {
+func (pool *servicePool) create(rt Worker, service reflect.Type) (interface{}, error) {
 	newService := pool.malloc(service)
 	if newService == nil {
-		panic(fmt.Sprintf("[Freedom] No dependency injection was found for the service object,%v", service))
+		return nil, fmt.Errorf("[Freedom] No dependency injection was found for the service object,%v", service)
 	}
 
 	pool.beginRequest(rt, newService)
-	return newService
+	return newService, nil
 }
 
 // freeHandle .

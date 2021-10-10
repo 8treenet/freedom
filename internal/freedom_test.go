@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
@@ -139,4 +140,22 @@ func TestFetchValue(t *testing.T) {
 	src := new(TestUser)
 	err := fetchValue(&tu, src)
 	t.Log(tu, err)
+}
+
+func TestParseCallServiceFunc(t *testing.T) {
+	call := func(a *A) error {
+		fmt.Println(a.III)
+		return errors.New("testerr")
+		//return nil
+	}
+	intype, err := parseCallServiceFunc(call)
+	t.Log(intype, err)
+
+	returnValue := reflect.ValueOf(call).Call([]reflect.Value{reflect.ValueOf(&A{III: 100})})
+	t.Log(returnValue[0].IsNil())
+	if len(returnValue) > 0 && !returnValue[0].IsNil() {
+		returnInterface := returnValue[0].Interface()
+		err, _ := returnInterface.(error)
+		t.Log(err)
+	}
 }

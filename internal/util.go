@@ -610,5 +610,19 @@ func parseCallServiceFunc(f interface{}) (inType reflect.Type, e error) {
 		e = errors.New("The pointer parameter must be a service object")
 		return
 	}
+
+	if ftype.NumOut() != 1 {
+		e = errors.New("The return value must be of the error type")
+		return
+	}
+	outType := ftype.Out(0)
+	if outType.Kind() != reflect.Interface {
+		e = errors.New("The return value must be of the error type")
+		return
+	}
+	if _, ok := outType.MethodByName("Error"); !ok {
+		e = errors.New("The return value must be of the error type")
+		return
+	}
 	return
 }

@@ -74,6 +74,7 @@ func installDatabase(app freedom.Application) {
 		sqlDB.SetMaxIdleConns(conf.MaxIdleConns)
 		sqlDB.SetMaxOpenConns(conf.MaxOpenConns)
 		sqlDB.SetConnMaxLifetime(time.Duration(conf.ConnMaxLifeTime) * time.Second)
+		db = db.Debug()
 		return db
 	})
 }
