@@ -141,8 +141,7 @@ func (t *Generate) schema(tableColumns map[string][]column) (result []ObjectCont
 	for tableRealName, item := range tableColumns {
 		var structContent string
 		tableName := tableRealName
-		primaryName := ""
-		primaryStructName := ""
+		primaryStructMap := map[string]string{}
 		sc := ObjectContent{
 			TableRealName: tableName,
 			SetMethods:    make([]Method, 0),
@@ -170,8 +169,7 @@ func (t *Generate) schema(tableColumns map[string][]column) (result []ObjectCont
 		for _, v := range item {
 			column := v.Tag
 			if v.Primary == "PRI" {
-				primaryName = v.Tag
-				primaryStructName = v.ColumnName
+				primaryStructMap[v.Tag] = v.ColumnName
 				v.Tag = "`" + `gorm:"primaryKey;column:` + v.Tag + `"` + "`"
 			} else {
 				v.Tag = "`" + `gorm:"column:` + v.Tag + `"` + "`"
@@ -216,7 +214,15 @@ func (t *Generate) schema(tableColumns map[string][]column) (result []ObjectCont
 
 		structContent += "// Location" + " .\n"
 		structContent += fmt.Sprintf("func (obj *%s) Location() map[string]interface{} {\n", tableName)
-		structContent += fmt.Sprintf(`return map[string]interface{}{"%s":obj.%s}`+"\n", primaryName, primaryStructName)
+
+		locationStr := ""
+		for k, v := range primaryStructMap {
+			if locationStr != "" {
+				locationStr += ","
+			}
+			locationStr += fmt.Sprintf(`"%s":obj.%s`, k, v)
+		}
+		structContent += fmt.Sprintf(`return map[string]interface{}{%s}`+"\n", locationStr)
 		structContent += "}\n"
 
 		sc.Content = structContent
