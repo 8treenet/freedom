@@ -18,8 +18,17 @@
 - 一级缓存 & 二级缓存 & 防击穿
 
 ## 安装
+###### 方式一
 ```sh
 $ go get github.com/8treenet/freedom/freedom
+$ freedom version
+```
+###### 方式二
+```sh
+$ git clone https://github.com/8treenet/freedom.git $GOPATH/src/github.com/8treenet/freedom
+$ cd $GOPATH/src/github.com/8treenet/freedom/freedom
+$ go install
+$ freedom version
 ```
 
 ## 脚手架创建项目
