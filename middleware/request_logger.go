@@ -93,8 +93,12 @@ func (l *requestLoggerMiddleware) ServeHTTP(ctx context.Context) {
 		fieldsMessage[l.config.traceName] = traceInfo
 	}
 
-	if l.config.RequestRawBody && len(reqBodyBys) > 0 {
-		reqBodyBys = reqBodyBys[0:l.config.RequestRawBodyMaxLen]
+	reqBodyBysLen := len(reqBodyBys)
+	if l.config.RequestRawBody && reqBodyBysLen > 0 {
+		if reqBodyBysLen > l.config.RequestRawBodyMaxLen {
+			reqBodyBysLen = l.config.RequestRawBodyMaxLen
+		}
+		reqBodyBys = reqBodyBys[0:reqBodyBysLen]
 		msg := string(reqBodyBys)
 		if msg != "" {
 			fieldsMessage["request"] = msg

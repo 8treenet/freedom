@@ -17,7 +17,7 @@ type RequestLoggerConfig struct {
 	MessageContextKeys   []string
 	MessageHeaderKeys    []string
 	RequestRawBody       bool
-	RequestRawBodyMaxLen int64
+	RequestRawBodyMaxLen int
 	Title                string
 	CallerWithLevel      []golog.Level
 	traceName            string
