@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"go/build"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -91,16 +90,8 @@ var (
 				fmt.Println(successString("Success [" + OutObj + "/" + list[index].TableRealName + ".go]"))
 
 				if !generateBuild {
-					generatePkg, err := build.ImportDir(sysPath+"/domain/po", build.IgnoreVendor)
-					if err != nil {
-						return err
-					}
-					ip := generatePkg.ImportPath
-					if ip == "." {
-						ip = path.Base(sysPath) + "/domain/po"
-					}
 					generatePdata := map[string]interface{}{
-						"PackagePath": ip,
+						"PackagePath": path.Base(sysPath) + "/domain/po",
 					}
 					if err = generateTmpl.Execute(generateBuffer, generatePdata); err != nil {
 						return err

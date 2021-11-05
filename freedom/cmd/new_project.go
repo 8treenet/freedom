@@ -2,11 +2,9 @@ package cmd
 
 import (
 	"errors"
-	"go/build"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"text/template"
 
 	"github.com/8treenet/freedom/freedom/template/project"
@@ -30,15 +28,11 @@ var (
 			}
 			mkdirAll(sysPath)
 
-			projectPath := strings.Replace(sysPath, build.Default.GOPATH+"/src/", "", 1)
 			projectName := args[0]
 			pdata := map[string]interface{}{
-				"PackagePath": projectPath,
+				"PackagePath": projectName,
 				"PackageName": projectName,
 				"VersionNum":  versionNum,
-			}
-			if !strings.Contains(sysPath, build.Default.GOPATH) {
-				pdata["PackagePath"] = projectName
 			}
 
 			m := project.FileContent()
