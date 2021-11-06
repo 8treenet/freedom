@@ -34,6 +34,8 @@ $ freedom version
 ## Create Project
 ```sh
 $ freedom new-project [project-name]
+$ cd [project-name]
+$ go run server/main.go
 ```
 
 ## Build Persistent Objects(PO)

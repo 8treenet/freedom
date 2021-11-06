@@ -34,6 +34,8 @@ $ freedom version
 ## 脚手架创建项目
 ```sh
 $ freedom new-project [project-name]
+$ cd [project-name]
+$ go run server/main.go
 ```
 
 ## 脚手架生成增删查改和持久化对象
