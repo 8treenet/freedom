@@ -57,6 +57,7 @@ func FunTemplatePackage() string {
 		"errors"
 		"github.com/8treenet/freedom"
 		"gorm.io/gorm"
+		"gorm.io/gorm/clause"
 		"time"
 		"{{.PackagePath}}"
 		"fmt"
@@ -170,7 +171,33 @@ func FunTemplatePackage() string {
 		return
 	}
 
+	// Limiter .
+	type Limiter struct {
+		size   int
+		column string
+		desc   bool
+	}
 	
+	// NewDescLimiter .
+	func NewDescLimiter(column string, size int) *Limiter {
+		return &Limiter{column: column, size: size, desc: true}
+	}
+	
+	// NewAscLimiter .
+	func NewAscLimiter(column string, size int) *Limiter {
+		return &Limiter{column: column, size: size, desc: false}
+	}
+	
+	// Execute .
+	func (limiter *Limiter) Execute(db *gorm.DB, object interface{}) (e error) {
+		db = db.Order(clause.OrderByColumn{Column: clause.Column{Name: limiter.column}, Desc: limiter.desc}).Limit(limiter.size)
+		resultDB := db.Find(object)
+		if resultDB.Error != nil {
+			return resultDB.Error
+		}
+		return
+	}
+
 	func ormErrorLog(repo GORMRepository, model, method string, e error, expression ...interface{}) {
 		if e == nil || e == gorm.ErrRecordNotFound {
 			return

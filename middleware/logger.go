@@ -195,7 +195,7 @@ func (l *Logger) Debugf(format string, v ...interface{}) {
 	freedom.Logger().Debugf(format, v...)
 }
 
-// SetCallerWithLevel
+// SetCallerLevel .
 func (l *Logger) SetCallerLevel(level golog.Level) {
 	index := 1
 	switch level {

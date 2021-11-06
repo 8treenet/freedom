@@ -3,11 +3,13 @@ package repository
 import (
 	"errors"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/8treenet/freedom"
 	"github.com/8treenet/freedom/example/fshop/domain/po"
 	"gorm.io/gorm"
-	"strings"
-	"time"
+	"gorm.io/gorm/clause"
 )
 
 // GORMRepository .
@@ -110,6 +112,33 @@ func (p *Pager) Execute(db *gorm.DB, object interface{}) (e error) {
 		db = db.Order(orderValue)
 	}
 
+	resultDB := db.Find(object)
+	if resultDB.Error != nil {
+		return resultDB.Error
+	}
+	return
+}
+
+// Limiter .
+type Limiter struct {
+	size   int
+	column string
+	desc   bool
+}
+
+// NewDescLimiter .
+func NewDescLimiter(column string, size int) *Limiter {
+	return &Limiter{column: column, size: size, desc: true}
+}
+
+// NewAscLimiter .
+func NewAscLimiter(column string, size int) *Limiter {
+	return &Limiter{column: column, size: size, desc: false}
+}
+
+// Execute .
+func (limiter *Limiter) Execute(db *gorm.DB, object interface{}) (e error) {
+	db = db.Order(clause.OrderByColumn{Column: clause.Column{Name: limiter.column}, Desc: limiter.desc}).Limit(limiter.size)
 	resultDB := db.Find(object)
 	if resultDB.Error != nil {
 		return resultDB.Error

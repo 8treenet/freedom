@@ -9,6 +9,7 @@ import (
 	"github.com/8treenet/freedom"
 	"github.com/8treenet/freedom/example/infra-example/domain/po"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // GORMRepository .
@@ -111,6 +112,33 @@ func (p *Pager) Execute(db *gorm.DB, object interface{}) (e error) {
 		db = db.Order(orderValue)
 	}
 
+	resultDB := db.Find(object)
+	if resultDB.Error != nil {
+		return resultDB.Error
+	}
+	return
+}
+
+// Limiter .
+type Limiter struct {
+	size   int
+	column string
+	desc   bool
+}
+
+// NewDescLimiter .
+func NewDescLimiter(column string, size int) *Limiter {
+	return &Limiter{column: column, size: size, desc: true}
+}
+
+// NewAscLimiter .
+func NewAscLimiter(column string, size int) *Limiter {
+	return &Limiter{column: column, size: size, desc: false}
+}
+
+// Execute .
+func (limiter *Limiter) Execute(db *gorm.DB, object interface{}) (e error) {
+	db = db.Order(clause.OrderByColumn{Column: clause.Column{Name: limiter.column}, Desc: limiter.desc}).Limit(limiter.size)
 	resultDB := db.Find(object)
 	if resultDB.Error != nil {
 		return resultDB.Error
@@ -265,6 +293,10 @@ func saveOrder(repo GORMRepository, object saveObject) (rowsAffected int64, e er
 	if len(object.Location()) == 0 {
 		return 0, errors.New("location cannot be empty")
 	}
+	updateValues := object.GetChanges()
+	if len(updateValues) == 0 {
+		return 0, nil
+	}
 
 	now := time.Now()
 	defer func() {
@@ -272,7 +304,7 @@ func saveOrder(repo GORMRepository, object saveObject) (rowsAffected int64, e er
 		ormErrorLog(repo, "Order", "saveOrder", e, object)
 	}()
 
-	db := repo.db().Table(object.TableName()).Where(object.Location()).Updates(object.GetChanges())
+	db := repo.db().Table(object.TableName()).Where(object.Location()).Updates(updateValues)
 	e = db.Error
 	rowsAffected = db.RowsAffected
 	return
@@ -418,6 +450,10 @@ func saveGoods(repo GORMRepository, object saveObject) (rowsAffected int64, e er
 	if len(object.Location()) == 0 {
 		return 0, errors.New("location cannot be empty")
 	}
+	updateValues := object.GetChanges()
+	if len(updateValues) == 0 {
+		return 0, nil
+	}
 
 	now := time.Now()
 	defer func() {
@@ -425,7 +461,7 @@ func saveGoods(repo GORMRepository, object saveObject) (rowsAffected int64, e er
 		ormErrorLog(repo, "Goods", "saveGoods", e, object)
 	}()
 
-	db := repo.db().Table(object.TableName()).Where(object.Location()).Updates(object.GetChanges())
+	db := repo.db().Table(object.TableName()).Where(object.Location()).Updates(updateValues)
 	e = db.Error
 	rowsAffected = db.RowsAffected
 	return

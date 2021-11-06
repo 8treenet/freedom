@@ -2,9 +2,8 @@
 package po
 
 import (
-	"time"
-
 	"gorm.io/gorm"
+	"time"
 )
 
 // Goods .
@@ -26,7 +25,7 @@ func (obj *Goods) TableName() string {
 
 // Location .
 func (obj *Goods) Location() map[string]interface{} {
-	return map[string]interface{}{"id": obj.ID, "version": obj.Version}
+	return map[string]interface{}{"id": obj.ID}
 }
 
 // GetChanges .
