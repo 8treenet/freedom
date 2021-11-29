@@ -3,6 +3,7 @@ package requests_test
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"sync"
 	"testing"
 	"time"
@@ -127,4 +128,18 @@ func TestSingleflight(t *testing.T) {
 		}()
 	}
 	group.Wait()
+}
+
+func TestForm(t *testing.T) {
+	req := newRequest("http://localhost:8000/form").Post()
+	value := map[string]interface{}{}
+	data := url.Values{}
+
+	data.Set("userName", "8treenet")
+	data.Set("mail", "4932004@qq.com")
+	data.Add("myData", "123")
+	data.Add("myData", "456")
+	req = req.SetFormBody(data)
+	haha := req.ToJSON(&value)
+	t.Log(haha, value)
 }

@@ -125,3 +125,18 @@ func (c *Default) GetAgeByUserBy(age int, user string) freedom.Result {
 
 	return &infra.JSONResponse{Object: result}
 }
+
+// PostForm handles the Post: /form route.
+func (c *Default) PostForm() freedom.Result {
+	var visitor struct {
+		UserName string   `form:"userName" validate:"required"`
+		Mail     string   `form:"mail" validate:"required"`
+		Data     []string `form:"myData" validate:"required"`
+	}
+	err := c.Request.ReadForm(&visitor, true)
+	if err != nil {
+		return &infra.JSONResponse{Error: err}
+	}
+	c.Worker.Logger().Infof("%d, %s, %s, %v", c.Worker.IrisContext().Request().ContentLength, visitor.UserName, visitor.Mail, visitor.Data)
+	return &infra.JSONResponse{Object: visitor}
+}

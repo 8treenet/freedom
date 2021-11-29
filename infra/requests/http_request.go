@@ -96,6 +96,16 @@ func (req *httpRequest) SetBody(byts []byte) Request {
 	return req
 }
 
+// SetFormBody .
+func (req *httpRequest) SetFormBody(v url.Values) Request {
+	reader := strings.NewReader(v.Encode())
+	req.StdRequest.Body = ioutil.NopCloser(reader)
+	req.StdRequest.ContentLength = int64(reader.Len())
+	req.StdRequest.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Post()
+	return req
+}
+
 // ToJSON .
 func (req *httpRequest) ToJSON(obj interface{}) *Response {
 	var body []byte
