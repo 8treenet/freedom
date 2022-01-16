@@ -18,6 +18,7 @@ type UnitTest interface {
 	FetchFactory(factory interface{})
 	InstallDB(f func() (db interface{}))
 	InstallRedis(f func() (client redis.Cmdable))
+	InstallCustom(f func() interface{})
 	Run()
 	SetRequest(request *http.Request)
 	InjectBaseEntity(entity interface{})
@@ -79,6 +80,11 @@ func (u *UnitTestImpl) InstallDB(f func() (db interface{})) {
 // InstallRedis .
 func (u *UnitTestImpl) InstallRedis(f func() (client redis.Cmdable)) {
 	globalApp.InstallRedis(f)
+}
+
+// InstallCustom .
+func (u *UnitTestImpl) InstallCustom(f func() interface{}) {
+	globalApp.InstallCustom(f)
 }
 
 // Run .
