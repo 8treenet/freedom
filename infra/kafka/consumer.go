@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
@@ -38,6 +39,8 @@ type Consumer interface {
 	SetRateLimit(rate int)
 	// Set the HTTP agent to time out.
 	SetProxyTimeout(time.Duration)
+	// SetSerializable .
+	SetSerializable()
 }
 
 // ConsumerImpl Kafka Consumer implementation.
@@ -53,6 +56,7 @@ type ConsumerImpl struct {
 	addrs        []string
 	groupID      string
 	limiter      ratelimit.Limiter
+	serializable bool
 	rate         int
 	proxyTimeout time.Duration
 	h2cClient    requests.Client
@@ -75,6 +79,11 @@ func (c *ConsumerImpl) Start(addrs []string, groupID string, config *sarama.Conf
 func (c *ConsumerImpl) SetRateLimit(rate int) {
 	c.rate = rate
 	return
+}
+
+// SetSerializable .
+func (c *ConsumerImpl) SetSerializable() {
+	c.serializable = true
 }
 
 // SetProxyTimeout Set the HTTP agent to time out.
@@ -166,16 +175,19 @@ func (c *ConsumerImpl) Close() error {
 	return c.client.Close()
 }
 
-func (c *ConsumerImpl) do(msg *sarama.ConsumerMessage) {
+func (c *ConsumerImpl) do(msg *sarama.ConsumerMessage) (e error) {
 	defer func() {
 		if err := recover(); err != nil {
 			freedom.Logger().Error(err)
+			e = fmt.Errorf("%v", err)
+			return
 		}
 	}()
 
 	path, ok := c.topicPath[msg.Topic]
 	if !ok {
 		freedom.Logger().Error("[Freedom] Undefined 'topic' :", msg.Topic)
+		return
 	}
 	var request requests.Request
 	if c.proxyH2C {
@@ -193,7 +205,9 @@ func (c *ConsumerImpl) do(msg *sarama.ConsumerMessage) {
 
 	if resp.Error != nil || resp.StatusCode != 200 {
 		freedom.Logger().Errorf("[Freedom] Call message processing failed, path:%s, topic:%s, addr:%v, body:%v, error:%v", path, msg.Topic, c.addrs, string(msg.Value), resp.Error)
+		e = fmt.Errorf("http code:%d, err:%w", resp.StatusCode, resp.Error)
 	}
+	return
 }
 
 type consumerHandle struct {
@@ -217,8 +231,15 @@ func (consumerHandle *consumerHandle) ConsumeClaim(session sarama.ConsumerGroupS
 	// The `ConsumeClaim` itself is called within a goroutine, see:
 	// https://github.com/Shopify/sarama/blob/master/consumer_group.go#L27-L29
 	for message := range claim.Messages() {
-		consumerHandle.consumer.limiter.Take()
+		if consumerHandle.consumer.serializable {
+			if err := consumerHandle.consumer.do(message); err != nil {
+				continue
+			}
+			session.MarkMessage(message, "")
+			continue
+		}
 
+		consumerHandle.consumer.limiter.Take()
 		session.MarkMessage(message, "")
 		go consumerHandle.consumer.do(message)
 	}
