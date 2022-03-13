@@ -19,7 +19,7 @@ require (
 	github.com/leodido/go-urn v1.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.4 // indirect
 	github.com/moul/http2curl v1.0.0 // indirect
-	github.com/nats-io/nats-server/v2 v2.7.2 // indirect
+	github.com/nats-io/nats-server/v2 v2.7.4 // indirect
 	github.com/onsi/ginkgo v1.14.2 // indirect
 	github.com/onsi/gomega v1.10.4 // indirect
 	github.com/prometheus/client_golang v1.6.0
