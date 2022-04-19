@@ -42,6 +42,8 @@ type Request interface {
 	SetBody(byts []byte) Request
 	// Set up Form data.
 	SetFormBody(url.Values) Request
+	// Set up File data.
+	SetFile(field, file string) Request
 	// The data is returned after the request and converted to JSON data.
 	ToJSON(obj interface{}) *Response
 	// The data is returned after the request and converted into a string.

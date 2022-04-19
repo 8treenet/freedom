@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"os"
 	"sync"
 	"testing"
 	"time"
@@ -142,4 +143,13 @@ func TestForm(t *testing.T) {
 	req = req.SetFormBody(data)
 	haha := req.ToJSON(&value)
 	t.Log(haha, value)
+}
+
+func TestFile(t *testing.T) {
+	req := newRequest("http://localhost:8000/file").Post()
+
+	home, _ := os.UserHomeDir()
+	req = req.SetFile("file", home+"/filetest.jpg")
+	ok, haha := req.ToString()
+	t.Log(haha, ok)
 }

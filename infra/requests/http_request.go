@@ -7,9 +7,13 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
+	"mime/multipart"
 	"net/http"
 	"net/url"
+	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 )
@@ -102,6 +106,40 @@ func (req *httpRequest) SetFormBody(v url.Values) Request {
 	req.StdRequest.Body = ioutil.NopCloser(reader)
 	req.StdRequest.ContentLength = int64(reader.Len())
 	req.StdRequest.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Post()
+	return req
+}
+
+// SetFile .
+func (req *httpRequest) SetFile(field, file string) Request {
+	f, err := os.Open(file)
+	if err != nil {
+		req.Response.Error = err
+		return req
+	}
+	defer f.Close()
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	part, e := writer.CreateFormFile(field, filepath.Base(file))
+	if e != nil {
+		req.Response.Error = e
+		return req
+	}
+
+	_, err = io.Copy(part, f)
+	if e != nil {
+		req.Response.Error = e
+		return req
+	}
+	if err = writer.Close(); err != nil {
+		req.Response.Error = e
+		return req
+	}
+
+	req.StdRequest.Body = ioutil.NopCloser(bytes.NewReader(body.Bytes()))
+	req.StdRequest.ContentLength = int64(body.Len())
+	req.StdRequest.Header.Set("Content-Type", writer.FormDataContentType())
 	req.Post()
 	return req
 }

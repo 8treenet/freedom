@@ -1,6 +1,10 @@
 package controller
 
 import (
+	"fmt"
+	"io"
+	"os"
+
 	"github.com/8treenet/freedom/example/base/domain"
 	"github.com/8treenet/freedom/example/base/infra"
 
@@ -139,4 +143,24 @@ func (c *Default) PostForm() freedom.Result {
 	}
 	c.Worker.Logger().Infof("%d, %s, %s, %v", c.Worker.IrisContext().Request().ContentLength, visitor.UserName, visitor.Mail, visitor.Data)
 	return &infra.JSONResponse{Object: visitor}
+}
+
+// PostFile handles the Post: /file route.
+func (c *Default) PostFile() freedom.Result {
+	file, info, err := c.Worker.IrisContext().FormFile("file")
+	if err != nil {
+		return &infra.JSONResponse{Error: err}
+	}
+
+	defer file.Close()
+	fname := info.Filename
+	out, err := os.OpenFile(os.TempDir()+fname, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0666)
+	if err != nil {
+		return &infra.JSONResponse{Error: err}
+	}
+	defer out.Close()
+	fmt.Println("file:", os.TempDir()+fname)
+	_, err = io.Copy(out, file)
+
+	return &infra.JSONResponse{Error: err}
 }
