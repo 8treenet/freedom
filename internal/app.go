@@ -508,7 +508,6 @@ func (app *Application) installDB() {
 	if app.Cache.Install != nil {
 		app.Cache.client = app.Cache.Install()
 	}
-	app.other.booting()
 }
 
 func (app *Application) addMiddlewares(irisConf IrisConfiguration) {

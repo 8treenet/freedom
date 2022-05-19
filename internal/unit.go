@@ -94,8 +94,10 @@ func (u *UnitTestImpl) Run() {
 	}
 	u.rt = u.newRuntime()
 	logLevel := "debug"
+
 	globalApp.IrisApp.Logger().SetLevel(logLevel)
 	globalApp.installDB()
+	globalApp.other.booting()
 	globalApp.comPool.singleBooting(globalApp)
 }
 
