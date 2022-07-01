@@ -9,7 +9,6 @@ import (
 
 	"github.com/8treenet/freedom"
 	"github.com/go-redis/redis"
-	"golang.org/x/sync/singleflight"
 )
 
 // EntityCache The entity cache component.
@@ -31,8 +30,6 @@ type EntityCache interface {
 	// The default is to close.
 	// Cache misses read the database.
 	SetAsyncWrite(bool) EntityCache
-	//Turn anti-break on and off.
-	SetSingleFlight(bool) EntityCache
 	//Turn off redis and only request memory takes effect.
 	CloseRedis() EntityCache
 }
@@ -47,27 +44,24 @@ func init() {
 	})
 }
 
-var group singleflight.Group
-
 // EntityCacheImpl .
 type EntityCacheImpl struct {
 	freedom.Infra
-	asyncWrite   bool
-	prefix       string
-	expiration   time.Duration
-	call         func(result freedom.Entity) error
-	singleFlight bool
-	client       redis.Cmdable
+	asyncWrite bool
+	prefix     string
+	expiration time.Duration
+	call       func(result freedom.Entity) error
+	client     redis.Cmdable
 }
 
 // BeginRequest Polymorphic method, subclasses can override overrides overrides.
 // The request is triggered after entry.
 func (cache *EntityCacheImpl) BeginRequest(worker freedom.Worker) {
 	cache.expiration = 5 * time.Minute
-	cache.singleFlight = true
 	cache.asyncWrite = false
 	cache.Infra.BeginRequest(worker)
 	cache.client = cache.Redis()
+	cache.prefix = "ec:"
 }
 
 // GetEntity Gets the entity.
@@ -181,12 +175,6 @@ func (cache *EntityCacheImpl) SetExpiration(expiration time.Duration) EntityCach
 	return cache
 }
 
-// SetSingleFlight 	Turn anti-break on and off.
-func (cache *EntityCacheImpl) SetSingleFlight(open bool) EntityCache {
-	cache.singleFlight = open
-	return cache
-}
-
 // CloseRedis Turn off redis and only request memory takes effect.
 func (cache *EntityCacheImpl) CloseRedis() EntityCache {
 	cache.client = nil
@@ -229,41 +217,12 @@ func (cache *EntityCacheImpl) getRedis(name string) ([]byte, error) {
 		return nil, redis.Nil
 	}
 	client := cache.client
-	if cache.singleFlight {
-		entityData, err, _ := group.Do("cache:"+name, func() (interface{}, error) {
-			return client.Get(name).Bytes()
-		})
-		if err != nil {
-			return nil, err
-		}
-		return entityData.([]byte), err
-	}
 	return client.Get(name).Bytes()
 }
 
 func (cache *EntityCacheImpl) getCall(name string, result freedom.Entity) ([]byte, error) {
 	if cache.call == nil {
 		return nil, errors.New("Undefined source")
-	}
-	if cache.singleFlight {
-		entityData, err, shared := group.Do("call:"+name, func() (interface{}, error) {
-			e := cache.call(result)
-			if e != nil {
-				return nil, e
-			}
-			return json.Marshal(result)
-		})
-		if err != nil {
-			return nil, err
-		}
-		if shared {
-			entityByte, _ := entityData.([]byte)
-			err = json.Unmarshal(entityByte, result)
-			resultByte := make([]byte, len(entityByte))
-			copy(resultByte, entityByte)
-			return resultByte, err
-		}
-		return entityData.([]byte), err
 	}
 	err := cache.call(result)
 	if err != nil {
