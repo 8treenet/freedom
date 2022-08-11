@@ -18,16 +18,9 @@
 - 一级缓存 & 二级缓存 & 防击穿
 
 ## 安装
-###### go.1.16+
+######
 ```sh
 $ go install github.com/8treenet/freedom/freedom@latest
-$ freedom version
-```
-###### go.1.13+
-```sh
-$ git clone https://github.com/8treenet/freedom.git $GOPATH/src/github.com/8treenet/freedom
-$ cd $GOPATH/src/github.com/8treenet/freedom/freedom
-$ go install
 $ freedom version
 ```
 
