@@ -60,7 +60,7 @@ func (pool *servicePool) create(rt Worker, service reflect.Type) (interface{}, e
 
 // freeHandle .
 func (pool *servicePool) freeHandle() context.Handler {
-	return func(ctx context.Context) {
+	return func(ctx *context.Context) {
 		ctx.Next()
 		rt := ctx.Values().Get(WorkerKey).(*worker)
 		if rt.IsDeferRecycle() {

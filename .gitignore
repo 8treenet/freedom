@@ -5,5 +5,4 @@
 debug
 .log
 .DS_Store
-go.sum
 /log

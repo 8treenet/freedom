@@ -104,7 +104,7 @@ func registerPrometheus(p *Prometheus, name, listen string) {
 }
 
 // newPrometheusHandle .
-func newPrometheusHandle(p *Prometheus) func(context.Context) {
+func newPrometheusHandle(p *Prometheus) func(*context.Context) {
 	http.Handle("/", promhttp.Handler())
 	go func() {
 		if strings.Index(p.listen, ":") == 0 {
@@ -116,7 +116,7 @@ func newPrometheusHandle(p *Prometheus) func(context.Context) {
 		http.ListenAndServe(p.listen, nil)
 	}()
 
-	return func(ctx context.Context) {
+	return func(ctx *context.Context) {
 		start := time.Now()
 		ctx.Next()
 		r := ctx.Request()

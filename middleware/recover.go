@@ -12,7 +12,7 @@ import (
 
 // NewRecover Request recover.
 func NewRecover() context.Handler {
-	return func(ctx context.Context) {
+	return func(ctx *context.Context) {
 		defer func() {
 			if err := recover(); err != nil {
 				if ctx.IsStopped() {

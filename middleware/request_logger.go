@@ -15,7 +15,7 @@ import (
 // NewRequestLogger .
 // Request the log.
 // The name of the incoming trace, taken out of HTTP Header.
-func NewRequestLogger(traceIDName string, loggerConf ...*RequestLoggerConfig) func(context.Context) {
+func NewRequestLogger(traceIDName string, loggerConf ...*RequestLoggerConfig) func(*context.Context) {
 	l := DefaultLoggerConfig()
 	if len(loggerConf) > 0 {
 		l = loggerConf[0]
@@ -35,7 +35,7 @@ func newRequestLogger(cfg *RequestLoggerConfig) context.Handler {
 }
 
 // Serve serves the middleware
-func (l *requestLoggerMiddleware) ServeHTTP(ctx context.Context) {
+func (l *requestLoggerMiddleware) ServeHTTP(ctx *context.Context) {
 	// all except latency to string
 	var status, method, path string
 	var latency time.Duration

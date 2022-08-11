@@ -147,7 +147,7 @@ func (pool *infraPool) much(t reflect.Type) (*sync.Pool, bool) {
 
 // freeHandle .
 func (pool *infraPool) freeHandle() context.Handler {
-	return func(ctx context.Context) {
+	return func(ctx *context.Context) {
 		ctx.Next()
 		rt := ctx.Values().Get(WorkerKey).(*worker)
 		if rt.IsDeferRecycle() {

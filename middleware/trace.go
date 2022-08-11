@@ -16,8 +16,8 @@ func init() {
 }
 
 // NewTrace The default HTTP Trace.
-func NewTrace(traceIDName string) func(context.Context) {
-	return func(ctx context.Context) {
+func NewTrace(traceIDName string) func(*context.Context) {
+	return func(ctx *context.Context) {
 		bus := freedom.ToWorker(ctx).Bus()
 		traceID := bus.Get(traceIDName)
 		for {
