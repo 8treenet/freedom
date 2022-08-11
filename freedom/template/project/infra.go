@@ -112,7 +112,6 @@ func jsonResponseTemplate() string {
 		"strconv"
 	
 		"github.com/8treenet/freedom"
-		"github.com/kataras/iris/v12/hero"
 	)
 	
 	// JSONResponse .
@@ -125,9 +124,7 @@ func jsonResponseTemplate() string {
 	
 	// Dispatch .
 	func (jrep JSONResponse) Dispatch(ctx freedom.Context) {
-		contentType := "application/json"
 		var content []byte
-	
 		var body struct {
 			Code  int         %sjson:"code"%s
 			Error string      %sjson:"error"%s
@@ -152,7 +149,9 @@ func jsonResponseTemplate() string {
 			ctx.Values().Set("response", string(content))
 		}
 	
-		hero.DispatchCommon(ctx, 200, contentType, content, nil, nil, true)
+		ctx.ContentType("application/json")
+		ctx.StatusCode(200)
+		ctx.Write(content)
 	}	
 
 `
