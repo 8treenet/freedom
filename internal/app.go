@@ -10,10 +10,10 @@ import (
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 
+	"github.com/8treenet/iris/v12"
+	"github.com/8treenet/iris/v12/mvc"
 	"github.com/go-redis/redis"
 	"github.com/kataras/golog"
-	"github.com/kataras/iris/v12"
-	"github.com/kataras/iris/v12/mvc"
 )
 
 var _ Initiator = (*Application)(nil)

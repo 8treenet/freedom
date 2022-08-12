@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/8treenet/freedom/infra/requests"
+	iris "github.com/8treenet/iris/v12"
 	"github.com/go-redis/redis"
-	iris "github.com/kataras/iris/v12"
 )
 
 const (

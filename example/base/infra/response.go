@@ -6,7 +6,6 @@ import (
 	"strconv"
 
 	"github.com/8treenet/freedom"
-	"github.com/kataras/iris/v12/hero"
 )
 
 // JSONResponse .
@@ -19,9 +18,7 @@ type JSONResponse struct {
 
 // Dispatch .
 func (jrep JSONResponse) Dispatch(ctx freedom.Context) {
-	contentType := "application/json"
 	var content []byte
-
 	var body struct {
 		Code  int         `json:"code"`
 		Error string      `json:"error"`
@@ -46,5 +43,9 @@ func (jrep JSONResponse) Dispatch(ctx freedom.Context) {
 		ctx.Values().Set("response", string(content))
 	}
 
-	hero.DispatchCommon(ctx, 200, contentType, content, nil, nil, true)
+	ctx.ContentType("application/json")
+	ctx.StatusCode(200)
+	if _, err := ctx.Write(content); err != nil {
+		freedom.Logger().Error("JSONResponse dispatch error:%v", err)
+	}
 }

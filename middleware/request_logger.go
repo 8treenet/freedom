@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/8treenet/freedom"
+	"github.com/8treenet/iris/v12/context"
 	"github.com/kataras/golog"
-	"github.com/kataras/iris/v12/context"
 )
 
 // NewRequestLogger .

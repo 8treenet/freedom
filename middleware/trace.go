@@ -7,8 +7,8 @@ import (
 
 	"github.com/8treenet/freedom"
 
+	"github.com/8treenet/iris/v12/context"
 	uuid "github.com/iris-contrib/go.uuid"
-	"github.com/kataras/iris/v12/context"
 )
 
 func init() {

@@ -1,8 +1,8 @@
 package middleware
 
 import (
+	"github.com/8treenet/iris/v12/context"
 	"github.com/kataras/golog"
-	"github.com/kataras/iris/v12/context"
 )
 
 // The skipperFunc signature, used to serve the main request without logs.

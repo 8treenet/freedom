@@ -2,11 +2,11 @@ package freedom
 
 import (
 	"github.com/8treenet/freedom/internal"
-	"github.com/kataras/iris/v12/hero"
-	"github.com/kataras/iris/v12/mvc"
+	"github.com/8treenet/iris/v12/hero"
+	"github.com/8treenet/iris/v12/mvc"
 
+	iris "github.com/8treenet/iris/v12"
 	"github.com/kataras/golog"
-	iris "github.com/kataras/iris/v12"
 )
 
 func init() {

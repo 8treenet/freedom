@@ -5,8 +5,8 @@ import (
 	"net/url"
 	"reflect"
 
+	"github.com/8treenet/iris/v12/context"
 	"github.com/go-redis/redis"
-	"github.com/kataras/iris/v12/context"
 )
 
 var _ UnitTest = (*UnitTestImpl)(nil)

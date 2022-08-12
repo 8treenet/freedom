@@ -18,16 +18,9 @@
 - Message Events & Event Retries & Domain Events
 - Primary Cache & Secondary Cache & Prevent Breakdown
 
-###### go.1.16+
+## Install
 ```sh
 $ go install github.com/8treenet/freedom/freedom@latest
-$ freedom version
-```
-###### go.1.13+
-```sh
-$ git clone https://github.com/8treenet/freedom.git $GOPATH/src/github.com/8treenet/freedom
-$ cd $GOPATH/src/github.com/8treenet/freedom/freedom
-$ go install
 $ freedom version
 ```
 
