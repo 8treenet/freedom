@@ -1,3 +1,10 @@
+[db]
+addr = "root:root7944@tcp(127.0.0.1:3306)/freedom?charset=utf8&parseTime=True&loc=Local"
+max_open_conns = 16
+max_idle_conns = 8
+conn_max_life_time = 300
+
+[redis]
 #地址
 addr = "127.0.0.1:6379"
 #密码
@@ -20,3 +27,9 @@ idle_check_frequency = 60
 max_conn_age = 300
 #如果连接池已满 等待可用连接的时间默认 8秒
 pool_timeout = 8
+
+[other]
+listen_addr = ":8000"
+service_name = "infra-example"
+repository_request_timeout = 5
+prometheus_listen_addr = ":9090"

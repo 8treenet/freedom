@@ -371,12 +371,3 @@ func (repo *Default) GetIP() string {
 }
 
 ```
-
-#### 配置文件
-
-|文件 | 作用 |
-| ----- | :---: |
-|server/conf/app.toml|服务配置|
-|server/conf/db.toml|db配置|
-|server/conf/redis.toml|缓存配置|
-|server/conf/infra/.toml|组件相关配置|

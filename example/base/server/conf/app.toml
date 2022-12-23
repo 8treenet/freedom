@@ -1,9 +1,0 @@
-[other]
-listen_addr = ":8000"
-service_name = "base"
-repository_request_timeout = 10
-prometheus_listen_addr = ":9090"
-# "fatal" "error" "warn" "info"  "debug"
-logger_level = "debug"
-# shutdown_second : Elegant lying off for the longest time
-shutdown_second = 3

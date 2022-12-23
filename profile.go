@@ -2,10 +2,12 @@ package freedom
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path"
 
 	"github.com/BurntSushi/toml"
+	"gopkg.in/yaml.v3"
 )
 
 var (
@@ -95,6 +97,31 @@ func detectProfilePath(file string) (string, bool) {
 // found. It returns error, if the file has not been found or any error
 // encountered.
 func ReadProfile(file string, v interface{}) error {
+	if path.Ext(file) == ".toml" {
+		return readProfileByToml(file, v)
+	}
+	if path.Ext(file) == ".yaml" {
+		return readProfileByYaml(file, v)
+	}
+	return nil
+}
+
+func readProfileByYaml(file string, v interface{}) error {
+	filePath, isFilePathExist := detectProfilePath(file)
+
+	if !isFilePathExist {
+		return fmt.Errorf("file does not exist: %s", filePath)
+	}
+	filedata, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+
+	Logger().Infof("[Freedom] Configuration was found: %s", filePath)
+	return yaml.Unmarshal(filedata, v)
+}
+
+func readProfileByToml(file string, v interface{}) error {
 	filePath, isFilePathExist := detectProfilePath(file)
 
 	if !isFilePathExist {

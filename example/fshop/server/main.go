@@ -26,7 +26,7 @@ func main() {
 	//app.InstallParty("/fshop")
 	liveness(app)
 	consumer.Start() //定时器
-	app.Run(addrRunner, *conf.Get().App)
+	app.Run(addrRunner, conf.Get().App)
 }
 
 func installMiddleware(app freedom.Application) {

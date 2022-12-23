@@ -42,7 +42,7 @@ func main() {
 	kafkaConf.Version = sarama.V0_11_0_2
 	kafka.GetConsumer().Start([]string{":9092"}, "freedom1", kafkaConf, "http://127.0.0.1:8000", false)
 	kafka.GetProducer().Start([]string{":9092"}, kafkaConf)
-	app.Run(addrRunner, *conf.Get().App)
+	app.Run(addrRunner, conf.Get().App)
 }
 
 func installMiddleware(app freedom.Application) {

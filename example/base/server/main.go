@@ -34,7 +34,7 @@ func main() {
 	addrRunner := app.NewRunner(conf.Get().App.Other["listen_addr"].(string))
 	//app.InstallParty("/base")
 	liveness(app)
-	app.Run(addrRunner, *conf.Get().App)
+	app.Run(addrRunner, conf.Get().App)
 }
 
 func installMiddleware(app freedom.Application) {
