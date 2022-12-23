@@ -39,7 +39,7 @@ pool_timeout = 8
 
 [other]
 listen_addr = ":8000"
-service_name = "base"
+service_name = "{{.PackageName}}"
 repository_request_timeout = 10
 prometheus_listen_addr = ":9090"
 # "fatal" "error" "warn" "info"  "debug"
@@ -51,28 +51,28 @@ shutdown_second = 3
 
 func yamlConf() string {
 	return `db:
-	addr: root:123123@tcp(127.0.0.1:3306)/xxxx?charset=utf8mb4&parseTime=True&loc=Local
-	max_open_conns: 16
-	max_idle_conns: 8
-	conn_max_life_time: 300
+    addr: root:123123@tcp(127.0.0.1:3306)/xxxx?charset=utf8mb4&parseTime=True&loc=Local
+    max_open_conns: 16
+    max_idle_conns: 8
+    conn_max_life_time: 300
 redis:
-	addr: 127.0.0.1:6379
-	password:
-	db: 0
-	max_retries: 0
-	pool_size: 32
-	read_timeout: 3
-	write_timeout: 3
-	idle_check_frequency: 60
-	max_conn_age: 300
-	pool_timeout: 8
+    addr: 127.0.0.1:6379
+    password:
+    db: 0
+    max_retries: 0
+    pool_size: 32
+    read_timeout: 3
+    write_timeout: 3
+    idle_check_frequency: 60
+    max_conn_age: 300
+    pool_timeout: 8
 other:
-	listen_addr: :8000
-	service_name: base
-	repository_request_timeout: 10
-	prometheus_listen_addr: :9090
-	logger_level: debug
-	shutdown_second: 3
+    listen_addr: :8000
+    service_name: {{.PackageName}}
+    repository_request_timeout: 10
+    prometheus_listen_addr: :9090
+    logger_level: debug
+    shutdown_second: 3
 `
 }
 
