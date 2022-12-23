@@ -1,5 +1,0 @@
-[other]
-listen_addr = ":8000"
-service_name = "infra-example"
-repository_request_timeout = 5
-prometheus_listen_addr = ":9090"
