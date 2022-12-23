@@ -3,8 +3,10 @@ package internal
 import (
 	stdcontext "context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"reflect"
+	"strconv"
 	"time"
 
 	"golang.org/x/net/http2"
@@ -458,9 +460,13 @@ func (app *Application) Run(runner IrisRunner, conf IrisConfiguration) {
 		bootManagers[i](app)
 	}
 
-	shutdownSecond := int64(2)
+	shutdownSecond := 2
 	if level, ok := conf.Other["shutdown_second"]; ok {
-		shutdownSecond = level.(int64)
+		i, err := strconv.Atoi(fmt.Sprint(level))
+		if err != nil {
+			panic(err)
+		}
+		shutdownSecond = i
 	}
 	app.shutdown(shutdownSecond)
 	app.Iris().Run(runner, iris.WithConfiguration(conf))
@@ -471,7 +477,7 @@ func (app *Application) withPrefix(path string) string {
 	return app.prefixPath + path
 }
 
-func (app *Application) shutdown(timeout int64) {
+func (app *Application) shutdown(timeout int) {
 	iris.RegisterOnInterrupt(func() {
 		//读取配置的关闭最长时间
 		ctx, cancel := stdcontext.WithTimeout(stdcontext.Background(), time.Duration(timeout)*time.Second)

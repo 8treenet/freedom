@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strconv"
 	"time"
 
 	"github.com/8treenet/freedom/infra/requests"
@@ -137,9 +138,13 @@ func (repo *Repository) FetchCustom(obj interface{}) {
 }
 
 func repositoryAPIRun(irisConf iris.Configuration) {
-	sec := int64(5)
+	sec := 5
 	if v, ok := irisConf.Other["repository_request_timeout"]; ok {
-		sec = v.(int64)
+		i, err := strconv.Atoi(fmt.Sprint(v))
+		if err != nil {
+			panic(err)
+		}
+		sec = i
 	}
 	requests.InitHTTPClient(time.Duration(sec) * time.Second)
 	requests.InitH2CClient(time.Duration(sec) * time.Second)
