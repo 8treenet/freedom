@@ -16,24 +16,24 @@ import (
 func init() {
 	freedom.Prepare(func(initiator freedom.Initiator) {
 		//绑定创建资源库函数到框架，框架会根据客户的使用做依赖倒置和依赖注入的处理。
-		initiator.BindRepository(func() *Order {
-			return &Order{} //创建Order资源库
+		initiator.BindRepository(func() *OrderRepository {
+			return &OrderRepository{} //创建Order资源库
 		})
 	})
 }
 
 //实现领域模型内的依赖倒置
-var _ dependency.OrderRepo = (*Order)(nil)
+var _ dependency.OrderRepo = (*OrderRepository)(nil)
 
-// Order .
-type Order struct {
+// OrderRepository .
+type OrderRepository struct {
 	freedom.Repository
 	Cache        store.EntityCache         //实体缓存组件
 	EventManager *domainevent.EventManager //领域事件组件
 }
 
 // BeginRequest .
-func (repo *Order) BeginRequest(worker freedom.Worker) {
+func (repo *OrderRepository) BeginRequest(worker freedom.Worker) {
 	repo.Repository.BeginRequest(worker)
 	//设置缓存的持久化数据源
 	repo.Cache.SetSource(func(result freedom.Entity) error {
@@ -53,7 +53,7 @@ func (repo *Order) BeginRequest(worker freedom.Worker) {
 }
 
 //New 新建订单实体 .
-func (repo *Order) New() (orderEntity *entity.Order, e error) {
+func (repo *OrderRepository) New() (orderEntity *entity.Order, e error) {
 	orderNo := fmt.Sprint(time.Now().Unix())
 	orderEntity = &entity.Order{Order: po.Order{OrderNo: orderNo, Status: "NON_PAYMENT", Created: time.Now(), Updated: time.Now()}}
 
@@ -63,7 +63,7 @@ func (repo *Order) New() (orderEntity *entity.Order, e error) {
 }
 
 // Save 保存订单实体
-func (repo *Order) Save(orderEntity *entity.Order) (e error) {
+func (repo *OrderRepository) Save(orderEntity *entity.Order) (e error) {
 	if orderEntity.ID == 0 {
 		//新建
 		_, e = createOrder(repo, &orderEntity.Order)
@@ -95,7 +95,7 @@ func (repo *Order) Save(orderEntity *entity.Order) (e error) {
 }
 
 // Find .
-func (repo *Order) Find(orderNo string, userID int) (orderEntity *entity.Order, e error) {
+func (repo *OrderRepository) Find(orderNo string, userID int) (orderEntity *entity.Order, e error) {
 	orderEntity = &entity.Order{Order: po.Order{OrderNo: orderNo, UserID: userID}}
 	e = findOrder(repo, &orderEntity.Order)
 	if e != nil {
@@ -116,7 +116,7 @@ func (repo *Order) Find(orderNo string, userID int) (orderEntity *entity.Order, 
 }
 
 // Finds .
-func (repo *Order) Finds(userID int, page, pageSize int) (entitys []*entity.Order, totalPage int, e error) {
+func (repo *OrderRepository) Finds(userID int, page, pageSize int) (entitys []*entity.Order, totalPage int, e error) {
 	pager := NewDescPager("id").SetPage(page, pageSize)
 
 	list, e := findOrderList(repo, po.Order{UserID: userID}, pager)
@@ -145,7 +145,7 @@ func (repo *Order) Finds(userID int, page, pageSize int) (entitys []*entity.Orde
 }
 
 // Get .
-func (repo *Order) Get(orderNo string) (orderEntity *entity.Order, e error) {
+func (repo *OrderRepository) Get(orderNo string) (orderEntity *entity.Order, e error) {
 	orderEntity = &entity.Order{Order: po.Order{OrderNo: orderNo}}
 	//注入基础Entity
 	repo.InjectBaseEntity(orderEntity)
@@ -153,7 +153,7 @@ func (repo *Order) Get(orderNo string) (orderEntity *entity.Order, e error) {
 	return orderEntity, repo.Cache.GetEntity(orderEntity)
 }
 
-func (repo *Order) db() *gorm.DB {
+func (repo *OrderRepository) db() *gorm.DB {
 	var db *gorm.DB
 	if err := repo.FetchDB(&db); err != nil {
 		panic(err)

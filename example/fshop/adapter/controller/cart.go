@@ -10,19 +10,19 @@ import (
 
 func init() {
 	freedom.Prepare(func(initiator freedom.Initiator) {
-		initiator.BindController("/cart", &Cart{})
+		initiator.BindController("/cart", &CartController{})
 	})
 }
 
-// Cart .
-type Cart struct {
+// CartController .
+type CartController struct {
 	Worker  freedom.Worker
-	CartSev *domain.Cart   //购物车领域服务
-	Request *infra.Request //基础设施 用于处理客户端请求io的json数据和验证
+	CartSev *domain.CartService //购物车领域服务
+	Request *infra.Request      //基础设施 用于处理客户端请求io的json数据和验证
 }
 
 // GetItems 获取购物车商品列表, GET: /cart/items route.
-func (c *Cart) GetItems() freedom.Result {
+func (c *CartController) GetItems() freedom.Result {
 	userID, err := c.Worker.IrisContext().URLParamInt("userId")
 	if err != nil {
 		return &infra.JSONResponse{Error: err}
@@ -36,7 +36,7 @@ func (c *Cart) GetItems() freedom.Result {
 }
 
 // Post 添加商品到购物车, POST: /cart route.
-func (c *Cart) Post() freedom.Result {
+func (c *CartController) Post() freedom.Result {
 	var req vo.CartAddReq
 	e := c.Request.ReadJSON(&req, true)
 	if e != nil {
@@ -48,7 +48,7 @@ func (c *Cart) Post() freedom.Result {
 }
 
 // DeleteAll 删除购物车全部商品, DELETE: /cart/all route.
-func (c *Cart) DeleteAll() freedom.Result {
+func (c *CartController) DeleteAll() freedom.Result {
 	userID, err := c.Worker.IrisContext().URLParamInt("userId")
 	if err != nil {
 		return &infra.JSONResponse{Error: err}
@@ -58,7 +58,7 @@ func (c *Cart) DeleteAll() freedom.Result {
 }
 
 // PostShop 购物购物车全部买商品, POST: /cart/shop route.
-func (c *Cart) PostShop() freedom.Result {
+func (c *CartController) PostShop() freedom.Result {
 	var req vo.CartShopReq
 	e := c.Request.ReadJSON(&req, true)
 	if e != nil {

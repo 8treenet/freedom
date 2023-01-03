@@ -42,7 +42,7 @@ func TestGoodsEntity(t *testing.T) {
 	unitTest := getUnitTest()
 	unitTest.Run()
 
-	var repo *Goods
+	var repo *GoodsRepository
 	//获取资源库
 	unitTest.FetchRepository(&repo)
 	goodsEnity, err := repo.Get(1)
@@ -69,7 +69,7 @@ func TestGoodssEntity(t *testing.T) {
 	unitTest := getUnitTest()
 	unitTest.Run()
 
-	var repo *Goods
+	var repo *GoodsRepository
 	//获取资源库
 	unitTest.FetchRepository(&repo)
 	goodsEnitys, err := repo.FindsByPage(1, 3, "")
@@ -83,7 +83,7 @@ func TestPager(t *testing.T) {
 	unitTest := getUnitTest()
 	unitTest.Run()
 
-	var repo *Goods
+	var repo *GoodsRepository
 	//获取资源库
 	unitTest.FetchRepository(&repo)
 	pager := NewDescPager("id").SetPage(1, 10)
@@ -108,7 +108,7 @@ func TestFind(t *testing.T) {
 	//获取单测工具
 	unitTest := getUnitTest()
 	unitTest.Run()
-	var repo *Goods
+	var repo *GoodsRepository
 	//获取资源库
 	unitTest.FetchRepository(&repo)
 	var pObject po.Goods

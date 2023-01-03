@@ -37,7 +37,7 @@ func fixedTime() {
 		time.Sleep(10 * time.Second) //延迟，等待程序Application.Run
 		t := time.NewTimer(10 * time.Second)
 		for range t.C {
-			freedom.ServiceLocator().Call(func(goodsService *domain.Goods) error {
+			freedom.ServiceLocator().Call(func(goodsService *domain.GoodsService) error {
 				return goodsService.MarkedTag(4, "HOT")
 			})
 			t.Reset(10 * time.Second)
@@ -58,7 +58,7 @@ func eventLoop() {
 					freedom.Logger().Error("领域事件消费错误", err)
 					continue
 				}
-				freedom.ServiceLocator().Call(func(goodsService *domain.Goods) error {
+				freedom.ServiceLocator().Call(func(goodsService *domain.GoodsService) error {
 					//购买事件
 					return goodsService.ShopEvent(shopEvent)
 				})
@@ -69,7 +69,7 @@ func eventLoop() {
 
 // warmUp 缓存预热
 func warmUp(bootManager freedom.BootManager) {
-	freedom.ServiceLocator().Call(func(goodsService *domain.Goods) error {
+	freedom.ServiceLocator().Call(func(goodsService *domain.GoodsService) error {
 		for i := 1; i < 5; i++ {
 			goodsService.Get(i)
 		}

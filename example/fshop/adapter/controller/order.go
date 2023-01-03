@@ -11,19 +11,19 @@ import (
 
 func init() {
 	freedom.Prepare(func(initiator freedom.Initiator) {
-		initiator.BindController("/order", &Order{})
+		initiator.BindController("/order", &OrderController{})
 	})
 }
 
-// Order .
-type Order struct {
+// OrderController .
+type OrderController struct {
 	Worker   freedom.Worker
-	Request  *infra.Request //基础设施 用于处理客户端请求io的json数据和验证
-	OrderSrv *domain.Order  //订单领域服务
+	Request  *infra.Request       //基础设施 用于处理客户端请求io的json数据和验证
+	OrderSrv *domain.OrderService //订单领域服务
 }
 
 // PutPay 支付订单, PUT: /order/pay route.
-func (o *Order) PutPay() freedom.Result {
+func (o *OrderController) PutPay() freedom.Result {
 	var req vo.OrderPayReq
 	e := o.Request.ReadJSON(&req, true)
 	if e != nil {
@@ -35,7 +35,7 @@ func (o *Order) PutPay() freedom.Result {
 }
 
 // GetItems 获取商品列表, GET: /order/items route.
-func (o *Order) GetItems() freedom.Result {
+func (o *OrderController) GetItems() freedom.Result {
 	page := o.Worker.IrisContext().URLParamIntDefault("page", 1)
 	pageSize := o.Worker.IrisContext().URLParamIntDefault("pageSize", 10)
 	userID, err := o.Worker.IrisContext().URLParamInt("userId")

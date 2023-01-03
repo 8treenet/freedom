@@ -43,7 +43,7 @@ func TestGoodsServiceNew(t *testing.T) {
 	unitTest := getUnitTest()
 	unitTest.Run()
 
-	var srv *domain.Goods
+	var srv *domain.GoodsService
 	//获取领域服务
 	unitTest.FetchService(&srv)
 	t.Log(srv.New("freedom-test", 50))
@@ -55,7 +55,7 @@ func TestGoodsServiceAddStock(t *testing.T) {
 	unitTest := getUnitTest()
 	unitTest.Run()
 
-	var srv *domain.Goods
+	var srv *domain.GoodsService
 	//获取领域服务
 	unitTest.FetchService(&srv)
 	t.Log(srv.AddStock(1, 100))
@@ -67,7 +67,7 @@ func TestGoodsServiceShop(t *testing.T) {
 	unitTest := getUnitTest()
 	unitTest.Run()
 
-	var srv *domain.Goods
+	var srv *domain.GoodsService
 	//获取领域服务
 	unitTest.FetchService(&srv)
 	t.Log(srv.Shop(1, 1, 1))

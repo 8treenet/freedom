@@ -16,23 +16,23 @@ import (
 func init() {
 	freedom.Prepare(func(initiator freedom.Initiator) {
 		//绑定创建资源库函数到框架，框架会根据客户的使用做依赖倒置和依赖注入的处理。
-		initiator.BindRepository(func() *User {
-			return &User{} //创建User资源库
+		initiator.BindRepository(func() *UserRepository {
+			return &UserRepository{} //创建User资源库
 		})
 	})
 }
 
 //实现领域模型内的依赖倒置
-var _ dependency.UserRepo = (*User)(nil)
+var _ dependency.UserRepo = (*UserRepository)(nil)
 
-// User .
-type User struct {
+// UserRepository .
+type UserRepository struct {
 	freedom.Repository
 	EventRepository *domainevent.EventManager //领域事件组件
 }
 
 // Get .
-func (repo *User) Get(ID int) (userEntity *entity.User, e error) {
+func (repo *UserRepository) Get(ID int) (userEntity *entity.User, e error) {
 	userEntity = &entity.User{}
 	userEntity.ID = ID
 	e = findUser(repo, &userEntity.User)
@@ -46,7 +46,7 @@ func (repo *User) Get(ID int) (userEntity *entity.User, e error) {
 }
 
 // FindByName .
-func (repo *User) FindByName(userName string) (userEntity *entity.User, e error) {
+func (repo *UserRepository) FindByName(userName string) (userEntity *entity.User, e error) {
 	userEntity = &entity.User{User: po.User{Name: userName}}
 	e = findUser(repo, &userEntity.User)
 	if e != nil {
@@ -58,7 +58,7 @@ func (repo *User) FindByName(userName string) (userEntity *entity.User, e error)
 }
 
 // Save .
-func (repo *User) Save(entity *entity.User) error {
+func (repo *UserRepository) Save(entity *entity.User) error {
 	_, e := saveUser(repo, entity)
 	if e != nil {
 		return e
@@ -67,7 +67,7 @@ func (repo *User) Save(entity *entity.User) error {
 }
 
 // New .
-func (repo *User) New(uservo vo.RegisterUserReq, money int) (entityUser *entity.User, e error) {
+func (repo *UserRepository) New(uservo vo.RegisterUserReq, money int) (entityUser *entity.User, e error) {
 	user := po.User{Name: uservo.Name, Money: money, Password: uservo.Password, Created: time.Now(), Updated: time.Now()}
 
 	_, e = createUser(repo, &user)
@@ -79,7 +79,7 @@ func (repo *User) New(uservo vo.RegisterUserReq, money int) (entityUser *entity.
 	return
 }
 
-func (repo *User) db() *gorm.DB {
+func (repo *UserRepository) db() *gorm.DB {
 	var db *gorm.DB
 	if err := repo.FetchDB(&db); err != nil {
 		panic(err)
