@@ -1,10 +1,13 @@
 # Freedom DDD Framework
+
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/8treenet/freedom/blob/master/LICENSE) [![Go Report Card](https://goreportcard.com/badge/github.com/8treenet/freedom)](https://goreportcard.com/report/github.com/8treenet/freedom)[![GoDoc](https://godoc.org/github.com/8treenet/freedom?status.svg)](https://godoc.org/github.com/8treenet/freedom)
 [![GitHub release](https://img.shields.io/github/v/release/8treenet/freedom.svg)](https://github.com/8treenet/freedom/releases)
 <img align="right" width="200px" src="https://raw.githubusercontent.com/8treenet/blog/master/img/freedom.png">
-###### Freedom是一个基于六边形架构的框架，可以支撑充血的领域模型范式。
+
+###### Freedom 是一个基于六边形架构的框架，可以支撑充血的领域模型范式。
 
 ## Overview
+
 - 集成 Iris
 - HTTP/H2C Server & Client
 - 集成普罗米修斯
@@ -18,20 +21,25 @@
 - 一级缓存 & 二级缓存 & 防击穿
 
 ## 安装
+
 ```sh
 $ go install github.com/8treenet/freedom/freedom@latest
 $ freedom version
 ```
 
 ## 脚手架创建项目
+
 ```sh
 $ freedom new-project [project-name]
 $ cd [project-name]
+$ go mod tidy
 $ go run server/main.go
 ```
 
 ## 脚手架生成增删查改和持久化对象
+
 ####
+
 ```sh
 # freedom new-po -h 查看更多
 $ cd [project-name]
@@ -46,8 +54,9 @@ $ freedom new-po --json ./domain/po/schema.json
 ## Example
 
 #### [基础教程](https://github.com/8treenet/freedom/blob/master/example/base)
-#### [http2监听和依赖倒置](https://github.com/8treenet/freedom/blob/master/example/http2)
+
+#### [http2 监听和依赖倒置](https://github.com/8treenet/freedom/blob/master/example/http2)
+
 #### [事务组件&自定义组件&Kafka&领域事件组件](https://github.com/8treenet/freedom/blob/master/example/infra-example)
 
-#### [一个完整的电商demo,包含CQS、聚合、实体、领域事件、资源库、基础设施](https://github.com/8treenet/freedom/blob/master/example/fshop)
-
+#### [一个完整的电商 demo,包含 CQS、聚合、实体、领域事件、资源库、基础设施](https://github.com/8treenet/freedom/blob/master/example/fshop)

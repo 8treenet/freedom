@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"io"
 	"os"
 
@@ -38,6 +37,7 @@ type Default struct {
 
 // Get handles the GET: / route.
 func (c *Default) Get() freedom.Result {
+	//curl http://127.0.0.1:8000
 	c.Worker.Logger().Info("I'm Controller")
 	remote := c.Sev.RemoteInfo()
 	return &infra.JSONResponse{Object: remote}
@@ -45,6 +45,7 @@ func (c *Default) Get() freedom.Result {
 
 // GetHello handles the GET: /hello route.
 func (c *Default) GetHello() string {
+	//curl http://127.0.0.1:8000/hello
 	field := freedom.LogFields{
 		"framework": "freedom",
 		"like":      "DDD",
@@ -64,11 +65,13 @@ func (c *Default) GetHello() string {
 
 // PutHello handles the PUT: /hello route.
 func (c *Default) PutHello() freedom.Result {
+	//curl -X PUT http://127.0.0.1:8000/hello
 	return &infra.JSONResponse{Object: "putHello"}
 }
 
 // PostHello handles the POST: /hello route.
 func (c *Default) PostHello() freedom.Result {
+	//curl -X POST -d '{"userName":"freedom","userPassword":"freedom"}' http://127.0.0.1:8000/hello
 	var postJSONData struct {
 		UserName     string `json:"userName" validate:"required"`
 		UserPassword string `json:"userPassword" validate:"required"`
@@ -77,26 +80,55 @@ func (c *Default) PostHello() freedom.Result {
 		return &infra.JSONResponse{Error: err}
 	}
 
-	return &infra.JSONResponse{Object: "postHello"}
+	return &infra.JSONResponse{Object: postJSONData}
 }
+
+// PutHello handles the DELETE: /hello route.
+func (c *Default) DeleteHello() freedom.Result {
+	//curl -X DELETE http://127.0.0.1:8000/hello
+	return &infra.JSONResponse{Object: "deleteHello"}
+}
+
+/* Can use more than one, the factory will make sure
+that the correct http methods are being registered for each route
+for this controller, uncomment these if you want:
+	func (c *Default) ConnectHello() {}
+	func (c *Default) HeadHello() {}
+	func (c *Default) PatchHello() {}
+	func (c *Default) OptionsHello() {}
+	func (c *Default) TraceHello() {}
+*/
 
 // BeforeActivation .
 func (c *Default) BeforeActivation(b freedom.BeforeActivation) {
-	b.Handle("ANY", "/custom", "CustomHello")
-	//b.Handle("GET", "/custom", "CustomHello")
-	//b.Handle("PUT", "/custom", "CustomHello")
-	//b.Handle("POST", "/custom", "CustomHello")
+	b.Handle("GET", "/customPath/{id:int64}/{uid:int}/{username:string}", "CustomPath")
+	b.Handle("ANY", "/custom", "Custom")
+	//b.Handle("GET", "/custom", "Custom")
+	//b.Handle("PUT", "/custom", "Custom")
+	//b.Handle("POST", "/custom", "Custom")
+	//b.Handle("DELETE", "/custom", "Custom")
 }
 
-// CustomHello handles the POST: /hello route.
-func (c *Default) CustomHello() freedom.Result {
+// CustomPath handles the GET: /customPath/{id:int64}/{uid:int}/{username:string} route.
+func (c *Default) CustomPath(id int64, uid int, username string) freedom.Result {
+	//curl http://127.0.0.1:8000/customPath/1/2/freedom
+	return &infra.JSONResponse{Object: map[string]interface{}{"id": id, "uid": uid, "username": username}}
+}
+
+// Custom handles the ANY: /custom route.
+func (c *Default) Custom() freedom.Result {
+	//curl http://127.0.0.1:8000/custom
+	//curl -X PUT http://127.0.0.1:8000/custom
+	//curl -X DELETE http://127.0.0.1:8000/custom
+	//curl -X POST http://127.0.0.1:8000/custom
 	method := c.Worker.IrisContext().Request().Method
 	c.Worker.Logger().Info("CustomHello", freedom.LogFields{"method": method})
-	return &infra.JSONResponse{Object: method + "CustomHello"}
+	return &infra.JSONResponse{Object: method + "/Custom"}
 }
 
 // GetUserBy handles the GET: /user/{username:string} route.
 func (c *Default) GetUserBy(username string) freedom.Result {
+	//curl 'http://127.0.0.1:8000/user/freedom?token=ftoken123&id=1&ip=192&ip=168&ip=1&ip=1'
 	var query struct {
 		Token string  `url:"token" validate:"required"`
 		ID    int64   `url:"id" validate:"required"`
@@ -120,6 +152,7 @@ func (c *Default) GetUserBy(username string) freedom.Result {
 
 // GetAgeByUserBy handles the GET: /age/{age:int}/user/{user:string} route.
 func (c *Default) GetAgeByUserBy(age int, user string) freedom.Result {
+	//curl http://127.0.0.1:8000/age/20/user/freedom
 	var result struct {
 		User string
 		Age  int
@@ -132,6 +165,7 @@ func (c *Default) GetAgeByUserBy(age int, user string) freedom.Result {
 
 // PostForm handles the Post: /form route.
 func (c *Default) PostForm() freedom.Result {
+	//curl -X POST --data "userName=freedom&mail=freedom@freedom.com&myData=data1&myData=data2" http://127.0.0.1:8000/form
 	var visitor struct {
 		UserName string   `form:"userName" validate:"required"`
 		Mail     string   `form:"mail" validate:"required"`
@@ -147,6 +181,7 @@ func (c *Default) PostForm() freedom.Result {
 
 // PostFile handles the Post: /file route.
 func (c *Default) PostFile() freedom.Result {
+	//curl -X POST -F "file=@example/base/adapter/controller/default.go" http://127.0.0.1:8000/file
 	file, info, err := c.Worker.IrisContext().FormFile("file")
 	if err != nil {
 		return &infra.JSONResponse{Error: err}
@@ -159,8 +194,7 @@ func (c *Default) PostFile() freedom.Result {
 		return &infra.JSONResponse{Error: err}
 	}
 	defer out.Close()
-	fmt.Println("file:", os.TempDir()+fname)
 	_, err = io.Copy(out, file)
 
-	return &infra.JSONResponse{Error: err}
+	return &infra.JSONResponse{Error: err, Object: os.TempDir() + fname}
 }
