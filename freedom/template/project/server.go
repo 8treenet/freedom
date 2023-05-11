@@ -8,7 +8,7 @@ func init() {
 
 func tomlConf() string {
 	return `[db]
-addr = "root:123123@tcp(127.0.0.1:3306)/xxxx?charset=utf8mb4&parseTime=True&loc=Local"
+addr = "root:123123@tcp(127.0.0.1:3306)/xxxx?charset=utf8mb4&parseTime=True&loc=Local&timeout=5s"
 max_open_conns = 16
 max_idle_conns = 8
 conn_max_life_time = 300
@@ -51,7 +51,7 @@ shutdown_second = 3
 
 func yamlConf() string {
 	return `db:
-    addr: root:123123@tcp(127.0.0.1:3306)/xxxx?charset=utf8mb4&parseTime=True&loc=Local
+    addr: root:123123@tcp(127.0.0.1:3306)/xxxx?charset=utf8mb4&parseTime=True&loc=Local&timeout=5s
     max_open_conns: 16
     max_idle_conns: 8
     conn_max_life_time: 300
