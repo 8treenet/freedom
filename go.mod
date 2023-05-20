@@ -7,7 +7,7 @@ require (
 	github.com/BurntSushi/toml v1.2.0
 	github.com/Shopify/sarama v1.36.0
 	github.com/go-redis/redis v6.15.9+incompatible
-	github.com/go-sql-driver/mysql v1.6.0
+	github.com/go-sql-driver/mysql v1.7.0
 	github.com/iris-contrib/go.uuid v2.0.0+incompatible
 	github.com/kataras/golog v0.1.7
 	github.com/prometheus/client_golang v1.13.0
@@ -17,8 +17,8 @@ require (
 	golang.org/x/sync v0.1.0
 	gopkg.in/go-playground/validator.v9 v9.31.0
 	gopkg.in/yaml.v3 v3.0.1
-	gorm.io/driver/mysql v1.3.3
-	gorm.io/gorm v1.23.5
+	gorm.io/driver/mysql v1.4.7
+	gorm.io/gorm v1.23.8
 )
 
 require (
