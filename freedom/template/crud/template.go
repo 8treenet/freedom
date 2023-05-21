@@ -226,16 +226,41 @@ func FunTemplate() string {
 		e = builders[0].Execute(db.Limit(1), result)
 		return
 	}
-	
-	// find{{.Name}}ListByPrimarys .
-	func find{{.Name}}ListByPrimarys(repo GORMRepository, primarys ...interface{}) (results []po.{{.Name}}, e error) {
+
+	// find{{.Name}}By{{.PrimaryName}} .
+	func find{{.Name}}By{{.PrimaryName}}(repo GORMRepository, {{.PrimaryParm}} {{.PrimaryType}}) (result po.{{.Name}}, e error) {
 		now := time.Now()
 		defer func() {
-			freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "find{{.Name}}ListByPrimarys", e, now)
-			ormErrorLog(repo, "{{.Name}}", "find{{.Name}}sByPrimarys", e, primarys)
+			freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "find{{.Name}}{{.PrimaryName}}", e, now)
+			ormErrorLog(repo, "{{.Name}}", "find{{.Name}}{{.PrimaryName}}", e, {{.PrimaryParm}})
 		}()
 
-		e = repo.db().Find(&results, primarys).Error
+		e = repo.db().Last(&result, {{.PrimaryParm}}).Error
+		return
+	}
+	
+	// find{{.Name}}ListBy{{.PrimaryName}} .
+	func find{{.Name}}ListBy{{.PrimaryName}}(repo GORMRepository, {{.PrimaryParm}} ...{{.PrimaryType}}) (result []*po.{{.Name}}, e error) {
+		now := time.Now()
+		defer func() {
+			freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "find{{.Name}}ListBy{{.PrimaryName}}", e, now)
+			ormErrorLog(repo, "{{.Name}}", "find{{.Name}}ListBy{{.PrimaryName}}", e, {{.PrimaryParm}})
+		}()
+
+		e = repo.db().Find(&result, {{.PrimaryParm}}).Error
+		return
+	}
+
+	// find{{.Name}}MapBy{{.PrimaryName}} .
+	func find{{.Name}}MapBy{{.PrimaryName}}(repo GORMRepository, {{.PrimaryParm}} ...{{.PrimaryType}}) (result map[{{.PrimaryType}}]*po.{{.Name}}, e error) {
+		result = make(map[{{.PrimaryType}}]*po.{{.Name}})
+		list, e := find{{.Name}}ListBy{{.PrimaryName}}(repo, {{.PrimaryParm}}...)
+		if e != nil {
+			return
+		}
+		for _, v := range list {
+			result[v.{{.PrimaryName}}]=v
+		}
 		return
 	}
 	
@@ -278,7 +303,7 @@ func FunTemplate() string {
 	}
 	
 	// find{{.Name}}List .
-	func find{{.Name}}List(repo GORMRepository, query po.{{.Name}}, builders ...Builder) (results []po.{{.Name}}, e error) {
+	func find{{.Name}}List(repo GORMRepository, query po.{{.Name}}, builders ...Builder) (results []*po.{{.Name}}, e error) {
 		now := time.Now()
 		defer func() {
 			freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "find{{.Name}}List", e, now)
@@ -295,7 +320,7 @@ func FunTemplate() string {
 	}
 	
 	// find{{.Name}}ListByWhere .
-	func find{{.Name}}ListByWhere(repo GORMRepository, query string, args []interface{}, builders ...Builder) (results []po.{{.Name}}, e error) {
+	func find{{.Name}}ListByWhere(repo GORMRepository, query string, args []interface{}, builders ...Builder) (results []*po.{{.Name}}, e error) {
 		now := time.Now()
 		defer func() {
 			freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "find{{.Name}}ListByWhere", e, now)
@@ -315,7 +340,7 @@ func FunTemplate() string {
 	}
 	
 	// find{{.Name}}ListByMap .
-	func find{{.Name}}ListByMap(repo GORMRepository, query map[string]interface{}, builders ...Builder) (results []po.{{.Name}}, e error) {
+	func find{{.Name}}ListByMap(repo GORMRepository, query map[string]interface{}, builders ...Builder) (results []*po.{{.Name}}, e error) {
 		now := time.Now()
 		defer func() {
 			freedom.Prometheus().OrmWithLabelValues("{{.Name}}", "find{{.Name}}ListByMap", e, now)

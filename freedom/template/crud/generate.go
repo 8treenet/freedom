@@ -98,6 +98,8 @@ type ObjectContent struct {
 	Name          string   //结构体名称
 	TableRealName string   //表名
 	Content       string   //结构体内容
+	PrimaryType   string   //主键类型
+	PrimaryName   string   //主键名称
 	SetMethods    []Method //set的方法
 	AddMethods    []Method //add的方法
 }
@@ -163,6 +165,8 @@ func (t *Generate) schema(tableColumns map[string][]column) (result []ObjectCont
 		depth := 1
 		tableName = t.camelCase(tableName)
 		sc.Name = tableName
+		sc.PrimaryName = "Primary"
+		sc.PrimaryType = "int"
 		structContent += "// " + tableName + " .\n"
 		structContent += "type " + tableName + " struct {\n"
 		structContent += "	changes map[string]interface{}\n"
@@ -171,6 +175,8 @@ func (t *Generate) schema(tableColumns map[string][]column) (result []ObjectCont
 			if v.Primary == "PRI" {
 				primaryStructMap[v.Tag] = v.ColumnName
 				v.Tag = "`" + `gorm:"primaryKey;column:` + v.Tag + `"` + "`"
+				sc.PrimaryName = v.ColumnName
+				sc.PrimaryType = v.Type
 			} else {
 				v.Tag = "`" + `gorm:"column:` + v.Tag + `"` + "`"
 			}

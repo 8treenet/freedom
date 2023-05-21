@@ -54,12 +54,15 @@ var (
 
 			for index := 0; index < len(list); index++ {
 				pdata := map[string]interface{}{
-					"Name":       list[index].Name,
-					"Content":    list[index].Content,
-					"Time":       false,
-					"SetMethods": list[index].SetMethods,
-					"AddMethods": list[index].AddMethods,
-					"Import":     "",
+					"Name":        list[index].Name,
+					"Content":     list[index].Content,
+					"Time":        false,
+					"SetMethods":  list[index].SetMethods,
+					"AddMethods":  list[index].AddMethods,
+					"PrimaryType": list[index].PrimaryType,
+					"PrimaryName": list[index].PrimaryName,
+					"PrimaryParm": lowerCamelCase(list[index].PrimaryName),
+					"Import":      "",
 				}
 				pdata["Import"] = "import (\n"
 				if strings.Contains(list[index].Content, "time.Time") {
@@ -162,4 +165,17 @@ func init() {
 
 func successString(str string) string {
 	return fmt.Sprintf("\x1b[0;%dm%s\x1b[0m", 32, str)
+}
+
+func lowerCamelCase(field string) string {
+	var lowerStr string
+	vv := []rune(field)
+	for i := 0; i < len(vv); i++ {
+		if i == 0 {
+			lowerStr += strings.ToLower(string(vv[i]))
+		} else {
+			lowerStr += string(vv[i])
+		}
+	}
+	return lowerStr
 }
