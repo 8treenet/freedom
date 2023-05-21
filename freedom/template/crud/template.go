@@ -251,11 +251,11 @@ func FunTemplate() string {
 		return
 	}
 
-	// find{{.Name}}MapBy{{.PrimaryName}} .
-	func find{{.Name}}MapBy{{.PrimaryName}}(repo GORMRepository, {{.PrimaryParm}} ...{{.PrimaryType}}) (result map[{{.PrimaryType}}]*po.{{.Name}}, e error) {
+	// {{.Name}}ListToMap
+	func {{.Name}}ListToMap(list []*po.{{.Name}}, inErr error) (result map[{{.PrimaryType}}]*po.{{.Name}}, e error) {
 		result = make(map[{{.PrimaryType}}]*po.{{.Name}})
-		list, e := find{{.Name}}ListBy{{.PrimaryName}}(repo, {{.PrimaryParm}}...)
-		if e != nil {
+		if inErr != nil {
+			e = inErr
 			return
 		}
 		for _, v := range list {
@@ -263,6 +263,7 @@ func FunTemplate() string {
 		}
 		return
 	}
+
 	
 	// find{{.Name}}ByWhere .
 	func find{{.Name}}ByWhere(repo GORMRepository, query string, args []interface{}, builders ...Builder) (result po.{{.Name}}, e error) {
