@@ -250,20 +250,6 @@ func FunTemplate() string {
 		e = repo.db().Find(&result, {{.PrimaryParm}}).Error
 		return
 	}
-
-	// {{.Name}}ListToMap
-	func {{.Name}}ListToMap(list []*po.{{.Name}}, inErr error) (result map[{{.PrimaryType}}]*po.{{.Name}}, e error) {
-		result = make(map[{{.PrimaryType}}]*po.{{.Name}})
-		if inErr != nil {
-			e = inErr
-			return
-		}
-		for _, v := range list {
-			result[v.{{.PrimaryName}}]=v
-		}
-		return
-	}
-
 	
 	// find{{.Name}}ByWhere .
 	func find{{.Name}}ByWhere(repo GORMRepository, query string, args []interface{}, builders ...Builder) (result po.{{.Name}}, e error) {
@@ -355,6 +341,29 @@ func FunTemplate() string {
 			return
 		}
 		e = builders[0].Execute(db, &results)
+		return
+	}
+
+	// {{.Name}}ListToMap
+	func {{.Name}}ListToMap(list []*po.{{.Name}}, inErr error) (result map[{{.PrimaryType}}]*po.{{.Name}}, e error) {
+		result = make(map[{{.PrimaryType}}]*po.{{.Name}})
+		if inErr != nil {
+			e = inErr
+			return
+		}
+		for _, v := range list {
+			result[v.{{.PrimaryName}}]=v
+		}
+		return
+	}
+
+	// {{.Name}}ToPoint
+	func {{.Name}}ToPoint(object po.{{.Name}}, inErr error) (result *po.{{.Name}}, e error) {
+		if inErr != nil {
+			e = inErr
+			return
+		}
+		result = &object
 		return
 	}
 	
