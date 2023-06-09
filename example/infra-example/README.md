@@ -1,14 +1,19 @@
 # freedom
+
 ### 事务组件和自定义组件
+
 ---
 
-#### 本篇概要 
+#### 本篇概要
+
 - 事务组件
-- 基于KafkaMQ的领域事件
-- 如何自定义Infra组件
+- 基于 KafkaMQ 的领域事件
+- 如何自定义 Infra 组件
 
 #### 事务组件
+
 ###### 事务组件也是以依赖注入的方式使用，简单的来说定义成员变量后开箱即用。
+
 ```go
 import (
 	"github.com/8treenet/freedom"
@@ -32,7 +37,7 @@ func init() {
 
 // OrderService .
 type OrderService struct {
-	Worker           freedom.Worker	 	       //请求运行时对象
+	Worker           freedom.Worker	 	           //请求运行时对象
 	GoodsRepo        *repository.GoodsRepository   //商品资源库
 	OrderRepo        *repository.OrderRepository   //订单资源库
 	EventTransaction *domainevent.EventTransaction //事务组件
@@ -72,8 +77,10 @@ func (srv *OrderService) Shop(goodsID, num, userID int) (e error) {
 }
 ```
 
-#### 基于KafkaMQ的领域事件
-###### 领域事件的组件的 持久化和Pub/Sub的处理
+#### 基于 KafkaMQ 的领域事件
+
+###### 领域事件的组件的 持久化和 Pub/Sub 的处理
+
 ```go
 package repository
 import (
@@ -99,6 +106,7 @@ func (repo *GoodsRepository) Save(goods *entity.Goods) (e error) {
 	return repo.EventManager.Save(&repo.Repository, goods)
 }
 ```
+
 ```go
 package domainevent
 // EventManager .
@@ -126,7 +134,7 @@ func (manager *EventManager) Save(repo *freedom.Repository, entity freedom.Entit
 		}
 		domainEvent.SetIdentity(model.ID)
 	}
-	
+
 	//添加到到Worker，等待事务成功的动作
 	manager.addPubToWorker(repo.GetWorker(), entity.GetPubEvent())
 	return
@@ -156,6 +164,7 @@ func (manager *EventManager) push(event freedom.DomainEvent) {
 	}()
 }
 ```
+
 ```go
 package domainevent
 //事务组件 .
@@ -192,14 +201,14 @@ func (et *EventTransaction) pushEvent() {
 ```
 
 #### 如何自定义基础设施组件
+
 - 单例组件入口是 Booting, 生命周期为常驻
 - 多例组件入口是 BeginRequest，生命周期为一个请求会话
 - 框架已提供的组件目录 github.com/8treenet/freedom/infra
 - 用户自定义的组件目录 [project]/infra/[custom]
-- 组件可以独立使用组件的配置文件, 配置文件放在 [project]/server/conf/infra/[*.toml]
-
 
 ##### 单例的组件
+
 ```go
 func init() {
 	freedom.Prepare(func(initiator freedom.Initiator) {
@@ -239,7 +248,9 @@ func (mu *Single) GetLife() int {
 ```
 
 ##### 多例组件
-###### 实现一个读取json数据的组件，并且做数据验证。
+
+###### 实现一个读取 json 数据的组件，并且做数据验证。
+
 ```go
 //使用展示
 type GoodsController struct {

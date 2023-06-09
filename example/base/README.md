@@ -1,39 +1,44 @@
 # Freedom
+
 ## 基础示例
 
 #### 目录结构
 
 - domain - 领域模型
-    - aggregate - 聚合
-    - entity - 实体
-    - event - 领域事件
-    - vo - 值对象
-    - po - 持久化对象
-    - *.go - 领域服务
+
+  - aggregate - 聚合
+  - entity - 实体
+  - event - 领域事件
+  - vo - 值对象
+  - po - 持久化对象
+  - \*.go - 领域服务
 
 - adapter - 端口适配器
-    - controller - 输入适配器
-    - repository - 输出适配器
+
+  - controller - 控制器
+  - repository - 仓库
 
 - server - 服务端程序入口
-    - conf - 配置文件
-    - main.go - 主函数
+
+  - conf - 配置文件
+  - main.go - 主函数
 
 - infra - 基础设施组件
 
-
 ---
+
 #### 接口介绍
+
 ```go
 // main 应用安装接口
 type Application interface {
-    //安装DB 
+    //安装DB
     InstallDB(f func() interface{})
     //安装redis
     InstallRedis(f func() (client redis.Cmdable))
     //安装路由中间件
     InstallMiddleware(handler iris.Handler)
-    //安装总线中间件,参考Http2 example
+    //安装链路中间件,参考Http2 example
     InstallBusMiddleware(handle ...BusHandler)
     //安装全局Party http://domian/relativePath/controllerParty
     InstallParty(relativePath string)
@@ -104,7 +109,7 @@ type Initiator interface {
     FetchInfra(ctx iris.Context, com interface{})
     //配合InjectController
     FetchService(ctx iris.Context, service interface{})
-   
+
 
 
     //启动回调. Prepare之后，Run之前.
@@ -117,24 +122,30 @@ type Initiator interface {
 ```
 
 ---
+
 #### 应用生命周期
-|作用 | 相关API|
-| ----- | :---: |
-|注册全局中间件|Application.InstallMiddleware|
-|安装DB|Application.InstallDB|
-|单例组件方法(需要重写方法)|infra.Booting|
-|回调已注册的匿名函数|Initiator.BindBooting|
-|局部初始化|freedom.Prepare|
-|开启监听服务|http.Run|
-|回调已注册的匿名函数|infra.RegisterShutdown|
-|程序关闭|Application.Close|
+
+| 作用                       |           相关 API            |
+| -------------------------- | :---------------------------: |
+| 注册全局中间件             | Application.InstallMiddleware |
+| 安装 DB                    |     Application.InstallDB     |
+| 单例组件方法(需要重写方法) |         infra.Booting         |
+| 回调已注册的匿名函数       |     Initiator.BindBooting     |
+| 局部初始化                 |        freedom.Prepare        |
+| 开启监听服务               |           http.Run            |
+| 回调已注册的匿名函数       |    infra.RegisterShutdown     |
+| 程序关闭                   |       Application.Close       |
 
 &nbsp;
+
 #### 请求生命周期
-###### 每一个请求开始都会创建若干依赖对象，worker、controller、service、factory、repository、infra等。每一个请求独立使用这些对象，不会多请求并发的读写共享对象。当然也无需担心效率问题，框架已经做了池。请求结束会回收这些对象。 如果过程中使用了go func(){//访问相关对象}，请在之前调用 **Worker.DelayReclaiming()**.
+
+###### 每一个请求开始都会创建若干依赖对象，worker、controller、service、factory、repository、infra 等。每一个请求独立使用这些对象，不会多请求并发的读写共享对象。当然也无需担心效率问题，框架已经做了池。请求结束会回收这些对象。 如果过程中使用了 go func(){//访问相关对象}，请在之前调用 **Worker.DelayReclaiming()**.
 
 ---
+
 #### main
+
 ```go
 
 import (
@@ -203,9 +214,13 @@ func installRedis(app freedom.Application) {
     })
 }
 ```
+
 ---
+
 #### controllers/default.go
-##### [iris路由文档](https://github.com/kataras/iris/wiki/MVC)
+
+##### [iris 路由文档](https://github.com/kataras/iris/wiki/MVC)
+
 ```go
 package controller
 
@@ -219,12 +234,12 @@ import (
 func init() {
 	freedom.Prepare(func(initiator freedom.Initiator) {
 		/*
-		   普通方式绑定 Default控制器到路径 /
+		   普通方式绑定 DefaultController 到路径 /
 		   initiator.BindController("/", &DefaultController{})
 		*/
 
 		//中间件方式绑定， 只对本控制器生效，全局中间件请在main加入。
-		initiator.BindController("/", &Default{}, func(ctx freedom.Context) {
+		initiator.BindController("/", &DefaultController{}, func(ctx freedom.Context) {
 			worker := freedom.ToWorker(ctx)
 			worker.Logger().Info("Hello middleware begin")
 			ctx.Next()
@@ -233,13 +248,13 @@ func init() {
 	})
 }
 
-type Default struct {
-	Sev    *domain.Default //依赖注入领域服务 Default
-	Worker freedom.Worker //依赖注入请求运行时 Worker，无需侵入的传递。
+type DefaultController struct {
+	Sev    *domain.DefaultService //依赖注入领域服务 DefaultService
+	Worker freedom.Worker         //依赖注入请求运行时 Worker，无需侵入的传递。
 }
 
 // Get handles the GET: / route.
-func (c *Default) Get() freedom.Result {
+func (c *DefaultController) Get() freedom.Result {
     c.Worker.Logger().Infof("我是控制器")
     remote := c.Sev.RemoteInfo() //调用服务方法
     //返回JSON对象
@@ -247,53 +262,13 @@ func (c *Default) Get() freedom.Result {
 }
 
 // GetHello handles the GET: /hello route.
-func (c *Default) GetHello() string {
+func (c *DefaultController) GetHello() string {
 	return "hello"
-}
-
-// PutHello handles the PUT: /hello route.
-func (c *Default) PutHello() freedom.Result {
-	return &infra.JSONResponse{Object: "putHello"}
-}
-
-// PostHello handles the POST: /hello route.
-func (c *Default) PostHello() freedom.Result {
-	return &infra.JSONResponse{Object: "postHello"}
-}
-
-func (m *Default) BeforeActivation(b freedom.BeforeActivation) {
-	b.Handle("ANY", "/custom", "CustomHello")
-	//b.Handle("GET", "/custom", "CustomHello")
-	//b.Handle("PUT", "/custom", "CustomHello")
-	//b.Handle("POST", "/custom", "CustomHello")
-}
-
-// PostHello handles the POST: /hello route.
-func (c *Default) CustomHello() freedom.Result {
-	method := c.Worker.IrisContext().Request().Method
-	c.Worker.Logger().Info("CustomHello", freedom.LogFields{"method": method})
-	return &infra.JSONResponse{Object: method + "CustomHello"}
-}
-
-// GetUserBy handles the GET: /user/{username:string} route.
-func (c *Default) GetUserBy(username string) string {
-	return username
-}
-
-// GetAgeByUserBy handles the GET: /age/{age:int}/user/{user:string} route.
-func (c *Default) GetAgeByUserBy(age int, user string) freedom.Result {
-	var result struct {
-		User string
-		Age  int
-	}
-	result.Age = age
-	result.User = user
-
-	return &infra.JSONResponse{Object: result}
 }
 ```
 
 #### 领域服务 domain/default.go
+
 ```go
 package domain
 
@@ -305,10 +280,10 @@ import (
 func init() {
 	freedom.Prepare(func(initiator freedom.Initiator) {
             //绑定 Default Service
-            initiator.BindService(func() *Default {
-                return &Default{}
+            initiator.BindService(func() *DefaultService {
+                return &DefaultService{}
             })
-            initiator.InjectController(func(ctx freedom.Context) (service *Default) {
+            initiator.InjectController(func(ctx freedom.Context) (service *DefaultService) {
                 //Default 注入到控制器
                 initiator.FetchService(ctx, &service)
                 return
@@ -316,8 +291,8 @@ func init() {
 	})
 }
 
-// Default .
-type Default struct {
+// DefaultService .
+type DefaultService struct {
 	Worker    freedom.Worker    //依赖注入请求运行时,无需侵入的传递。
 	DefRepo   *repository.Default   //依赖注入资源库对象  DI方式
 	DefRepoIF repository.DefaultRepoInterface  //也可以注入资源库接口 DIP方式
@@ -337,6 +312,7 @@ func (s *Default) RemoteInfo() (result struct {
 ```
 
 #### repositorys/default.go
+
 ```go
 import (
 	"github.com/8treenet/freedom"
@@ -345,14 +321,14 @@ import (
 func init() {
 	freedom.Prepare(func(initiator freedom.Initiator) {
             //绑定 Default Repository
-            initiator.BindRepository(func() *Default {
-                return &Default{}
+            initiator.BindRepository(func() *DefaultRepository {
+                return &DefaultRepository{}
             })
 	})
 }
 
-// Default .
-type Default struct {
+// DefaultRepository .
+type DefaultRepository struct {
     //继承 freedom.Repository
     freedom.Repository
 }

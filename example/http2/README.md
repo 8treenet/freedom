@@ -1,15 +1,20 @@
 # freedom
-### HTTP/H2C和依赖倒置
+
+### HTTP/H2C 和依赖倒置
+
 ---
 
 #### 启动
+
 ```sh
 $  go run server/main.go
 #  本程序是一个购物的小示例, 浏览器可输入http://127.0.0.1:8000/shop/1, 1-4为商品ID
 ```
 
 #### HTTP/H2C Server
+
 > main.go
+
 ```go
 
 //创建应用
@@ -22,8 +27,8 @@ app.Run(h2caddrRunner, *conf.Get().App)
 func installMiddleware(app freedom.Application) {
 	/*
 		设置框架自带中间件,可重写
-		NewTrace默认设置了总线, 下游服务和事件消费者服务都会拿到x-request-id
-		NewRequestLogger 默认读取了总线里的x-request-id, 所有上下游服务打印日志全部都携带x-request-id
+		NewTrace默认设置了链路追踪, 下游服务和事件消费者服务都会拿到x-request-id
+		NewRequestLogger 默认读取了链路里的x-request-id, 所有上下游服务打印日志全部都携带x-request-id
 	*/
 	//Recover中间件
 	app.InstallMiddleware(middleware.NewRecover())
@@ -38,22 +43,23 @@ func installMiddleware(app freedom.Application) {
 	middle := middleware.NewClientPrometheus(conf.Get().App.Other["service_name"].(string), freedom.Prometheus())
 	requests.InstallMiddleware(middle)
 
-	//总线中间件，处理上下游透传的Header
+	//默认链路过滤,可以改变header里的传递
 	app.InstallBusMiddleware(middleware.NewBusFilter())
 	//自定义Bus
 	app.InstallBusMiddleware(newBus(conf.Get().App.Other["service_name"].(string)))
 }
 
-// newBus 自定义总线中间件示例.
+// newBus 自定义Bus，一个简单的透传自身服务名的处理
 func newBus(serviceName string) func(freedom.Worker) {
-	//调用下游服务和事件消费者将传递service-name， 下游服务和mq事件消费者，使用 Worker.Bus() 可获取到service-name。
+	//调用上游服务和事件消费者将传递service-name， 上游服务和mq事件消费者，使用 Worker.Bus() 可获取到service-name。
 	return func(run freedom.Worker) {
 		bus := run.Bus()
-		//Bus 主要处理http的Header，所有下游调用都会携带Header:x-service-name
+		//Bus 主要处理http的Header，所有调用上游服务都会携带Header:x-service-name
 		bus.Add("x-service-name", serviceName)
 	}
 }
 ```
+
 ```go
 //默认的每行log中间件,支持自定义.
 func DefaultLogRowHandle(value *freedom.LogRow) bool {
@@ -73,10 +79,9 @@ func DefaultLogRowHandle(value *freedom.LogRow) bool {
 	return false
 
 	/*
+		可以在这里引入第三方日志库来做文件日志的处理。但当下基本都采用ELK或类似方案来处理容器的console输出，一笔带过。
 		logrus.WithFields(value.Fields).Info(value.Message)
-		return true
-	*/
-	/*
+
 		zapLogger, _ := zap.NewProduction()
 		zapLogger.Info(value.Message)
 		return true
@@ -85,13 +90,15 @@ func DefaultLogRowHandle(value *freedom.LogRow) bool {
 ```
 
 #### 依赖倒置
-``` go
+
+```go
 package repository
 //声明接口
 type GoodsInterface interface {
 	GetGoods(goodsID int) vo.GoodsModel
 }
 ```
+
 ```go
 //使用接口
 func init() {
@@ -119,9 +126,11 @@ func (s *ShopService) Shopping(goodsID int) string {
 }
 ```
 
-#### 实现接口和HTTP/H2C Client
-- HTTP     NewHttpRequest()
+#### 实现接口和 HTTP/H2C Client
+
+- HTTP NewHttpRequest()
 - HTTP/H2C NewH2CRequest()
+
 ```go
 func init() {
 	freedom.Prepare(func(initiator freedom.Initiator) {
