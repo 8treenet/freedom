@@ -33,15 +33,15 @@ func installMiddleware(app freedom.Application) {
 	middle := middleware.NewClientPrometheus(conf.Get().App.Other["service_name"].(string), freedom.Prometheus())
 	requests.InstallMiddleware(middle)
 
-	//总线中间件，处理上下游透传的Header
+	//默认链路过滤,可以改变header里的传递
 	app.InstallBusMiddleware(middleware.NewBusFilter())
 	//自定义
 	app.InstallBusMiddleware(newBus(conf.Get().App.Other["service_name"].(string)))
 }
 
-// newBus 自定义总线中间件示例.
+//  newBus 自定义Bus，一个简单的透传自身服务名的处理
 func newBus(serviceName string) func(freedom.Worker) {
-	//调用下游服务和事件消费者将传递service-name， 下游服务和mq事件消费者，使用 Worker.Bus() 可获取到service-name。
+	//调用上游服务和事件消费者将传递service-name， 上游服务和mq事件消费者，使用 Worker.Bus() 可获取到service-name。
 	return func(run freedom.Worker) {
 		bus := run.Bus()
 		bus.Add("x-service-name", serviceName)
