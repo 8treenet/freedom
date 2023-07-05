@@ -12,6 +12,7 @@ type skipperFunc func(ctx context.Context) bool
 // RequestLoggerConfig Contains the options for the logger middleware
 // can be optionally be passed to the `New`.
 type RequestLoggerConfig struct {
+	Access               bool
 	IP                   bool
 	Query                bool
 	MessageContextKeys   []string
@@ -77,6 +78,7 @@ type RequestLoggerConfig struct {
 // LogFunc and Skippers to nil as well.
 func DefaultLoggerConfig() *RequestLoggerConfig {
 	return &RequestLoggerConfig{
+		Access:               true,
 		IP:                   false,
 		Query:                true,
 		RequestRawBody:       true,

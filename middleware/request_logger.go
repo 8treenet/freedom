@@ -61,6 +61,9 @@ func (l *requestLoggerMiddleware) ServeHTTP(ctx context.Context) {
 	if !work.IsDeferRecycle() {
 		loggerPool.Put(freelog)
 	}
+	if !l.config.Access {
+		return
+	}
 
 	// no time.Since in order to format it well after
 	endTime = time.Now()
