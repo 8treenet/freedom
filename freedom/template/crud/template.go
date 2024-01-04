@@ -220,7 +220,7 @@ func FunTemplate() string {
 		}()
 		db := repo.db()
 		if len(builders) == 0 {
-			e = db.Last(result).Error
+			e = db.Where(result).Last(result).Error
 			return
 		}
 		e = builders[0].Execute(db.Limit(1), result)
