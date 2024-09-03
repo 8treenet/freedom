@@ -3,6 +3,7 @@ package middleware
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"strconv"
 	"time"
@@ -45,7 +46,7 @@ func (l *requestLoggerMiddleware) ServeHTTP(ctx context.Context) {
 	if l.config.RequestRawBody {
 		reqBodyBys, _ = ioutil.ReadAll(ctx.Request().Body)
 		ctx.Request().Body.Close() //  must close
-		ctx.Request().Body = ioutil.NopCloser(bytes.NewBuffer(reqBodyBys))
+		ctx.Request().Body = io.NopCloser(bytes.NewBuffer(reqBodyBys))
 	}
 
 	work := freedom.ToWorker(ctx)

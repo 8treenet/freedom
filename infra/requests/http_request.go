@@ -86,7 +86,7 @@ func (req *httpRequest) SetJSONBody(obj interface{}) Request {
 		return req
 	}
 
-	req.StdRequest.Body = ioutil.NopCloser(bytes.NewReader(byts))
+	req.StdRequest.Body = io.NopCloser(bytes.NewReader(byts))
 	req.StdRequest.ContentLength = int64(len(byts))
 	req.StdRequest.Header.Set("Content-Type", "application/json")
 	return req
@@ -94,7 +94,7 @@ func (req *httpRequest) SetJSONBody(obj interface{}) Request {
 
 // SetBody .
 func (req *httpRequest) SetBody(byts []byte) Request {
-	req.StdRequest.Body = ioutil.NopCloser(bytes.NewReader(byts))
+	req.StdRequest.Body = io.NopCloser(bytes.NewReader(byts))
 	req.StdRequest.ContentLength = int64(len(byts))
 	req.StdRequest.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	return req
@@ -103,7 +103,7 @@ func (req *httpRequest) SetBody(byts []byte) Request {
 // SetFormBody .
 func (req *httpRequest) SetFormBody(v url.Values) Request {
 	reader := strings.NewReader(v.Encode())
-	req.StdRequest.Body = ioutil.NopCloser(reader)
+	req.StdRequest.Body = io.NopCloser(reader)
 	req.StdRequest.ContentLength = int64(reader.Len())
 	req.StdRequest.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Post()
@@ -128,8 +128,8 @@ func (req *httpRequest) SetFile(field, file string) Request {
 	}
 
 	_, err = io.Copy(part, f)
-	if e != nil {
-		req.Response.Error = e
+	if err != nil {
+		req.Response.Error = err
 		return req
 	}
 	if err = writer.Close(); err != nil {
@@ -137,7 +137,7 @@ func (req *httpRequest) SetFile(field, file string) Request {
 		return req
 	}
 
-	req.StdRequest.Body = ioutil.NopCloser(bytes.NewReader(body.Bytes()))
+	req.StdRequest.Body = io.NopCloser(bytes.NewReader(body.Bytes()))
 	req.StdRequest.ContentLength = int64(body.Len())
 	req.StdRequest.Header.Set("Content-Type", writer.FormDataContentType())
 	req.Post()
