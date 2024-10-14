@@ -235,7 +235,7 @@ func FunTemplate() string {
 			ormErrorLog(repo, "{{.Name}}", "find{{.Name}}{{.PrimaryName}}", e, {{.PrimaryParm}})
 		}()
 
-		e = repo.db().Last(&result, {{.PrimaryParm}}).Error
+		e = repo.db().Last(&result, "{{.PrimaryOriginalName}}", {{.PrimaryParm}}).Error
 		return
 	}
 	

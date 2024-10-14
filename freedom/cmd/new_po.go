@@ -54,15 +54,16 @@ var (
 
 			for index := 0; index < len(list); index++ {
 				pdata := map[string]interface{}{
-					"Name":        list[index].Name,
-					"Content":     list[index].Content,
-					"Time":        false,
-					"SetMethods":  list[index].SetMethods,
-					"AddMethods":  list[index].AddMethods,
-					"PrimaryType": list[index].PrimaryType,
-					"PrimaryName": list[index].PrimaryName,
-					"PrimaryParm": lowerCamelCase(list[index].PrimaryName),
-					"Import":      "",
+					"Name":                list[index].Name,
+					"Content":             list[index].Content,
+					"Time":                false,
+					"SetMethods":          list[index].SetMethods,
+					"AddMethods":          list[index].AddMethods,
+					"PrimaryType":         list[index].PrimaryType,
+					"PrimaryName":         list[index].PrimaryName,
+					"PrimaryParm":         lowerCamelCase(list[index].PrimaryName),
+					"PrimaryOriginalName": list[index].PrimaryOriginalName,
+					"Import":              "",
 				}
 				pdata["Import"] = "import (\n"
 				if strings.Contains(list[index].Content, "time.Time") {

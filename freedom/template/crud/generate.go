@@ -13,7 +13,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-//map for converting mysql type to golang types
+// map for converting mysql type to golang types
 var typeForMysqlToGo = map[string]string{
 	"int":                "int",
 	"integer":            "int",
@@ -80,11 +80,13 @@ func (t *Generate) SetPrefix(prefix string) *Generate {
 }
 
 // Method .
-//func (obj *{{.ObjectName}}) Set{{.Name}} ({{.Variable}} {{.VariableType}}) {
-//	obj.{{.Name}} = {{.Variable}}
-//	obj.setChanges("{{.Column}}", {{.Variable}})
-//}
-//{{ end }}
+//
+//	func (obj *{{.ObjectName}}) Set{{.Name}} ({{.Variable}} {{.VariableType}}) {
+//		obj.{{.Name}} = {{.Variable}}
+//		obj.setChanges("{{.Column}}", {{.Variable}})
+//	}
+//
+// {{ end }}
 type Method struct {
 	ObjectName   string //结构体名称
 	Name         string //方法名称 GoodsName
@@ -95,13 +97,14 @@ type Method struct {
 
 // ObjectContent .
 type ObjectContent struct {
-	Name          string   //结构体名称
-	TableRealName string   //表名
-	Content       string   //结构体内容
-	PrimaryType   string   //主键类型
-	PrimaryName   string   //主键名称
-	SetMethods    []Method //set的方法
-	AddMethods    []Method //add的方法
+	Name                string   //结构体名称
+	TableRealName       string   //表名
+	Content             string   //结构体内容
+	PrimaryType         string   //主键类型
+	PrimaryName         string   //主键名称
+	PrimaryOriginalName string   //主键原始名称
+	SetMethods          []Method //set的方法
+	AddMethods          []Method //add的方法
 }
 
 // RunDsn .
@@ -174,6 +177,7 @@ func (t *Generate) schema(tableColumns map[string][]column) (result []ObjectCont
 			column := v.Tag
 			if v.Primary == "PRI" {
 				primaryStructMap[v.Tag] = v.ColumnName
+				sc.PrimaryOriginalName = v.Tag
 				v.Tag = "`" + `gorm:"primaryKey;column:` + v.Tag + `"` + "`"
 				sc.PrimaryName = v.ColumnName
 				sc.PrimaryType = v.Type
