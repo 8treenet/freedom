@@ -359,11 +359,11 @@ func FunTemplate() string {
 
 	// {{.Name}}ToPoint
 	func {{.Name}}ToPoint(object po.{{.Name}}, inErr error) (result *po.{{.Name}}, e error) {
+		result = &object
 		if inErr != nil {
 			e = inErr
 			return
 		}
-		result = &object
 		return
 	}
 	
