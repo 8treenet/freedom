@@ -1,62 +1,148 @@
-# Freedom DDD Framework
+# Freedom DDD 框架
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/8treenet/freedom/blob/master/LICENSE) [![Go Report Card](https://goreportcard.com/badge/github.com/8treenet/freedom)](https://goreportcard.com/report/github.com/8treenet/freedom)[![GoDoc](https://godoc.org/github.com/8treenet/freedom?status.svg)](https://godoc.org/github.com/8treenet/freedom)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/8treenet/freedom/blob/master/LICENSE) [![Go Report Card](https://goreportcard.com/badge/github.com/8treenet/freedom)](https://goreportcard.com/report/github.com/8treenet/freedom) [![GoDoc](https://godoc.org/github.com/8treenet/freedom?status.svg)](https://godoc.org/github.com/8treenet/freedom)
 [![GitHub release](https://img.shields.io/github/v/release/8treenet/freedom.svg)](https://github.com/8treenet/freedom/releases)
+
 <img align="right" width="200px" src="https://raw.githubusercontent.com/8treenet/blog/master/img/freedom.png">
 
-###### Freedom 是一个基于六边形架构的框架，可以支撑充血的领域模型范式。
+## 简介
 
-## Overview
+Freedom 是一个基于六边形架构（Hexagonal Architecture）的 Go 语言框架，专注于支持领域驱动设计（DDD）开发范式。本框架提供了完整的基础设施和工具链，帮助开发者构建可维护、可扩展的企业级应用。
 
-- 集成 Iris
-- HTTP/H2C Server & Client
-- 集成普罗米修斯
-- AOP Worker & 无侵入 Context
-- 可扩展组件 Infrastructure
-- 依赖注入 & 依赖倒置 & 开闭原则
-- DDD & 六边形架构
-- 领域事件 & 消息队列组件
-- CQS & 聚合根
-- CRUD & PO Generate
-- 一级缓存 & 二级缓存 & 防击穿
+## 核心特性
 
-## 安装
+### 架构支持
+- 完整实现六边形架构（端口和适配器模式）
+- 领域驱动设计（DDD）最佳实践支持
+- 依赖注入（DI）和依赖倒置原则（DIP）
+- 完全符合开闭原则的插件化设计
 
-```sh
+### 框架集成
+- 无缝集成 Iris Web 框架
+- 支持 HTTP/H2C 服务端和客户端
+- 内置 Prometheus 监控集成
+- 支持 AOP（面向切面编程）
+- 基于 Worker 的无侵入 Context 设计
+
+### 领域模型支持
+- 聚合根（Aggregate Root）实现
+- 领域事件（Domain Events）支持
+- CQS（命令查询分离）模式
+- 实体（Entity）和值对象（Value Object）支持
+
+### 数据处理
+- 自动化 CRUD 操作生成
+- PO（持久化对象）代码生成器
+- 多级缓存架构
+  - 一级缓存（内存）
+  - 二级缓存（分布式）
+  - 缓存击穿防护
+
+### 消息和事件
+- 集成消息队列组件
+- 领域事件发布订阅
+- 事件驱动架构支持
+
+## 快速开始
+
+### 安装框架
+
+```bash
+# 安装 Freedom 命令行工具
 $ go install github.com/8treenet/freedom/freedom@latest
+
+# 验证安装
 $ freedom version
 ```
+### 创建新项目
 
-## 脚手架创建项目
+```bash
+# 创建项目
+$ freedom new-project [项目名称]
 
-```sh
-$ freedom new-project [project-name]
-$ cd [project-name]
+# 进入项目目录
+$ cd [项目名称]
+
+# 安装依赖
 $ go mod tidy
+
+# 运行服务
 $ go run server/main.go
 ```
 
-## 脚手架生成增删查改和持久化对象
+### 代码生成工具
 
-####
+```bash
+# 生成数据库相关代码（支持两种方式）
 
-```sh
-# freedom new-po -h 查看更多
-$ cd [project-name]
+# 1. 通过数据库连接生成
+$ freedom new-po --dsn "root:密码@tcp(127.0.0.1:3306)/数据库名?charset=utf8"
 
-# 数据库数据源方式
-$ freedom new-po --dsn "root:123123@tcp(127.0.0.1:3306)/freedom?charset=utf8"
-
-# JSON 数据源方式
+# 2. 通过 JSON Schema 生成
 $ freedom new-po --json ./domain/po/schema.json
+
+# 查看更多生成选项
+$ freedom new-po -h
 ```
 
-## Example
+## 指南
 
-#### [基础教程](https://github.com/8treenet/freedom/blob/master/example/base)
+### 核心文档
+1. [路由指南](doc/route-guide.md)
+   - HTTP 路由配置
+   - API 设计规范
+2. [服务指南](doc/service-guide.md)
+   - 服务层设计原则
+   - 业务逻辑实现指南
+3. [持久化对象指南](doc/po-guide.md)
+   - PO 对象使用说明
+   - 数据库操作最佳实践
+4. [HTTP 客户端指南](doc/http-client-guide.md)
+   - HTTP 客户端配置
+   - 请求处理最佳实践
+5. [DDD 指南](doc/ddd-guide.md)
+   - 领域驱动设计实践指南
+   - 架构设计原则
+6. [Worker 指南](doc/worker-guide.md)
+   - Worker 机制详解
+   - Context 使用说明
 
-#### [http2 监听和依赖倒置](https://github.com/8treenet/freedom/blob/master/example/http2)
 
-#### [事务组件&自定义组件&Kafka&领域事件组件](https://github.com/8treenet/freedom/blob/master/example/infra-example)
+## 学习资源
 
-#### [一个完整的电商 demo,包含 CQS、聚合、实体、领域事件、资源库、基础设施](https://github.com/8treenet/freedom/blob/master/example/fshop)
+### 示例项目
+1. [基础教程](https://github.com/8treenet/freedom/blob/master/example/base)
+   - DDD 基础概念实践
+   - 框架基本功能使用
+
+2. [HTTP2 示例](https://github.com/8treenet/freedom/blob/master/example/http2)
+   - HTTP2 服务配置
+   - 依赖倒置实现
+
+3. [基础设施示例](https://github.com/8treenet/freedom/blob/master/example/infra-example)
+   - 事务组件实现
+   - 自定义组件开发
+   - Kafka 集成
+   - 领域事件使用
+
+4. [电商系统示例](https://github.com/8treenet/freedom/blob/master/example/fshop)
+   - 完整的电商领域实现
+   - CQS 模式示例
+   - 聚合根设计
+   - 实体和值对象使用
+   - 领域事件实践
+   - 资源库模式
+   - 基础设施层集成
+
+## 贡献指南
+
+欢迎提交 Issue 和 Pull Request 来帮助改进 Freedom 框架。在提交代码前，请确保：
+
+- 代码符合 Go 语言规范
+- 添加了必要的测试用例
+- 更新了相关文档
+
+## 开源协议
+
+本项目采用 Apache 2.0 开源协议。详见 [LICENSE](https://github.com/8treenet/freedom/blob/master/LICENSE) 文件。
+

@@ -1,349 +1,464 @@
-# Freedom
+# Freedom Framework
 
-## 基础示例
+Freedom 是一个基于 DDD (Domain-Driven Design) 设计理念的 Go 语言框架，提供了清晰的分层架构和强大的依赖注入能力。它集成了 Iris Web 框架，并提供了完整的微服务开发支持。
 
-#### 目录结构
+## 特性
 
-- domain - 领域模型
+- 🏗️ **DDD 架构**: 完整支持领域驱动设计，包括聚合、实体、值对象等概念
+- 💉 **依赖注入**: 强大的依赖注入系统，支持构造器注入和属性注入
+- 🔌 **适配器模式**: 采用六边形架构（端口和适配器），实现清晰的代码分层
+- 🚀 **高性能**: 基于对象池的请求隔离，确保并发安全和性能
+- 📊 **可观测性**: 集成 Prometheus 监控、分布式追踪和结构化日志
+- 🔒 **安全性**: 内置安全中间件，支持 TLS/SSL
+- 🎯 **易测试**: 依赖倒置原则使得单元测试和集成测试更容易
 
-  - aggregate - 聚合
-  - entity - 实体
-  - event - 领域事件
-  - vo - 值对象
-  - po - 持久化对象
-  - \*.go - 领域服务
+## 目录结构
 
-- adapter - 端口适配器
+```
+.
+├── domain          # 领域模型层
+│   ├── aggregate   # 聚合 - 实体的组合，确保业务不变性
+│   ├── entity      # 实体 - 具有唯一标识的领域对象
+│   ├── event      # 领域事件 - 领域模型中的状态变化
+│   ├── vo         # 值对象 - 描述事物特征的对象
+│   ├── po         # 持久化对象 - 数据库映射对象
+│   └── *.go       # 领域服务 - 无法归属于实体的领域逻辑
+│
+├── adapter         # 端口适配器层
+│   ├── controller # 控制器 (输入适配器) - 处理外部请求
+│   └── repository # 仓库 (输出适配器) - 持久化领域对象
+│
+├── server         # 服务端程序入口
+│   ├── conf      # 配置文件 - 应用配置管理
+│   └── main.go   # 主函数 - 应用程序入口
+│
+└── infra          # 基础设施组件 - 技术支持层
+```
 
-  - controller - 控制器
-  - repository - 仓库
+## 快速开始
 
-- server - 服务端程序入口
+### 安装
 
-  - conf - 配置文件
-  - main.go - 主函数
+```bash
+go get -u github.com/8treenet/freedom
+```
 
-- infra - 基础设施组件
+### 创建新项目
 
----
+```bash
+# 创建项目目录
+mkdir myapp && cd myapp
 
-#### 接口介绍
+# 初始化 Go 模块
+go mod init myapp
+
+# 创建基本目录结构
+mkdir -p domain/{aggregate,entity,event,vo,po} adapter/{controller,repository} server/{conf} infra
+```
+
+## 核心接口
+
+### Application 接口
+
+主应用程序接口，负责框架的核心配置和启动：
 
 ```go
-// main 应用安装接口
 type Application interface {
-    //安装DB
-    InstallDB(f func() interface{})
-    //安装redis
-    InstallRedis(f func() (client redis.Cmdable))
-    //安装路由中间件
-    InstallMiddleware(handler iris.Handler)
-    //安装链路中间件,参考Http2 example
-    InstallBusMiddleware(handle ...BusHandler)
-    //安装全局Party http://domian/relativePath/controllerParty
-    InstallParty(relativePath string)
-    //创建 Runner
-    NewRunner(addr string, configurators ...host.Configurator) iris.Runner
-    NewH2CRunner(addr string, configurators ...host.Configurator) iris.Runner
-    NewAutoTLSRunner(addr string, domain string, email string, configurators ...host.Configurator) iris.Runner
-    NewTLSRunner(addr string, certFile, keyFile string, configurators ...host.Configurator) iris.Runner
-    //返回iris应用
-    Iris() *iris.Application
-    //日志
-    Logger() *golog.Logger
-    //启动
-    Run(serve iris.Runner, c iris.Configuration)
-    //安装其他, 如mongodb、es 等
-    InstallCustom(f func() interface{})
-    //启动回调: Prepare之后，Run之前.
-    BindBooting(f func(bootManager freedom.BootManager))
-    //安装序列化，未安装默认使用官方json
-    InstallSerializer(marshal func(v interface{}) ([]byte, error), unmarshal func(data []byte, v interface{}) error)
+    // 数据存储相关
+    InstallDB(f func() interface{})                    // 安装数据库
+    InstallRedis(f func() (client redis.Cmdable))      // 安装 Redis
+    InstallCustom(f func() interface{})                // 安装其他存储 (如 MongoDB、ES 等)
+    
+    // HTTP 服务相关
+    InstallMiddleware(handler iris.Handler)            // 安装路由中间件
+    InstallBusMiddleware(handle ...BusHandler)         // 安装链路中间件
+    InstallParty(relativePath string)                  // 安装全局路由组
+    
+    // 服务器配置
+    NewRunner(addr string, configurators ...host.Configurator) iris.Runner           // HTTP 服务
+    NewH2CRunner(addr string, configurators ...host.Configurator) iris.Runner        // HTTP/2 服务
+    NewAutoTLSRunner(addr string, domain string, email string, configurators ...host.Configurator) iris.Runner  // 自动 HTTPS
+    NewTLSRunner(addr string, certFile, keyFile string, configurators ...host.Configurator) iris.Runner        // 手动 HTTPS
+    
+    // 工具函数
+    Iris() *iris.Application                          // 获取 Iris 实例
+    Logger() *golog.Logger                           // 获取日志实例
+    Run(serve iris.Runner, c iris.Configuration)      // 启动服务
+    BindBooting(f func(bootManager freedom.BootManager))  // 启动前回调
+    InstallSerializer(                                // 自定义序列化
+        marshal func(v interface{}) ([]byte, error),
+        unmarshal func(data []byte, v interface{}) error,
+    )
 }
+```
 
-/*
-    Worker 请求运行时对象，一个请求创建一个运行时对象，可以直接注入到controller、service、factory、repository, 无需侵入的传递。
-*/
+### Worker 接口
+
+请求运行时对象，每个请求创建一个实例，支持依赖注入：
+
+```go
 type Worker interface {
-    //获取iris的上下文
-    IrisContext() freedom.Context
-    //获取带上下文的日志实例。
-    Logger() Logger
-    //设置带上下文的日志实例。
-    SetLogger(Logger)
-    //获取一级缓存实例，请求结束，该缓存生命周期结束。
-    Store() *memstore.Store
-    //获取总线，读写上下游透传的数据
-    Bus() *Bus
-    //获取标准上下文
-    Context() stdContext.Context
-    //With标准上下文
-    WithContext(stdContext.Context)
-    //该worker起始的时间
-    StartTime() time.Time
-    //延迟回收对象
-    DelayReclaiming()
+    IrisContext() freedom.Context           // 获取 Iris 上下文
+    Logger() Logger                         // 获取请求日志实例
+    SetLogger(Logger)                       // 设置请求日志实例
+    Store() *memstore.Store                // 获取请求级缓存
+    Bus() *Bus                             // 获取数据总线
+    Context() stdContext.Context           // 获取标准上下文
+    WithContext(stdContext.Context)        // 设置标准上下文
+    StartTime() time.Time                  // 获取请求开始时间
+    DelayReclaiming()                      // 延迟对象回收
 }
+```
 
-// Initiator 实例初始化接口，在Prepare使用。
+### Initiator 接口
+
+实例初始化接口，用于依赖注入和控制器绑定：
+
+```go
 type Initiator interface {
-    //创建 iris.Party，可以指定中间件。
+    // 控制器相关
     CreateParty(relativePath string, handlers ...context.Handler) iris.Party
-   //绑定控制器到 iris.Party。
     BindControllerWithParty(party iris.Party, controller interface{})
-    //绑定控制器到路径，可以指定中间件。
     BindController(relativePath string, controller interface{}, handlers ...context.Handler)
-
-    //绑定创建服务函数，绑定后客户可以依赖注入该类型使用。
-    BindService(f interface{})
-    //绑定创建工厂函数，绑定后客户可以依赖注入该类型使用。
-    BindFactory(f interface{})
-    //绑定创建Repository函数，绑定后客户可以依赖注入该类型使用。
-    BindRepository(f interface{})
-    //绑定创建组件函数，绑定后客户可以依赖注入该类型使用。 如果组件是单例 com是对象， 如果组件是多例com是创建函数。
-    BindInfra(single bool, com interface{})
-
-    //注入实例到控制器，适配iris的注入方式。
+    
+    // 依赖注入
+    BindService(f interface{})              // 注入服务
+    BindFactory(f interface{})              // 注入工厂
+    BindRepository(f interface{})           // 注入仓库
+    BindInfra(single bool, com interface{}) // 注入基础组件
+    
+    // 控制器注入
     InjectController(f interface{})
-    //配合InjectController
     FetchInfra(ctx iris.Context, com interface{})
-    //配合InjectController
     FetchService(ctx iris.Context, service interface{})
-
-
-
-    //启动回调. Prepare之后，Run之前.
+    
+    // 事件与启动
     BindBooting(f func(bootManager BootManager))
-    //监听事件. 监听1个topic的事件，由指定控制器消费.
-    ListenEvent(topic string, controller string})
+    ListenEvent(topic string, controller string)
     Iris() *iris.Application
 }
-
 ```
 
----
+## 生命周期
 
-#### 应用生命周期
+### 应用生命周期
 
-| 作用                       |           相关 API            |
-| -------------------------- | :---------------------------: |
-| 注册全局中间件             | Application.InstallMiddleware |
-| 安装 DB                    |     Application.InstallDB     |
-| 单例组件方法(需要重写方法) |         infra.Booting         |
-| 回调已注册的匿名函数       |     Initiator.BindBooting     |
-| 局部初始化                 |        freedom.Prepare        |
-| 开启监听服务               |           http.Run            |
-| 回调已注册的匿名函数       |    infra.RegisterShutdown     |
-| 程序关闭                   |       Application.Close       |
+| 阶段 | API | 说明 |
+|------|-----|------|
+| 全局中间件注册 | `Application.InstallMiddleware` | 注册全局中间件 |
+| 数据库安装 | `Application.InstallDB` | 配置数据库连接 |
+| 组件初始化 | `infra.Booting` | 初始化单例组件 |
+| 启动前回调 | `Initiator.BindBooting` | 执行注册的启动回调 |
+| 局部初始化 | `freedom.Prepare` | 初始化局部组件 |
+| 服务启动 | `http.Run` | 启动 HTTP 服务 |
+| 关闭回调 | `infra.RegisterShutdown` | 执行注册的关闭回调 |
+| 应用关闭 | `Application.Close` | 关闭应用程序 |
 
-&nbsp;
+### 请求生命周期
 
-#### 请求生命周期
+Freedom 框架为每个请求创建独立的运行时对象集合，包括：
+- Worker: 请求上下文管理
+- Controller: 请求处理控制器
+- Service: 业务逻辑服务
+- Factory: 对象工厂
+- Repository: 数据访问层
+- Infra 组件: 基础设施支持
 
-###### 每一个请求开始都会创建若干依赖对象，worker、controller、service、factory、repository、infra 等。每一个请求独立使用这些对象，不会多请求并发的读写共享对象。当然也无需担心效率问题，框架已经做了池。请求结束会回收这些对象。 如果过程中使用了 go func(){//访问相关对象}，请在之前调用 **Worker.DelayReclaiming()**.
+这些对象都是请求隔离的，不会发生并发读写。框架使用对象池来确保性能。
 
----
+> **注意**: 如果在请求处理过程中使用 goroutine 访问这些对象，请在启动 goroutine 前调用 `Worker.DelayReclaiming()` 以延迟对象回收。
 
-#### main
+## 最佳实践
+
+### 依赖注入
+
+推荐使用构造器注入方式：
 
 ```go
-
-import (
-    "github.com/8treenet/freedom"
-    _ "github.com/8treenet/freedom/example/base/adapter/controller" //引入输入适配器 http路由
-    _ "github.com/8treenet/freedom/example/base/adapter/repository" //引入输出适配器 repository资源库
-    "github.com/8treenet/freedom/infra/requests"
-    "github.com/8treenet/freedom/middleware"
-)
-
-func main() {
-    app := freedom.NewApplication() //创建应用
-    installDatabase(app)
-    installRedis(app)
-    installMiddleware(app)
-
-    //创建http 监听
-    addrRunner := app.NewRunner(conf.Get().App.Other["listen_addr"].(string))
-    //创建http2.0 h2c 监听
-    addrRunner = app.NewH2CRunner(conf.Get().App.Other["listen_addr"].(string))
-    app.Run(addrRunner, *conf.Get().App)
-}
-
-func installMiddleware(app freedom.Application) {
-    //Recover中间件
-    app.InstallMiddleware(middleware.NewRecover())
-    //Trace链路中间件
-    app.InstallMiddleware(middleware.NewTrace("x-request-id"))
-    //日志中间件，每个请求一个logger
-    app.InstallMiddleware(middleware.NewRequestLogger("x-request-id"))
-    //logRow中间件，每一行日志都会触发回调。如果返回true，将停止中间件遍历回调。
-    app.Logger().Handle(middleware.DefaultLogRowHandle)
-
-    //HttpClient 普罗米修斯中间件，监控ClientAPI的请求。
-    middle := middleware.NewClientPrometheus(conf.Get().App.Other["service_name"].(string), freedom.Prometheus())
-    requests.InstallMiddleware(middle)
-
-    //总线中间件，处理上下游透传的Header
-    app.InstallBusMiddleware(middleware.NewBusFilter())
-}
-
-func installDatabase(app freedom.Application) {
-    app.InstallDB(func() interface{} {
-        //安装db的回调函数
-        conf := conf.Get().DB
-        db, e := gorm.Open("mysql", conf.Addr)
-        if e != nil {
-            freedom.Logger().Fatal(e.Error())
-        }
-        return db
+// 服务注册
+freedom.Prepare(func(initiator freedom.Initiator) {
+    initiator.BindService(func() *UserService {
+        return &UserService{}
     })
-}
+})
 
-func installRedis(app freedom.Application) {
-    app.InstallRedis(func() (client redis.Cmdable) {
-        cfg := conf.Get().Redis
-        opt := &redis.Options{
-            Addr:               cfg.Addr,
-        }
-        redisClient := redis.NewClient(opt)
-        if e := redisClient.Ping().Err(); e != nil {
-            freedom.Logger().Fatal(e.Error())
-        }
-        client = redisClient
-        return
-    })
+// 控制器中使用
+type UserController struct {
+    UserSrv *UserService  // 自动注入
+    Worker  freedom.Worker
 }
 ```
 
----
+### 事务管理
 
-#### controllers/default.go
-
-##### [iris 路由文档](https://github.com/kataras/iris/wiki/MVC)
+使用 Repository 模式管理事务：
 
 ```go
-package controller
-
-import (
-	"github.com/8treenet/freedom/example/base/domain"
-	"github.com/8treenet/freedom/example/base/infra"
-
-	"github.com/8treenet/freedom"
-)
-
-func init() {
-	freedom.Prepare(func(initiator freedom.Initiator) {
-		/*
-		   普通方式绑定 DefaultController 到路径 /
-		   initiator.BindController("/", &DefaultController{})
-		*/
-
-		//中间件方式绑定， 只对本控制器生效，全局中间件请在main加入。
-		initiator.BindController("/", &DefaultController{}, func(ctx freedom.Context) {
-			worker := freedom.ToWorker(ctx)
-			worker.Logger().Info("Hello middleware begin")
-			ctx.Next()
-			worker.Logger().Info("Hello middleware end")
-		})
-	})
-}
-
-type DefaultController struct {
-	Sev    *domain.DefaultService //依赖注入领域服务 DefaultService
-	Worker freedom.Worker         //依赖注入请求运行时 Worker，无需侵入的传递。
-}
-
-// Get handles the GET: / route.
-func (c *DefaultController) Get() freedom.Result {
-    c.Worker.Logger().Infof("我是控制器")
-    remote := c.Sev.RemoteInfo() //调用服务方法
-    //返回JSON对象
-    return &infra.JSONResponse{Object: remote}
-}
-
-// GetHello handles the GET: /hello route.
-func (c *DefaultController) GetHello() string {
-	return "hello"
-}
-```
-
-#### 领域服务 domain/default.go
-
-```go
-package domain
-
-import (
-	"github.com/8treenet/freedom"
-	"github.com/8treenet/freedom/example/base/adapter/repository"
-)
-
-func init() {
-	freedom.Prepare(func(initiator freedom.Initiator) {
-            //绑定 Default Service
-            initiator.BindService(func() *DefaultService {
-                return &DefaultService{}
-            })
-            initiator.InjectController(func(ctx freedom.Context) (service *DefaultService) {
-                //Default 注入到控制器
-                initiator.FetchService(ctx, &service)
-                return
-            })
-	})
-}
-
-// DefaultService .
-type DefaultService struct {
-	Worker    freedom.Worker    //依赖注入请求运行时,无需侵入的传递。
-	DefRepo   *repository.Default   //依赖注入资源库对象  DI方式
-	DefRepoIF repository.DefaultRepoInterface  //也可以注入资源库接口 DIP方式
-}
-
-// RemoteInfo .
-func (s *Default) RemoteInfo() (result struct {
-	Ip string
-	Ua string
-}) {
-        s.Worker.Logger().Infof("我是service")
-        //调用资源库的方法
-        result.Ip = s.DefRepo.GetIP()
-        result.Ua = s.DefRepoIF.GetUA()
-        return
-}
-```
-
-#### repositorys/default.go
-
-```go
-import (
-	"github.com/8treenet/freedom"
-)
-
-func init() {
-	freedom.Prepare(func(initiator freedom.Initiator) {
-            //绑定 Default Repository
-            initiator.BindRepository(func() *DefaultRepository {
-                return &DefaultRepository{}
-            })
-	})
-}
-
-// DefaultRepository .
-type DefaultRepository struct {
-    //继承 freedom.Repository
+type UserRepository struct {
     freedom.Repository
 }
 
-// GetIP .
-func (repo *Default) GetIP() string {
-    //只有继承资源库后才有DB、Redis、NewHttp、Custom 访问权限, 并且可以直接获取 Worker
-    repo.FetchDB(&db) //可包含基于请求运行时的DB句柄,被事务组件横切面控制
-    repo.FetchOnlyDB(&db) //全局唯一句柄
-    repo.Redis()
-    repo.FetchCustom(&custom)
-    repo.NewHttpRequest()
-    repo.NewH2CRequest()
-    repo.Worker().Logger().Infof("我是Repository GetIP")
-    return repo.Worker().IrisContext().RemoteAddr()
+func (r *UserRepository) CreateUser(user *entity.User) error {
+    tx := r.DB().Begin()
+    defer func() {
+        if r := recover(); r != nil {
+            tx.Rollback()
+        }
+    }()
+
+    if err := tx.Create(user).Error; err != nil {
+        tx.Rollback()
+        return err
+    }
+
+    return tx.Commit().Error
+}
+```
+
+### 错误处理
+
+统一错误处理方式：
+
+```go
+// 定义错误码
+const (
+    ErrCodeNotFound = 404
+    ErrCodeInternal = 500
+)
+
+// 错误响应结构
+type ErrorResponse struct {
+    Code    int    `json:"code"`
+    Message string `json:"message"`
 }
 
+// 错误处理中间件
+func ErrorHandler(ctx freedom.Context) {
+    defer func() {
+        if err := recover(); err != nil {
+            ctx.JSON(500, ErrorResponse{
+                Code:    ErrCodeInternal,
+                Message: "Internal Server Error",
+            })
+        }
+    }()
+    ctx.Next()
+}
 ```
+
+## 性能优化
+
+### 对象池
+
+Freedom 框架使用对象池来提高性能：
+
+```go
+// 自定义对象池
+type MyObject struct {
+    // fields
+}
+
+var myObjectPool = sync.Pool{
+    New: func() interface{} {
+        return &MyObject{}
+    },
+}
+
+// 获取对象
+obj := myObjectPool.Get().(*MyObject)
+defer myObjectPool.Put(obj)
+```
+
+### 缓存策略
+
+使用多级缓存提高性能：
+
+```go
+func (s *UserService) GetUser(id string) (*entity.User, error) {
+    // 1. 检查请求级缓存
+    if user := s.Worker.Store().Get(id); user != nil {
+        return user.(*entity.User), nil
+    }
+
+    // 2. 检查 Redis 缓存
+    if user, err := s.Redis().Get(id).Result(); err == nil {
+        return unmarshalUser(user), nil
+    }
+
+    // 3. 从数据库获取
+    user, err := s.UserRepo.Find(id)
+    if err != nil {
+        return nil, err
+    }
+
+    // 4. 更新缓存
+    s.Redis().Set(id, marshalUser(user), time.Hour)
+    return user, nil
+}
+```
+
+## 监控和日志
+
+### Prometheus 监控
+
+```go
+// 注册 Prometheus 中间件
+promMiddleware := middleware.NewClientPrometheus(
+    "service_name",
+    freedom.Prometheus(),
+)
+requests.InstallMiddleware(promMiddleware)
+```
+
+### 结构化日志
+
+```go
+// 请求日志中间件
+app.InstallMiddleware(func(ctx freedom.Context) {
+    worker := freedom.ToWorker(ctx)
+    logger := worker.Logger().With(
+        "request_id", ctx.GetHeader("X-Request-ID"),
+        "method", ctx.Method(),
+        "path", ctx.Path(),
+    )
+    worker.SetLogger(logger)
+    
+    start := time.Now()
+    ctx.Next()
+    
+    logger.Info("request completed",
+        "status", ctx.GetStatusCode(),
+        "duration", time.Since(start),
+    )
+})
+```
+
+## 测试
+
+### 单元测试
+
+```go
+func TestUserService_CreateUser(t *testing.T) {
+    // 准备测试环境
+    app := freedom.NewTestApplication()
+    
+    // 注入 mock 依赖
+    app.InstallDB(func() interface{} {
+        return &mockDB{}
+    })
+    
+    // 创建测试实例
+    srv := &UserService{}
+    app.Inject(srv)
+    
+    // 执行测试
+    user := &entity.User{Name: "test"}
+    err := srv.CreateUser(user)
+    
+    assert.NoError(t, err)
+    assert.NotEmpty(t, user.ID)
+}
+```
+
+### 集成测试
+
+```go
+func TestUserAPI(t *testing.T) {
+    app := freedom.NewTestApplication()
+    e := httptest.New(t, app.Iris())
+    
+    // 测试创建用户
+    e.POST("/users").
+        WithJSON(map[string]string{"name": "test"}).
+        Expect().
+        Status(http.StatusOK).
+        JSON().Object().
+        HasValue("id", gomega.Not(gomega.BeEmpty()))
+}
+```
+
+## 部署
+
+### Docker 支持
+
+```dockerfile
+FROM golang:1.21-alpine AS builder
+
+WORKDIR /app
+COPY . .
+RUN go build -o main ./server/main.go
+
+FROM alpine:latest
+
+WORKDIR /app
+COPY --from=builder /app/main .
+COPY --from=builder /app/server/conf ./conf
+
+EXPOSE 8080
+CMD ["./main"]
+```
+
+### Kubernetes 配置
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: freedom-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: freedom-app
+  template:
+    metadata:
+      labels:
+        app: freedom-app
+    spec:
+      containers:
+      - name: freedom-app
+        image: freedom-app:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: db_host
+```
+
+## 更多资源
+
+- [Iris 路由文档](https://github.com/kataras/iris/wiki/MVC)
+- [完整示例代码](https://github.com/8treenet/freedom/tree/master/example)
+- [API 文档](https://pkg.go.dev/github.com/8treenet/freedom)
+- [性能基准测试](https://github.com/8treenet/freedom/tree/master/benchmark)
+- [常见问题解答](https://github.com/8treenet/freedom/wiki/FAQ)
+
+## 贡献指南
+
+我们欢迎任何形式的贡献，包括但不限于：
+
+- 提交问题和建议
+- 改进文档
+- 提交代码修复
+- 添加新功能
+
+请参阅我们的[贡献指南](CONTRIBUTING.md)了解更多信息。
+
+## License
+
+MIT License
+
+Copyright (c) 2023 Freedom Framework
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
