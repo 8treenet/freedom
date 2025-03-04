@@ -294,7 +294,68 @@ func init() {
 }
 ```
 
-### 2. WebSocket 支持
+### 2. BeforeActivation 自定义路由
+
+在 Controller 中实现 `BeforeActivation` 方法可以自定义更灵活的路由规则：
+
+```go
+// Controller 实现 BeforeActivation 接口
+type DefaultController struct {
+    Worker freedom.Worker
+}
+
+// BeforeActivation 自定义路由规则
+func (c *DefaultController) BeforeActivation(b freedom.BeforeActivation) {
+    // 自定义复杂路径参数
+    b.Handle("GET", "/customPath/{id:int64}/{uid:int}/{username:string}", "CustomPath")
+    
+    // 支持任意 HTTP 方法的路由
+    b.Handle("ANY", "/custom", "Custom")
+    
+    // 或者指定具体的 HTTP 方法
+    b.Handle("GET", "/users/{id:int}", "GetUser")
+    b.Handle("POST", "/users/batch", "BatchCreate")
+    b.Handle("PUT", "/users/{id:int}/status", "UpdateStatus")
+    b.Handle("DELETE", "/users/{id:int}", "DeleteUser")
+}
+
+// Custom handles the ANY: /custom route.
+func (c *Default) Custom() freedom.Result {
+	//curl http://127.0.0.1:8000/custom
+	//curl -X PUT http://127.0.0.1:8000/custom
+	//curl -X DELETE http://127.0.0.1:8000/custom
+	//curl -X POST http://127.0.0.1:8000/custom
+	method := c.Worker.IrisContext().Request().Method
+	c.Worker.Logger().Info("CustomHello", freedom.LogFields{"method": method})
+	return &infra.JSONResponse{Object: method + "/Custom"}
+}
+
+
+// CustomPath handles the GET: /customPath/{id:int64}/{uid:int}/{username:string} route.
+func (c *DefaultController) CustomPath(id int64, uid int, username string) {
+    id, _ := ctx.Params().GetInt64("id")
+    uid, _ := ctx.Params().GetInt("uid")
+    username := ctx.Params().Get("username")
+    
+    ctx.JSON(iris.Map{
+        "id": id,
+        "uid": uid,
+        "username": username,
+    })
+}
+```
+
+路径参数支持的类型：
+- `{name:string}` - 字符串参数
+- `{id:int}` - 整数参数
+- `{id:int64}` - 64位整数参数
+- `{id:uint}` - 无符号整数参数
+- `{id:uint64}` - 64位无符号整数参数
+- `{name:alphabetical}` - 仅字母参数
+- `{name:file}` - 文件路径参数
+- `{name:path}` - 路径参数
+
+### 3. WebSocket 支持
 
 ```go
 func (c *ChatController) GetWs(ctx iris.Context) {
