@@ -17,7 +17,6 @@
 - [4. 高级特性](#4-高级特性)
   - [4.1 请求追踪](#41-请求追踪)
   - [4.2 并发控制](#42-并发控制)
-  - [4.3 上下文控制](#43-上下文控制)
 - [5. 最佳实践](#5-最佳实践)
   - [5.1 Repository 模式](#51-repository-模式)
   - [5.2 错误处理](#52-错误处理)
@@ -365,48 +364,38 @@ fmt.Printf("是否复用连接: %v\n", traceInfo.IsConnReused)
 
 ### 4.2 并发控制
 
-1. Singleflight（请求去重）：
+#### 4.2.1 并发缓存
+
+Freedom 框架使用 Singleflight 机制来实现并发缓存，可以有效防止客户端发起的重复请求：
 
 ```go
-func ConcurrentRequests() {
-    var wg sync.WaitGroup
-    
-    for i := 0; i < 100; i++ {
-        wg.Add(1)
-        go func() {
-            defer wg.Done()
-            
-            var result interface{}
-            // 相同的 key 在并发请求时只会发起一次请求
-            response := requests.NewHTTPRequest("http://api.example.com/data")
-                .Get()
-                .Singleflight("cache_key")
-                .ToJSON(&result)
-                
-            if response.Error != nil {
-                log.Printf("Error: %v", response.Error)
-            }
-        }()
+// 示例：多个 goroutine 并发请求相同资源
+func GetUserInfo(userID string) (*UserInfo, error) {
+    var result struct {
+        Code int       `json:"code"`
+        Data UserInfo  `json:"data"`
+        Msg  string    `json:"msg"`
     }
     
-    wg.Wait()
+    // 使用 Singleflight，相同的 key 在并发请求通参数时只会发起一次实际的 HTTP 请求
+    // 其他并发请求会等待并共享第一个请求的结果
+    response := requests.NewHTTPRequest("http://api.example.com/users/"+userID).
+        Get().
+        Singleflight("user_info", userID). // 使用 userID 作为 Singleflight key
+        ToJSON(&result)
+        
+    if response.Error != nil {
+        return nil, response.Error
+    }
+    
+    if result.Code != 0 {
+        return nil, errors.New(result.Msg)
+    }
+    
+    return &result.Data, nil
 }
 ```
 
-### 4.3 上下文控制
-
-```go
-// 超时控制
-ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-defer cancel()
-
-req := requests.NewHTTPRequest("http://example.com")
-req.WithContext(ctx)
-
-// 带有自定义值的上下文
-ctx = context.WithValue(context.Background(), "key", "value")
-req.WithContext(ctx)
-```
 
 ## 5. 最佳实践
 
