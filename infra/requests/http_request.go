@@ -225,9 +225,9 @@ func (req *httpRequest) SetHeader(header http.Header) Request {
 	return req
 }
 
-// AddHeader .
-func (req *httpRequest) AddHeader(key, value string) Request {
-	req.StdRequest.Header.Add(key, value)
+// SetHeaderValue .
+func (req *httpRequest) SetHeaderValue(key, value string) Request {
+	req.StdRequest.Header.Set(key, value)
 	return req
 }
 

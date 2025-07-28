@@ -63,8 +63,8 @@ type Request interface {
 	Singleflight(key ...interface{}) Request
 	// Set up HTTP Header information.
 	SetHeader(header http.Header) Request
-	// Add HTTP Header information.
-	AddHeader(key, value string) Request
+	// Set up HTTP Header value.
+	SetHeaderValue(key, value string) Request
 	// Returns the header of the current request.
 	Header() http.Header
 	// Returns the Request of the standard library.

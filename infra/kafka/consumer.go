@@ -198,9 +198,9 @@ func (c *ConsumerImpl) do(msg *sarama.ConsumerMessage) (e error) {
 
 	request = request.SetBody(msg.Value)
 	for index := 0; index < len(msg.Headers); index++ {
-		request = request.AddHeader(string(msg.Headers[index].Key), string(msg.Headers[index].Value))
+		request = request.SetHeaderValue(string(msg.Headers[index].Key), string(msg.Headers[index].Value))
 	}
-	request.AddHeader("x-message-key", string(msg.Key))
+	request.SetHeaderValue("x-message-key", string(msg.Key))
 	_, resp := request.Post().ToString()
 
 	if resp.Error != nil || resp.StatusCode != 200 {
