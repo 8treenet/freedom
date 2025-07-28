@@ -2,8 +2,6 @@ module github.com/8treenet/freedom
 
 go 1.23.0
 
-toolchain go1.23.11
-
 require (
 	github.com/8treenet/iris/v12 v12.1.9
 	github.com/BurntSushi/toml v1.2.0
