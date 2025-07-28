@@ -307,7 +307,6 @@ func (req *httpRequest) do() {
 	}
 	req.readBody()
 	req.fillingRespone()
-	return
 }
 
 func (req *httpRequest) readBody() {
