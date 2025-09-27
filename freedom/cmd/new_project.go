@@ -58,8 +58,7 @@ func init() {
 }
 
 func mkdirAll(projectPath string) {
-	os.MkdirAll(projectPath+"/server", os.ModePerm)
-	os.MkdirAll(projectPath+"/server/conf", os.ModePerm)
+	os.MkdirAll(projectPath+"/config", os.ModePerm)
 	os.MkdirAll(projectPath+"/adapter", os.ModePerm)
 	os.MkdirAll(projectPath+"/adapter/controller", os.ModePerm)
 	os.MkdirAll(projectPath+"/adapter/repository", os.ModePerm)

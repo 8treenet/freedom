@@ -65,7 +65,7 @@ $ cd [项目名称]
 $ go mod tidy
 
 # 运行服务
-$ go run server/main.go
+$ go run main.go
 ```
 
 ### 代码生成工具

@@ -1,4 +1,4 @@
-package conf
+package config
 
 import (
 	"os"
@@ -73,13 +73,13 @@ func newConfig() *Configuration {
 
 // EntryPoint .
 func EntryPoint() {
-	envConfig := os.Getenv("FSHOP-CONFIG")
+	envConfig := os.Getenv("HTTP2-CONFIG")
 	if envConfig != "" {
 		os.Setenv(freedom.ProfileENV, envConfig)
 		return
 	}
 
-	// [./base -c ./server/conf]
+	// [./http2 -c ./config]
 	for i := 0; i < len(os.Args); i++ {
 		if os.Args[i] != "-c" {
 			continue

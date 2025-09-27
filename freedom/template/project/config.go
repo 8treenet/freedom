@@ -3,12 +3,12 @@ package project
 import "strings"
 
 func init() {
-	content["/server/conf/config.go"] = confTemplate()
+	content["/config/config.go"] = confTemplate()
 }
 
 func confTemplate() string {
 	result := `
-	package conf
+	package config
 
 	import (
 		"os"
@@ -89,7 +89,7 @@ func confTemplate() string {
 			return
 		}
 	
-		// [./base -c ./server/conf]
+		// [./main -c ./config]
 		for i := 0; i < len(os.Args); i++ {
 			if os.Args[i] != "-c" {
 				continue

@@ -13,7 +13,7 @@ import (
 var (
 	// profileFallbackSearchDirs is a series of directory that is used to search
 	// profile file if a profile file has not been found in other directory.
-	profileFallbackSearchDirs = []string{"./conf", "./server/conf"}
+	profileFallbackSearchDirs = []string{"./conf", "./server/conf", "./config"}
 
 	// configurator is a instance of Configurator. It is never nil.
 	configurator Configurator

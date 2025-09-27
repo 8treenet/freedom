@@ -7,8 +7,8 @@ import (
 	"github.com/8treenet/freedom"
 	_ "github.com/8treenet/freedom/example/infra-example/adapter/controller"
 	_ "github.com/8treenet/freedom/example/infra-example/adapter/repository"
+	"github.com/8treenet/freedom/example/infra-example/config"
 	"github.com/8treenet/freedom/example/infra-example/infra/domainevent"
-	"github.com/8treenet/freedom/example/infra-example/server/conf"
 	"github.com/8treenet/freedom/infra/kafka"
 	"github.com/8treenet/freedom/infra/requests"
 	"github.com/8treenet/freedom/middleware"
@@ -18,12 +18,12 @@ import (
 	"gorm.io/gorm"
 )
 
-//mac: zookeeper-server-start /usr/local/etc/kafka/zookeeper.properties & kafka-server-start /usr/local/etc/kafka/server.properties
+// mac: zookeeper-server-start /usr/local/etc/kafka/zookeeper.properties & kafka-server-start /usr/local/etc/kafka/server.properties
 func main() {
 	app := freedom.NewApplication()
 	installDatabase(app)
 	installMiddleware(app)
-	addr := conf.Get().App.Other["listen_addr"].(string)
+	addr := config.Get().App.Other["listen_addr"].(string)
 	addrRunner := app.NewRunner(addr)
 	//app.InstallParty("/example")
 	liveness(app)
@@ -42,7 +42,7 @@ func main() {
 	kafkaConf.Version = sarama.V0_11_0_2
 	kafka.GetConsumer().Start([]string{":9092"}, "freedom1", kafkaConf, "http://127.0.0.1:8000", false)
 	kafka.GetProducer().Start([]string{":9092"}, kafkaConf)
-	app.Run(addrRunner, conf.Get().App)
+	app.Run(addrRunner, config.Get().App)
 }
 
 func installMiddleware(app freedom.Application) {
@@ -56,14 +56,14 @@ func installMiddleware(app freedom.Application) {
 	app.Logger().Handle(middleware.DefaultLogRowHandle)
 
 	//HttpClient 普罗米修斯中间件，监控ClientAPI的请求。
-	middle := middleware.NewClientPrometheus(conf.Get().App.Other["service_name"].(string), freedom.Prometheus())
+	middle := middleware.NewClientPrometheus(config.Get().App.Other["service_name"].(string), freedom.Prometheus())
 	requests.InstallMiddleware(middle)
 
 	//总线中间件，处理上下游透传的Header
 	app.InstallBusMiddleware(middleware.NewBusFilter())
 
 	//安装消息监控中间件
-	eventMiddle := NewMsgPrometheus(conf.Get().App.Other["service_name"].(string))
+	eventMiddle := NewMsgPrometheus(config.Get().App.Other["service_name"].(string))
 	kafka.InstallMiddleware(eventMiddle)
 
 	//注册服务定位器的回调函数, freedom.ServiceLocator().Call 之前触发
@@ -77,7 +77,7 @@ func installMiddleware(app freedom.Application) {
 
 func installDatabase(app freedom.Application) {
 	app.InstallDB(func() interface{} {
-		conf := conf.Get().DB
+		conf := config.Get().DB
 		db, err := gorm.Open(mysql.Open(conf.Addr), &gorm.Config{})
 		if err != nil {
 			freedom.Logger().Fatal(err.Error())

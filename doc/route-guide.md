@@ -379,7 +379,7 @@ func (c *ChatController) GetWs(ctx iris.Context) {
 #### Kafka 配置和初始化
 
 ```go
-// server/main.go
+// main.go
 func main() {
     app := freedom.NewApplication()
     
@@ -397,7 +397,7 @@ func main() {
     )
 
     // ... 其他配置
-    app.Run(addrRunner, conf.Get().App)
+    app.Run(addrRunner, config.Get().App)
 }
 ```
 

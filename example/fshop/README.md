@@ -61,10 +61,7 @@ fshop/
 │       └── order.go  # 订单事件
 ├── infra/            # 基础设施层
 │   └── domainevent/  # 领域事件基础设施
-├── server/           # 服务器配置和启动
-│   └── conf/        # 配置文件
-│       ├── config.toml  # TOML配置示例
-│       └── config.yaml  # YAML配置示例
+├── config/           # 服务器配置和启动
 ├── api_test/         # API 测试用例
 ├── fshop.sql        # 数据库脚本
 └── Dockerfile       # Docker 构建文件

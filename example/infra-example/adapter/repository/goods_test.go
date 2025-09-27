@@ -11,7 +11,7 @@ import (
 )
 
 func TestGoodsRepository_Get(t *testing.T) {
-	os.Setenv(freedom.ProfileENV, os.Getenv("GOPATH")+"/src/github.com/8treenet/freedom/example/infra-example/server/conf")
+	os.Setenv(freedom.ProfileENV, os.Getenv("GOPATH")+"/src/github.com/8treenet/freedom/example/infra-example/config")
 
 	//创建单元测试工具
 	unitTest := freedom.NewUnitTest()

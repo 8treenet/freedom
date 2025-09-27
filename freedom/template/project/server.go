@@ -1,9 +1,9 @@
 package project
 
 func init() {
-	content["/server/conf/config.toml"] = tomlConf()
-	content["/server/conf/config.yaml"] = yamlConf()
-	content["/server/main.go"] = mainTemplate()
+	content["/config/config.toml"] = tomlConf()
+	content["/config/config.yaml"] = yamlConf()
+	content["/main.go"] = mainTemplate()
 }
 
 func tomlConf() string {
@@ -87,7 +87,7 @@ func mainTemplate() string {
 		"github.com/8treenet/freedom"
 		_ "{{.PackagePath}}/adapter/repository" //Implicit initialization repository
 		_ "{{.PackagePath}}/adapter/controller" //Implicit initialization controller
-		"{{.PackagePath}}/server/conf"
+		"{{.PackagePath}}/config"
 		"github.com/go-redis/redis"
 		"gorm.io/gorm"
 		"github.com/8treenet/freedom/middleware"
@@ -101,17 +101,17 @@ func mainTemplate() string {
 			installRedis(app)
 
 			HTTP/2 h2c Runner
-			runner := app.NewH2CRunner(conf.Get().App.Other["listen_addr"].(string))
+			runner := app.NewH2CRunner(config.Get().App.Other["listen_addr"].(string))
 			HTTP/2 AutoTLS Runner
 			runner := app.NewAutoTLSRunner(":443", "freedom.com www.freedom.com", "freedom@163.com")
 			HTTP/2 TLS Runner
 			runner := app.NewTLSRunner(":443", "certFile", "keyFile")
 		*/
 		installMiddleware(app)
-		runner := app.NewRunner(conf.Get().App.Other["listen_addr"].(string))
+		runner := app.NewRunner(config.Get().App.Other["listen_addr"].(string))
 		//app.InstallParty("/{{.PackageName}}")
 		liveness(app)
-		app.Run(runner, conf.Get().App)
+		app.Run(runner, config.Get().App)
 	}
 
 	func installMiddleware(app freedom.Application) {
@@ -123,7 +123,7 @@ func mainTemplate() string {
 		app.Logger().Handle(middleware.DefaultLogRowHandle)
 
 		//Install the Prometheus middleware.
-		middle := middleware.NewClientPrometheus(conf.Get().App.Other["service_name"].(string), freedom.Prometheus())
+		middle := middleware.NewClientPrometheus(config.Get().App.Other["service_name"].(string), freedom.Prometheus())
 		requests.InstallMiddleware(middle)
 				
 		//HTTP request link middleware that controls the header transmission of requests.
@@ -132,7 +132,7 @@ func mainTemplate() string {
 	
 	func installDatabase(app freedom.Application) {
 		app.InstallDB(func() interface{} {
-			conf := conf.Get().DB
+			conf := config.Get().DB
 			db, err := gorm.Open(mysql.Open(conf.Addr), &gorm.Config{})
 			if err != nil {
 				freedom.Logger().Fatal(err.Error())
@@ -155,7 +155,7 @@ func mainTemplate() string {
 	
 	func installRedis(app freedom.Application) {
 		app.InstallRedis(func() (client redis.Cmdable) {
-			cfg := conf.Get().Redis
+			cfg := config.Get().Redis
 			opt := &redis.Options{
 				Addr:               cfg.Addr,
 				Password:           cfg.Password,

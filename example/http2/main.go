@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/8treenet/freedom"
 	_ "github.com/8treenet/freedom/example/http2/adapter/controller"
-	"github.com/8treenet/freedom/example/http2/server/conf"
+	"github.com/8treenet/freedom/example/http2/config"
 	"github.com/8treenet/freedom/infra/requests"
 	"github.com/8treenet/freedom/middleware"
 )
@@ -13,10 +13,10 @@ func main() {
 	installMiddleware(app)
 
 	//http2 h2c 服务
-	h2caddrRunner := app.NewH2CRunner(conf.Get().App.Other["listen_addr"].(string))
+	h2caddrRunner := app.NewH2CRunner(config.Get().App.Other["listen_addr"].(string))
 	//app.InstallParty("/http2")
 	liveness(app)
-	app.Run(h2caddrRunner, conf.Get().App)
+	app.Run(h2caddrRunner, config.Get().App)
 }
 
 func installMiddleware(app freedom.Application) {
@@ -30,16 +30,16 @@ func installMiddleware(app freedom.Application) {
 	app.Logger().Handle(middleware.DefaultLogRowHandle)
 
 	//HttpClient 普罗米修斯中间件，监控ClientAPI的请求。
-	middle := middleware.NewClientPrometheus(conf.Get().App.Other["service_name"].(string), freedom.Prometheus())
+	middle := middleware.NewClientPrometheus(config.Get().App.Other["service_name"].(string), freedom.Prometheus())
 	requests.InstallMiddleware(middle)
 
 	//默认链路过滤,可以改变header里的传递
 	app.InstallBusMiddleware(middleware.NewBusFilter())
 	//自定义
-	app.InstallBusMiddleware(newBus(conf.Get().App.Other["service_name"].(string)))
+	app.InstallBusMiddleware(newBus(config.Get().App.Other["service_name"].(string)))
 }
 
-//  newBus 自定义Bus，一个简单的透传自身服务名的处理
+// newBus 自定义Bus，一个简单的透传自身服务名的处理
 func newBus(serviceName string) func(freedom.Worker) {
 	//调用上游服务和事件消费者将传递service-name， 上游服务和mq事件消费者，使用 Worker.Bus() 可获取到service-name。
 	return func(run freedom.Worker) {

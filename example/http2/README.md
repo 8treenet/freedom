@@ -68,7 +68,7 @@ HTTP/2 有两种工作模式：
 ### 2.1 运行服务
 
 ```bash
-$ go run server/main.go
+$ go run main.go
 ```
 
 ### 2.2 访问服务
@@ -94,7 +94,7 @@ tlsRunner := app.NewTLSRunner(":443", "certFile", "keyFile")
 autoTLSRunner := app.NewAutoTLSRunner(":443", "domain.com", "email@example.com")
 
 // 运行服务器
-app.Run(h2cRunner, conf.Get().App)
+app.Run(h2cRunner, config.Get().App)
 ```
 
 ## 4. HTTP/H2C 客户端

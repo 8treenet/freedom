@@ -28,32 +28,9 @@ Freedom 是一个基于 DDD (Domain-Driven Design) 设计理念的 Go 语言框�
 │   ├── controller # 控制器 (输入适配器) - 处理外部请求
 │   └── repository # 仓库 (输出适配器) - 持久化领域对象
 │
-├── server         # 服务端程序入口
-│   ├── conf      # 配置文件 - 应用配置管理
-│   └── main.go   # 主函数 - 应用程序入口
+├── config        # 配置文件 - 应用配置管理
 │
-└── infra          # 基础设施组件 - 技术支持层
-```
-
-## 快速开始
-
-### 安装
-
-```bash
-go get -u github.com/8treenet/freedom
-```
-
-### 创建新项目
-
-```bash
-# 创建项目目录
-mkdir myapp && cd myapp
-
-# 初始化 Go 模块
-go mod init myapp
-
-# 创建基本目录结构
-mkdir -p domain/{aggregate,entity,event,vo,po} adapter/{controller,repository} server/{conf} infra
+└── infra         # 基础设施组件 - 技术支持层
 ```
 
 ## 核心接口
@@ -386,13 +363,13 @@ FROM golang:1.21-alpine AS builder
 
 WORKDIR /app
 COPY . .
-RUN go build -o main ./server/main.go
+RUN go build -o main ./main.go
 
 FROM alpine:latest
 
 WORKDIR /app
 COPY --from=builder /app/main .
-COPY --from=builder /app/server/conf ./conf
+COPY --from=builder /app/config ./config
 
 EXPOSE 8080
 CMD ["./main"]
