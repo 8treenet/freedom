@@ -76,7 +76,7 @@ func confTemplate() string {
 			result.App.Other = result.Other
 		}
 		if err != nil {
-			freedom.Logger().Error(err)
+			freedom.Logger().Fatal(err)
 		}
 		return result
 	}
