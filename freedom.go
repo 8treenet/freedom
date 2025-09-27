@@ -81,6 +81,8 @@ type (
 
 	// LogRow is the log per line callback.
 	LogRow = golog.Log
+
+	Handler = iris.Handler
 )
 
 // Prepare A prepared function is passed in for initialization.

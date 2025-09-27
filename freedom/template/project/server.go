@@ -109,7 +109,7 @@ func mainTemplate() string {
 		*/
 		installMiddleware(app)
 		runner := app.NewRunner(config.Get().App.Other["listen_addr"].(string))
-		//app.InstallParty("/{{.PackageName}}")
+		//app.InstallParty("/api")
 		liveness(app)
 		app.Run(runner, config.Get().App)
 	}

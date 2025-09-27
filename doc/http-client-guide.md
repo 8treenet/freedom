@@ -166,17 +166,17 @@ response := req.Get().ToXML(&xmlData)
 type Handler func(Middleware)
 
 type Middleware interface {
-    Next()
-    Stop(...error)
-    GetRequest() *http.Request
-    GetRespone() *Response
-    GetResponeBody() []byte
-    IsStopped() bool
-    IsH2C() bool
-    Context() context.Context
-    WithContextFromMiddleware(context.Context)
-    EnableTraceFromMiddleware()
-    SetClientFromMiddleware(Client)
+    Next()                                    // 继续执行下一个中间件
+    Stop(...error)                           // 停止执行并返回错误
+    GetRequest() *http.Request               // 获取请求对象
+    GetRespone() *Response                   // 获取响应对象
+    GetResponeBody() []byte                  // 获取响应体
+    IsStopped() bool                         // 检查是否已停止
+    IsH2C() bool                            // 检查是否为 H2C 请求
+    Context() context.Context               // 获取上下文
+    WithContextFromMiddleware(context.Context) // 设置上下文
+    EnableTraceFromMiddleware()              // 启用请求追踪
+    SetClientFromMiddleware(Client)          // 设置自定义客户端
 }
 ```
 
