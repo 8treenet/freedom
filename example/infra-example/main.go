@@ -48,6 +48,7 @@ func main() {
 		ProxyH2C:       true,
 		RequestTimeout: 30 * time.Second, // 业务请求超时时间
 		RateLimit:      800,
+		CloseTimeout:   5 * time.Second, //优雅关闭超时时间,等待全部topic处理完成
 	}
 	kafka.GetConsumer().Start(consumerConfig)
 	kafka.GetProducer().Start([]string{":9092"}, kafkaConf)

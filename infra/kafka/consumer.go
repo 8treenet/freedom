@@ -42,6 +42,8 @@ type ConsumerConfig struct {
 	RequestTimeout time.Duration
 	// 速率限制（并行模式下每秒处理的消息数，默认800）
 	RateLimit int
+	// 优雅关闭超时时间（默认3秒）
+	CloseTimeout time.Duration
 }
 
 // Consumer Kafka Consumer interface definition.
@@ -69,6 +71,7 @@ type ConsumerImpl struct {
 	groupID         string
 	rateLimit       int
 	proxyTimeout    time.Duration
+	closeTimeout    time.Duration
 	h2cClient       requests.Client
 	httpClient      requests.Client
 	// 批处理配置
@@ -90,6 +93,11 @@ func (c *ConsumerImpl) Start(config *ConsumerConfig) {
 	c.rateLimit = config.RateLimit
 	if c.rateLimit <= 0 {
 		c.rateLimit = 800 // 默认值
+	}
+
+	c.closeTimeout = config.CloseTimeout
+	if c.closeTimeout <= 0 {
+		c.closeTimeout = 3 * time.Second // 默认3秒
 	}
 
 	c.config.Consumer.Return.Errors = false
@@ -144,6 +152,7 @@ func (c *ConsumerImpl) listen() error {
 	c.client = client
 	c.wg.Add(1)
 	go func() {
+		time.Sleep(1 * time.Second)
 		defer c.wg.Done()
 		for {
 			// `Consume` should be called inside an infinite loop, when a
@@ -171,7 +180,28 @@ func (c *ConsumerImpl) Close() error {
 	}
 
 	c.cancel()
-	c.wg.Wait()
+
+	// 创建带超时的 context
+	ctx, cancel := context.WithTimeout(context.Background(), c.closeTimeout)
+	defer cancel()
+
+	done := make(chan struct{})
+	go func() {
+		c.wg.Wait()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+		// 正常完成
+	case <-ctx.Done():
+		// 超时或取消
+		if ctx.Err() == context.DeadlineExceeded {
+			freedom.Logger().Warnf("Consumer close timeout after %v", c.closeTimeout)
+		}
+		break
+	}
+
 	defer func() {
 		c.cancel = nil
 		c.client = nil
@@ -253,8 +283,12 @@ func (consumerHandle *consumerHandle) ConsumeClaim(session sarama.ConsumerGroupS
 
 		// 并行处理
 		consumerHandle.consumer.limiter.Take()
+		consumerHandle.consumer.wg.Add(1)
 		session.MarkMessage(message, "")
-		go consumerHandle.consumer.do(message)
+		go func() {
+			defer consumerHandle.consumer.wg.Done()
+			consumerHandle.consumer.do(message)
+		}()
 	}
 	return nil
 }
