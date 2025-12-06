@@ -108,7 +108,7 @@ func (cache *EntityCacheImpl) GetEntity(result freedom.Entity) error {
 		var err error
 		defer func() {
 			if perr := recover(); perr != nil {
-				err = fmt.Errorf(fmt.Sprint(perr))
+				err = fmt.Errorf("%v", perr)
 			}
 			if err != nil {
 				freedom.Logger().Errorf("Failed to set entity cache, name:%s err:%v, ", name, err)
@@ -137,7 +137,7 @@ func (cache *EntityCacheImpl) Delete(result freedom.Entity, async ...bool) error
 		var err error
 		defer func() {
 			if perr := recover(); perr != nil {
-				err = fmt.Errorf(fmt.Sprint(perr))
+				err = fmt.Errorf("%v", perr)
 			}
 			if err != nil {
 				freedom.Logger().Errorf("Failed to delete entity cache, name:%s err:%v, ", name, err)

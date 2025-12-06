@@ -11,7 +11,7 @@ import (
 	"github.com/8treenet/freedom/infra/requests"
 
 	"github.com/8treenet/freedom"
-	"github.com/Shopify/sarama"
+	"github.com/IBM/sarama"
 )
 
 func init() {
@@ -229,7 +229,7 @@ func (consumerHandle *consumerHandle) ConsumeClaim(session sarama.ConsumerGroupS
 	// NOTE:
 	// Do not move the code below to a goroutine.
 	// The `ConsumeClaim` itself is called within a goroutine, see:
-	// https://github.com/Shopify/sarama/blob/master/consumer_group.go#L27-L29
+	// https://github.com/IBM/sarama/blob/main/consumer_group.go#L27-L29
 	for message := range claim.Messages() {
 		if consumerHandle.consumer.serializable {
 			if err := consumerHandle.consumer.do(message); err != nil {

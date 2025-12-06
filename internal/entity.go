@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	uuid "github.com/iris-contrib/go.uuid"
+	"github.com/google/uuid"
 )
 
 var _ Entity = (*entity)(nil)
@@ -26,7 +26,7 @@ type DomainEvent interface {
 	SetIdentity(identity string)
 }
 
-//Entity is the entity's father interface.
+// Entity is the entity's father interface.
 type Entity interface {
 	//The unique ID of the entity.
 	Identity() string
@@ -95,7 +95,7 @@ func (e *entity) DomainEvent(fun string, object interface{}, header ...map[strin
 
 func (e *entity) Identity() string {
 	if e.identity == "" {
-		u, _ := uuid.NewV1()
+		u := uuid.New()
 		e.identity = u.String()
 	}
 	return e.identity
@@ -115,10 +115,7 @@ func (e *entity) Marshal() ([]byte, error) {
 func (e *entity) AddPubEvent(event DomainEvent) {
 	if reflect.ValueOf(event.Identity()).IsZero() {
 		//如果未设置id
-		u, err := uuid.NewV1()
-		if err != nil {
-			panic(err)
-		}
+		u := uuid.New()
 		event.SetIdentity(u.String())
 	}
 

@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Shopify/sarama"
+	"github.com/IBM/sarama"
 )
 
 // Msg Kafka Message.
@@ -106,6 +106,9 @@ func (msg *Msg) do() error {
 		saramaMsg.Headers = append(saramaMsg.Headers, sarama.RecordHeader{Key: []byte(key), Value: []byte(fmt.Sprint(value))})
 	}
 
+	if producer.syncProducer == nil {
+		return fmt.Errorf("producer is not initialized")
+	}
 	_, _, err := producer.syncProducer.SendMessage(saramaMsg)
 	return err
 }

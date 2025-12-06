@@ -8,7 +8,7 @@ import (
 	"github.com/8treenet/freedom"
 
 	"github.com/8treenet/iris/v12/context"
-	uuid "github.com/iris-contrib/go.uuid"
+	"github.com/google/uuid"
 )
 
 func init() {
@@ -38,9 +38,6 @@ func NewTrace(traceIDName string) func(context.Context) {
 
 // GenerateTraceID Build a unique ID.
 func GenerateTraceID() (string, error) {
-	uuidv1, e := uuid.NewV1()
-	if e != nil {
-		return "", e
-	}
+	uuidv1 := uuid.New()
 	return strings.ReplaceAll(uuidv1.String(), "-", ""), nil
 }

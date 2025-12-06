@@ -56,7 +56,7 @@ func (pool *repositoryPool) diRepoFromValue(value reflect.Value, instance *servi
 			return false
 		}
 		if !value.CanSet() {
-			panic(fmt.Sprintf("[Freedom] This use repository object must be a capital variable: %v" + value.Type().String()))
+			panic(fmt.Sprintf("[Freedom] This use repository object must be a capital variable: %v", value.Type().String()))
 		}
 		//创建实例并且注入基础设施组件
 		value.Set(newfield)
@@ -85,7 +85,7 @@ func (pool *repositoryPool) diRepoFromValue(value reflect.Value, instance *servi
 				continue
 			}
 			if !value.CanSet() {
-				panic(fmt.Sprintf("[Freedom] This use repository object must be a capital variable: %v" + value.Type().String()))
+				panic(fmt.Sprintf("[Freedom] This use repository object must be a capital variable: %v", value.Type().String()))
 			}
 			//创建实例并且注入基础设施组件
 			value.Set(newfield)

@@ -63,7 +63,7 @@ func (pool *factoryPool) diFactoryFromValue(value reflect.Value, instance *servi
 			return false
 		}
 		if !value.CanSet() {
-			panic(fmt.Sprintf("[Freedom] This use factory object must be a capital variable: %v" + value.Type().String()))
+			panic(fmt.Sprintf("[Freedom] This use factory object must be a capital variable: %v", value.Type().String()))
 		}
 		//创建实例并且注入基础设施组件和资源库
 		value.Set(newfield)

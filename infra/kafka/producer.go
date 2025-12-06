@@ -4,8 +4,8 @@ import (
 	"strings"
 
 	"github.com/8treenet/freedom"
-	"github.com/Shopify/sarama"
-	uuid "github.com/iris-contrib/go.uuid"
+	"github.com/IBM/sarama"
+	"github.com/google/uuid"
 )
 
 func init() {
@@ -96,7 +96,7 @@ func (pi *ProducerImpl) Close() error {
 
 // generateMessageKey
 func (pi *ProducerImpl) generateMessageKey() string {
-	u, _ := uuid.NewV1()
+	u := uuid.New()
 	return strings.ToUpper(strings.ReplaceAll(u.String(), "-", ""))
 }
 
