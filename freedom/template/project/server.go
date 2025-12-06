@@ -29,11 +29,9 @@ read_timeout = 3
 #写入超时时间 3秒
 write_timeout = 3
 #连接空闲时间 300秒
-idle_timeout = 300
-#检测死连接,并清理 默认60秒
-idle_check_frequency = 60
-#连接最长时间，300秒
-max_conn_age = 300
+conn_max_idle_time = 300
+#连接最长时间，1800秒
+conn_max_life_time = 1800
 #如果连接池已满 等待可用连接的时间默认 8秒
 pool_timeout = 8
 
@@ -63,8 +61,8 @@ redis:
     pool_size: 32
     read_timeout: 3
     write_timeout: 3
-    idle_check_frequency: 60
-    max_conn_age: 300
+    conn_max_idle_time: 300
+    conn_max_life_time: 1800
     pool_timeout: 8
 other:
     listen_addr: :8000
@@ -88,7 +86,7 @@ func mainTemplate() string {
 		_ "{{.PackagePath}}/adapter/repository" //Implicit initialization repository
 		_ "{{.PackagePath}}/adapter/controller" //Implicit initialization controller
 		"{{.PackagePath}}/config"
-		"github.com/go-redis/redis"
+		"github.com/redis/go-redis/v9"
 		"gorm.io/gorm"
 		"github.com/8treenet/freedom/middleware"
 		"github.com/8treenet/freedom/infra/requests"
@@ -164,9 +162,8 @@ func mainTemplate() string {
 				PoolSize:           cfg.PoolSize,
 				ReadTimeout:        time.Duration(cfg.ReadTimeout) * time.Second,
 				WriteTimeout:       time.Duration(cfg.WriteTimeout) * time.Second,
-				IdleTimeout:        time.Duration(cfg.IdleTimeout) * time.Second,
-				IdleCheckFrequency: time.Duration(cfg.IdleCheckFrequency) * time.Second,
-				MaxConnAge:         time.Duration(cfg.MaxConnAge) * time.Second,
+				ConnMaxIdleTime:    time.Duration(cfg.ConnMaxIdleTime) * time.Second,
+				ConnMaxLifetime:    time.Duration(cfg.ConnMaxLifeTime) * time.Second,
 				PoolTimeout:        time.Duration(cfg.PoolTimeout) * time.Second,
 			}
 			redisClient := redis.NewClient(opt)

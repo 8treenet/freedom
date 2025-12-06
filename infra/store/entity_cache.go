@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/8treenet/freedom"
-	"github.com/go-redis/redis"
+	"github.com/redis/go-redis/v9"
 )
 
 // EntityCache The entity cache component.
@@ -102,7 +102,7 @@ func (cache *EntityCacheImpl) GetEntity(result freedom.Entity) error {
 		return nil
 	}
 	if !cache.asyncWrite {
-		return client.Set(name, entityBytes, expiration).Err()
+		return client.Set(cache.Worker().Context(), name, entityBytes, expiration).Err()
 	}
 	go func() {
 		var err error
@@ -114,7 +114,7 @@ func (cache *EntityCacheImpl) GetEntity(result freedom.Entity) error {
 				freedom.Logger().Errorf("Failed to set entity cache, name:%s err:%v, ", name, err)
 			}
 		}()
-		err = client.Set(name, entityBytes, expiration).Err()
+		err = client.Set(cache.Worker().Context(), name, entityBytes, expiration).Err()
 	}()
 
 	return nil
@@ -131,7 +131,7 @@ func (cache *EntityCacheImpl) Delete(result freedom.Entity, async ...bool) error
 		return nil
 	}
 	if len(async) == 0 {
-		return client.Del(name).Err()
+		return client.Del(cache.Worker().Context(), name).Err()
 	}
 	go func() {
 		var err error
@@ -143,7 +143,7 @@ func (cache *EntityCacheImpl) Delete(result freedom.Entity, async ...bool) error
 				freedom.Logger().Errorf("Failed to delete entity cache, name:%s err:%v, ", name, err)
 			}
 		}()
-		err = client.Del(name).Err()
+		err = client.Del(cache.Worker().Context(), name).Err()
 	}()
 	return nil
 }
@@ -217,7 +217,7 @@ func (cache *EntityCacheImpl) getRedis(name string) ([]byte, error) {
 		return nil, redis.Nil
 	}
 	client := cache.client
-	return client.Get(name).Bytes()
+	return client.Get(cache.Worker().Context(), name).Bytes()
 }
 
 func (cache *EntityCacheImpl) getCall(name string, result freedom.Entity) ([]byte, error) {

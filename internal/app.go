@@ -14,8 +14,8 @@ import (
 
 	"github.com/8treenet/iris/v12"
 	"github.com/8treenet/iris/v12/mvc"
-	"github.com/go-redis/redis"
 	"github.com/kataras/golog"
+	"github.com/redis/go-redis/v9"
 )
 
 var _ Initiator = (*Application)(nil)

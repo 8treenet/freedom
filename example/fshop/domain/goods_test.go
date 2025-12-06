@@ -1,12 +1,14 @@
 package domain_test
 
 import (
+	"context"
 	"testing"
+	"time"
 
 	"github.com/8treenet/freedom"
 	_ "github.com/8treenet/freedom/example/fshop/adapter/repository" //引入输出适配器 repository资源库。不引入会报错！！！！！！！！！！！！！！
 	"github.com/8treenet/freedom/example/fshop/domain"
-	"github.com/go-redis/redis"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -27,7 +29,9 @@ func getUnitTest() freedom.UnitTest {
 		Addr: "127.0.0.1:6379",
 	}
 	redisClient := redis.NewClient(opt)
-	if e := redisClient.Ping().Err(); e != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	if e := redisClient.Ping(ctx).Err(); e != nil {
 		freedom.Logger().Fatal(e.Error())
 	}
 	unitTest.InstallRedis(func() (client redis.Cmdable) {

@@ -6,7 +6,7 @@ import (
 	"reflect"
 
 	"github.com/8treenet/iris/v12/context"
-	"github.com/go-redis/redis"
+	"github.com/redis/go-redis/v9"
 )
 
 var _ UnitTest = (*UnitTestImpl)(nil)

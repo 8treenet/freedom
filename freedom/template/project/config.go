@@ -57,9 +57,8 @@ func confTemplate() string {
 		PoolSize           int    $$wavetoml:"pool_size" yaml:"pool_size"$$wave
 		ReadTimeout        int    $$wavetoml:"read_timeout" yaml:"read_timeout"$$wave
 		WriteTimeout       int    $$wavetoml:"write_timeout" yaml:"write_timeout"$$wave
-		IdleTimeout        int    $$wavetoml:"idle_timeout" yaml:"idle_timeout"$$wave
-		IdleCheckFrequency int    $$wavetoml:"idle_check_frequency" yaml:"idle_check_frequency"$$wave
-		MaxConnAge         int    $$wavetoml:"max_conn_age" yaml:"max_conn_age"$$wave
+		ConnMaxIdleTime    int    $$wavetoml:"conn_max_idle_time" yaml:"conn_max_idle_time"$$wave
+		ConnMaxLifeTime    int    $$wavetoml:"conn_max_life_time" yaml:"conn_max_life_time"$$wave
 		PoolTimeout        int    $$wavetoml:"pool_timeout" yaml:"pool_timeout"$$wave
 	}
 	

@@ -2,6 +2,7 @@
 package main
 
 import (
+	"context"
 	"time"
 
 	"github.com/8treenet/freedom/example/base/config"
@@ -11,7 +12,7 @@ import (
 	_ "github.com/8treenet/freedom/example/base/adapter/repository"
 	"github.com/8treenet/freedom/infra/requests"
 	"github.com/8treenet/freedom/middleware"
-	"github.com/go-redis/redis"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -89,20 +90,21 @@ func installRedis(app freedom.Application) {
 	app.InstallRedis(func() (client redis.Cmdable) {
 		cfg := config.Get().Redis
 		opt := &redis.Options{
-			Addr:               cfg.Addr,
-			Password:           cfg.Password,
-			DB:                 cfg.DB,
-			MaxRetries:         cfg.MaxRetries,
-			PoolSize:           cfg.PoolSize,
-			ReadTimeout:        time.Duration(cfg.ReadTimeout) * time.Second,
-			WriteTimeout:       time.Duration(cfg.WriteTimeout) * time.Second,
-			IdleTimeout:        time.Duration(cfg.IdleTimeout) * time.Second,
-			IdleCheckFrequency: time.Duration(cfg.IdleCheckFrequency) * time.Second,
-			MaxConnAge:         time.Duration(cfg.MaxConnAge) * time.Second,
-			PoolTimeout:        time.Duration(cfg.PoolTimeout) * time.Second,
+			Addr:            cfg.Addr,
+			Password:        cfg.Password,
+			DB:              cfg.DB,
+			MaxRetries:      cfg.MaxRetries,
+			PoolSize:        cfg.PoolSize,
+			ReadTimeout:     time.Duration(cfg.ReadTimeout) * time.Second,
+			WriteTimeout:    time.Duration(cfg.WriteTimeout) * time.Second,
+			ConnMaxIdleTime: time.Duration(cfg.ConnMaxIdleTime) * time.Second,
+			ConnMaxLifetime: time.Duration(cfg.ConnMaxLifeTime) * time.Second,
+			PoolTimeout:     time.Duration(cfg.PoolTimeout) * time.Second,
 		}
 		redisClient := redis.NewClient(opt)
-		if e := redisClient.Ping().Err(); e != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+		if e := redisClient.Ping(ctx).Err(); e != nil {
 			freedom.Logger().Fatal(e.Error())
 		}
 		client = redisClient

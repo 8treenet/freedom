@@ -4,8 +4,8 @@ import (
 	"github.com/8treenet/freedom/internal"
 	"github.com/8treenet/iris/v12"
 	"github.com/8treenet/iris/v12/core/host"
-	"github.com/go-redis/redis"
 	"github.com/kataras/golog"
+	"github.com/redis/go-redis/v9"
 )
 
 var (

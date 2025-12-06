@@ -11,8 +11,8 @@ redis:
   pool_size: 32
   read_timeout: 3
   write_timeout: 3
-  idle_check_frequency: 60
-  max_conn_age: 300
+  conn_max_idle_time: 300
+  conn_max_life_time: 1800
   pool_timeout: 8
 other:
   listen_addr: :8000

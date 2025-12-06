@@ -9,7 +9,7 @@ import (
 
 	"github.com/8treenet/freedom/infra/requests"
 	iris "github.com/8treenet/iris/v12"
-	"github.com/go-redis/redis"
+	"github.com/redis/go-redis/v9"
 )
 
 const (

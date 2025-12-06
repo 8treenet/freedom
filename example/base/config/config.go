@@ -40,17 +40,16 @@ type DBConf struct {
 
 // RedisConf .
 type RedisConf struct {
-	Addr               string `toml:"addr" yaml:"addr"`
-	Password           string `toml:"password" yaml:"password"`
-	DB                 int    `toml:"db" yaml:"db"`
-	MaxRetries         int    `toml:"max_retries" yaml:"max_retries"`
-	PoolSize           int    `toml:"pool_size" yaml:"pool_size"`
-	ReadTimeout        int    `toml:"read_timeout" yaml:"read_timeout"`
-	WriteTimeout       int    `toml:"write_timeout" yaml:"write_timeout"`
-	IdleTimeout        int    `toml:"idle_timeout" yaml:"idle_timeout"`
-	IdleCheckFrequency int    `toml:"idle_check_frequency" yaml:"idle_check_frequency"`
-	MaxConnAge         int    `toml:"max_conn_age" yaml:"max_conn_age"`
-	PoolTimeout        int    `toml:"pool_timeout" yaml:"pool_timeout"`
+	Addr            string `toml:"addr" yaml:"addr"`
+	Password        string `toml:"password" yaml:"password"`
+	DB              int    `toml:"db" yaml:"db"`
+	MaxRetries      int    `toml:"max_retries" yaml:"max_retries"`
+	PoolSize        int    `toml:"pool_size" yaml:"pool_size"`
+	ReadTimeout     int    `toml:"read_timeout" yaml:"read_timeout"`
+	WriteTimeout    int    `toml:"write_timeout" yaml:"write_timeout"`
+	ConnMaxIdleTime int    `toml:"conn_max_idle_time" yaml:"conn_max_idle_time"`
+	ConnMaxLifeTime int    `toml:"conn_max_life_time" yaml:"conn_max_life_time"`
+	PoolTimeout     int    `toml:"pool_timeout" yaml:"pool_timeout"`
 }
 
 func newConfig() *Configuration {

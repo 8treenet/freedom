@@ -47,9 +47,8 @@ type RedisConf struct {
 	PoolSize           int    `toml:"pool_size" yaml:"pool_size"`
 	ReadTimeout        int    `toml:"read_timeout" yaml:"read_timeout"`
 	WriteTimeout       int    `toml:"write_timeout" yaml:"write_timeout"`
-	IdleTimeout        int    `toml:"idle_timeout" yaml:"idle_timeout"`
-	IdleCheckFrequency int    `toml:"idle_check_frequency" yaml:"idle_check_frequency"`
-	MaxConnAge         int    `toml:"max_conn_age" yaml:"max_conn_age"`
+	ConnMaxIdleTime    int    `toml:"conn_max_idle_time" yaml:"conn_max_idle_time"`
+	ConnMaxLifeTime    int    `toml:"conn_max_life_time" yaml:"conn_max_life_time"`
 	PoolTimeout        int    `toml:"pool_timeout" yaml:"pool_timeout"`
 }
 
