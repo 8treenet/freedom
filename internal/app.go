@@ -275,14 +275,19 @@ func (app *Application) BindInfra(single bool, com interface{}) {
 // ListenEvent You need to listen for message events using http agents.
 // eventName is the name of the event.
 // objectMethod is the controller that needs to be received.
-// appointInfra can delegate infrastructure.
-func (app *Application) ListenEvent(eventName string, objectMethod string, appointInfra ...interface{}) {
-	app.subEventManager.addEvent(objectMethod, eventName, appointInfra...)
+// sequential specifies whether to process messages sequentially (true) or concurrently (false).
+func (app *Application) ListenEvent(eventName string, objectMethod string, sequential bool) {
+	app.subEventManager.addEvent(objectMethod, eventName, sequential)
 }
 
 // EventsPath Gets the event name and HTTP routing address for Listen.
 func (app *Application) EventsPath(infra interface{}) map[string]string {
 	return app.subEventManager.EventsPath(infra)
+}
+
+// EventsSequential Gets the sequential/concurrent configuration for each topic.
+func (app *Application) EventsSequential(infra interface{}) map[string]bool {
+	return app.subEventManager.EventsSequential(infra)
 }
 
 // InjectIntoController Adds a Dependency for iris controller.

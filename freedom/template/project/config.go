@@ -17,10 +17,6 @@ func confTemplate() string {
 		"github.com/8treenet/freedom"
 	)
 	
-	func init() {
-		EntryPoint()
-	}
-	
 	// Get .
 	func Get() *Configuration {
 		once.Do(func() {
@@ -69,8 +65,13 @@ func confTemplate() string {
 		def.Other["service_name"] = "default"
 		result.App = def
 	
-		err := freedom.Configure(&result, "config.toml")
-		// err := freedom.Configure(&result, "config.yaml")
+		file := parseConfigPath()
+		if file == "" {
+			file = "config.toml"
+			//file = "config.yaml"
+		}
+
+		err := freedom.Configure(&result, file)
 		if err == nil {
 			result.App.Other = result.Other
 		}
@@ -80,24 +81,19 @@ func confTemplate() string {
 		return result
 	}
 	
-	// EntryPoint .
-	func EntryPoint() {
-		envConfig := os.Getenv("{{.PackageName}}-CONF")
-		if envConfig != "" {
-			os.Setenv(freedom.ProfileENV, envConfig)
-			return
-		}
-	
-		// [./main -c ./config]
+	// parseConfigPath .
+	func parseConfigPath() string {
+		// [./main -conf ./config/config.toml]
 		for i := 0; i < len(os.Args); i++ {
-			if os.Args[i] != "-c" {
+			if os.Args[i] != "-conf" {
 				continue
 			}
 			if i+1 >= len(os.Args) {
 				break
 			}
-			os.Setenv(freedom.ProfileENV, os.Args[i+1])
+			return os.Args[i+1]
 		}
+		return ""
 	}	
 	`
 

@@ -63,8 +63,8 @@ type Initiator interface {
 	// You need to listen for message events using http agents.
 	// eventName is the name of the event.
 	// objectMethod is the controller that needs to be received.
-	// appointInfra can delegate infrastructure.
-	ListenEvent(eventName string, objectMethod string, appointInfra ...interface{})
+	// sequential specifies whether to process messages sequentially (true) or concurrently (false).
+	ListenEvent(eventName string, objectMethod string, sequential bool)
 	// Adds a builder function which builds a BootManager.
 	BindBooting(f func(bootManager BootManager))
 	// Go back to the iris app.
@@ -79,6 +79,8 @@ type BootManager interface {
 	FetchSingleInfra(infra interface{}) bool
 	// Gets the event name and HTTP routing address for Listen.
 	EventsPath(infra interface{}) map[string]string
+	// Gets the sequential/concurrent configuration for each topic.
+	EventsSequential(infra interface{}) map[string]bool
 	// Register an inflatable callback function.
 	RegisterShutdown(func())
 }

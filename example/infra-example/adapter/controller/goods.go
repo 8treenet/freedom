@@ -12,7 +12,7 @@ import (
 func init() {
 	freedom.Prepare(func(initiator freedom.Initiator) {
 		initiator.BindController("/goods", &GoodsController{})
-		initiator.ListenEvent((&event.ShopGoods{}).Topic(), "GoodsController.PostShop")
+		initiator.ListenEvent((&event.ShopGoods{}).Topic(), "GoodsController.PostShop", true) // 串行处理
 	})
 
 	//重试消费事件

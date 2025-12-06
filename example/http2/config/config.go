@@ -7,10 +7,6 @@ import (
 	"github.com/8treenet/freedom"
 )
 
-func init() {
-	EntryPoint()
-}
-
 // Get .
 func Get() *Configuration {
 	once.Do(func() {
@@ -40,16 +36,16 @@ type DBConf struct {
 
 // RedisConf .
 type RedisConf struct {
-	Addr               string `toml:"addr" yaml:"addr"`
-	Password           string `toml:"password" yaml:"password"`
-	DB                 int    `toml:"db" yaml:"db"`
-	MaxRetries         int    `toml:"max_retries" yaml:"max_retries"`
-	PoolSize           int    `toml:"pool_size" yaml:"pool_size"`
-	ReadTimeout        int    `toml:"read_timeout" yaml:"read_timeout"`
-	WriteTimeout       int    `toml:"write_timeout" yaml:"write_timeout"`
-	ConnMaxIdleTime    int    `toml:"conn_max_idle_time" yaml:"conn_max_idle_time"`
-	ConnMaxLifeTime    int    `toml:"conn_max_life_time" yaml:"conn_max_life_time"`
-	PoolTimeout        int    `toml:"pool_timeout" yaml:"pool_timeout"`
+	Addr            string `toml:"addr" yaml:"addr"`
+	Password        string `toml:"password" yaml:"password"`
+	DB              int    `toml:"db" yaml:"db"`
+	MaxRetries      int    `toml:"max_retries" yaml:"max_retries"`
+	PoolSize        int    `toml:"pool_size" yaml:"pool_size"`
+	ReadTimeout     int    `toml:"read_timeout" yaml:"read_timeout"`
+	WriteTimeout    int    `toml:"write_timeout" yaml:"write_timeout"`
+	ConnMaxIdleTime int    `toml:"conn_max_idle_time" yaml:"conn_max_idle_time"`
+	ConnMaxLifeTime int    `toml:"conn_max_life_time" yaml:"conn_max_life_time"`
+	PoolTimeout     int    `toml:"pool_timeout" yaml:"pool_timeout"`
 }
 
 func newConfig() *Configuration {
@@ -58,9 +54,13 @@ func newConfig() *Configuration {
 	def.Other["listen_addr"] = ":8000"
 	def.Other["service_name"] = "default"
 	result.App = def
+	file := parseConfigPath()
+	if file == "" {
+		file = "config.toml"
+		//file = "config.yaml"
+	}
 
-	err := freedom.Configure(&result, "config.toml")
-	// err := freedom.Configure(&result, "config.yaml")
+	err := freedom.Configure(&result, file)
 	if err == nil {
 		result.App.Other = result.Other
 	}
@@ -70,22 +70,17 @@ func newConfig() *Configuration {
 	return result
 }
 
-// EntryPoint .
-func EntryPoint() {
-	envConfig := os.Getenv("HTTP2-CONFIG")
-	if envConfig != "" {
-		os.Setenv(freedom.ProfileENV, envConfig)
-		return
-	}
-
-	// [./http2 -c ./config]
+// parseConfigPath .
+func parseConfigPath() string {
+	// [./main -conf ./config/config.toml]
 	for i := 0; i < len(os.Args); i++ {
-		if os.Args[i] != "-c" {
+		if os.Args[i] != "-conf" {
 			continue
 		}
 		if i+1 >= len(os.Args) {
 			break
 		}
-		os.Setenv(freedom.ProfileENV, os.Args[i+1])
+		return os.Args[i+1]
 	}
+	return ""
 }

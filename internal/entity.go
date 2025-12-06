@@ -3,6 +3,7 @@ package internal
 import (
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/google/uuid"
 )
@@ -96,7 +97,7 @@ func (e *entity) DomainEvent(fun string, object interface{}, header ...map[strin
 func (e *entity) Identity() string {
 	if e.identity == "" {
 		u := uuid.New()
-		e.identity = u.String()
+		e.identity = strings.ReplaceAll(u.String(), "-", "")
 	}
 	return e.identity
 }
@@ -116,7 +117,7 @@ func (e *entity) AddPubEvent(event DomainEvent) {
 	if reflect.ValueOf(event.Identity()).IsZero() {
 		//如果未设置id
 		u := uuid.New()
-		event.SetIdentity(u.String())
+		event.SetIdentity(strings.ReplaceAll(u.String(), "-", ""))
 	}
 
 	e.pubEvents = append(e.pubEvents, event)

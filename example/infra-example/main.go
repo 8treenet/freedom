@@ -24,7 +24,7 @@ func main() {
 	installDatabase(app)
 	installMiddleware(app)
 	addr := config.Get().App.Other["listen_addr"].(string)
-	addrRunner := app.NewRunner(addr)
+	addrRunner := app.NewH2CRunner(addr)
 	//app.InstallParty("/example")
 	liveness(app)
 
@@ -40,7 +40,16 @@ func main() {
 
 	kafkaConf := sarama.NewConfig()
 	kafkaConf.Version = sarama.V0_11_0_2
-	kafka.GetConsumer().Start([]string{":9092"}, "freedom1", kafkaConf, "http://127.0.0.1:8000", false)
+	consumerConfig := &kafka.ConsumerConfig{
+		Addrs:          []string{":9092"},
+		GroupID:        "freedom1",
+		Config:         kafkaConf,
+		ProxyAddr:      "http://127.0.0.1:8000",
+		ProxyH2C:       true,
+		RequestTimeout: 30 * time.Second, // 业务请求超时时间
+		RateLimit:      800,
+	}
+	kafka.GetConsumer().Start(consumerConfig)
 	kafka.GetProducer().Start([]string{":9092"}, kafkaConf)
 	app.Run(addrRunner, config.Get().App)
 }

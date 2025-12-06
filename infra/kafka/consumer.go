@@ -6,12 +6,11 @@ import (
 	"sync"
 	"time"
 
-	"go.uber.org/ratelimit"
-
 	"github.com/8treenet/freedom/infra/requests"
 
 	"github.com/8treenet/freedom"
 	"github.com/IBM/sarama"
+	"go.uber.org/ratelimit"
 )
 
 func init() {
@@ -27,69 +26,73 @@ func GetConsumer() Consumer {
 
 var consumerPtr *ConsumerImpl = new(ConsumerImpl)
 
+// ConsumerConfig 消费者配置结构体
+type ConsumerConfig struct {
+	// Kafka 服务器地址
+	Addrs []string
+	// 消费者组ID
+	GroupID string
+	// Sarama 配置
+	Config *sarama.Config
+	// 代理地址
+	ProxyAddr string
+	// 是否使用 H2C 代理
+	ProxyH2C bool
+	// HTTP 请求超时时间
+	RequestTimeout time.Duration
+	// 速率限制（并行模式下每秒处理的消息数，默认800）
+	RateLimit int
+}
+
 // Consumer Kafka Consumer interface definition.
 type Consumer interface {
-	// Start pass in the relevant address, configuration.
-	Start(addrs []string, groupID string, config *sarama.Config, proxyAddr string, proxyH2C bool)
+	// Start 使用配置结构体启动消费者
+	Start(config *ConsumerConfig)
 	// Restart the connection.
 	Restart() error
 	// Close the connection.
 	Close() error
-	// Set the limit flow per second.
-	SetRateLimit(rate int)
-	// Set the HTTP agent to time out.
-	SetProxyTimeout(time.Duration)
-	// SetSerializable .
-	SetSerializable()
 }
 
 // ConsumerImpl Kafka Consumer implementation.
 type ConsumerImpl struct {
 	freedom.Infra
-	topicPath    map[string]string
-	config       *sarama.Config
-	client       sarama.ConsumerGroup
-	cancel       context.CancelFunc
-	wg           sync.WaitGroup
-	proxyH2C     bool
-	proxyAddr    string
-	addrs        []string
-	groupID      string
-	limiter      ratelimit.Limiter
-	serializable bool
-	rate         int
-	proxyTimeout time.Duration
-	h2cClient    requests.Client
-	httpClient   requests.Client
+	topicPath       map[string]string
+	topicSequential map[string]bool // 存储每个topic的串行/并行配置
+	config          *sarama.Config
+	client          sarama.ConsumerGroup
+	cancel          context.CancelFunc
+	wg              sync.WaitGroup
+	proxyH2C        bool
+	proxyAddr       string
+	addrs           []string
+	groupID         string
+	rateLimit       int
+	proxyTimeout    time.Duration
+	h2cClient       requests.Client
+	httpClient      requests.Client
+	// 批处理配置
+	limiter ratelimit.Limiter
 }
 
-// Start pass in the relevant address, configuration.
-func (c *ConsumerImpl) Start(addrs []string, groupID string, config *sarama.Config, proxyAddr string, proxyH2C bool) {
-	c.addrs = addrs
-	c.groupID = groupID
-	c.config = config
-	c.proxyAddr = proxyAddr
-	c.proxyH2C = proxyH2C
+// Start 使用配置结构体启动消费者
+func (c *ConsumerImpl) Start(config *ConsumerConfig) {
+	c.addrs = config.Addrs
+	c.groupID = config.GroupID
+	c.config = config.Config
+	c.proxyAddr = config.ProxyAddr
+	c.proxyH2C = config.ProxyH2C
+	c.proxyTimeout = config.RequestTimeout
+	if c.proxyTimeout <= 0 {
+		c.proxyTimeout = 60 * time.Second
+	}
+
+	c.rateLimit = config.RateLimit
+	if c.rateLimit <= 0 {
+		c.rateLimit = 800 // 默认值
+	}
+
 	c.config.Consumer.Return.Errors = false
-	c.rate = 800
-	c.proxyTimeout = 60 * time.Second
-}
-
-// SetRateLimit Set the limit flow per second.
-func (c *ConsumerImpl) SetRateLimit(rate int) {
-	c.rate = rate
-	return
-}
-
-// SetSerializable .
-func (c *ConsumerImpl) SetSerializable() {
-	c.serializable = true
-}
-
-// SetProxyTimeout Set the HTTP agent to time out.
-func (c *ConsumerImpl) SetProxyTimeout(timeout time.Duration) {
-	c.proxyTimeout = timeout
-	return
 }
 
 // Restart the connection.
@@ -108,9 +111,10 @@ func (c *ConsumerImpl) Booting(bootManager freedom.BootManager) {
 	}
 	c.h2cClient = requests.NewH2CClient(c.proxyTimeout, 5*time.Second)
 	c.httpClient = requests.NewHTTPClient(c.proxyTimeout, 5*time.Second)
-	c.limiter = ratelimit.New(c.rate)
+	c.limiter = ratelimit.New(c.rateLimit)
 
 	c.topicPath = bootManager.EventsPath(c)
+	c.topicSequential = bootManager.EventsSequential(c)
 	bootManager.RegisterShutdown(func() {
 		if err := c.Close(); err != nil {
 			freedom.Logger().Error(err)
@@ -230,8 +234,16 @@ func (consumerHandle *consumerHandle) ConsumeClaim(session sarama.ConsumerGroupS
 	// Do not move the code below to a goroutine.
 	// The `ConsumeClaim` itself is called within a goroutine, see:
 	// https://github.com/IBM/sarama/blob/main/consumer_group.go#L27-L29
+
 	for message := range claim.Messages() {
-		if consumerHandle.consumer.serializable {
+		// 检查当前topic的串行/并行配置，如果没有配置则使用全局默认配置
+		sequential, exists := consumerHandle.consumer.topicSequential[message.Topic]
+		if !exists {
+			sequential = true // 使用默认配置
+		}
+
+		if sequential {
+			// 串行处理
 			if err := consumerHandle.consumer.do(message); err != nil {
 				continue
 			}
@@ -239,6 +251,7 @@ func (consumerHandle *consumerHandle) ConsumeClaim(session sarama.ConsumerGroupS
 			continue
 		}
 
+		// 并行处理
 		consumerHandle.consumer.limiter.Take()
 		session.MarkMessage(message, "")
 		go consumerHandle.consumer.do(message)

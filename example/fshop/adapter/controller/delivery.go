@@ -12,7 +12,7 @@ func init() {
 		controller := &DeliveryController{}
 		initiator.BindController("/delivery", controller)
 		//监听订单支付事件
-		initiator.ListenEvent("order-pay", "Delivery.PostOrderPayBy")
+		initiator.ListenEvent("order-pay", "Delivery.PostOrderPayBy", false) // 并行处理
 	})
 }
 

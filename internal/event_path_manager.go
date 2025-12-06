@@ -6,30 +6,29 @@ import (
 
 func newEventPathManager() *eventPathManager {
 	return &eventPathManager{
-		eventsPath:     make(map[string]string),
-		eventsAddr:     make(map[string]string),
-		eventsInfraCom: make(map[string]reflect.Type),
+		eventsPath:       make(map[string]string),
+		eventsAddr:       make(map[string]string),
+		eventsInfraCom:   make(map[string]reflect.Type),
+		eventsSequential: make(map[string]bool),
 	}
 }
 
 // eventPathManager.
 // Subscribe to the message conversion HTTP API.
 type eventPathManager struct {
-	eventsPath     map[string]string
-	eventsAddr     map[string]string
-	controllers    []interface{}
-	eventsInfraCom map[string]reflect.Type
+	eventsPath       map[string]string
+	eventsAddr       map[string]string
+	controllers      []interface{}
+	eventsInfraCom   map[string]reflect.Type
+	eventsSequential map[string]bool // 存储每个topic的串行/并行配置
 }
 
-func (msgBus *eventPathManager) addEvent(objectMethod, eventName string, infraCom ...interface{}) {
+func (msgBus *eventPathManager) addEvent(objectMethod, eventName string, sequential bool) {
 	if _, ok := msgBus.eventsAddr[eventName]; ok {
 		globalApp.Logger().Fatalf("[Freedom] ListenEvent: Event already bound :%v", eventName)
 	}
 	msgBus.eventsAddr[eventName] = objectMethod
-	if len(infraCom) > 0 {
-		infraComType := reflect.TypeOf(infraCom[0])
-		msgBus.eventsInfraCom[eventName] = infraComType
-	}
+	msgBus.eventsSequential[eventName] = sequential
 }
 func (msgBus *eventPathManager) addController(controller interface{}) {
 	msgBus.controllers = append(msgBus.controllers, controller)
@@ -45,6 +44,20 @@ func (msgBus *eventPathManager) EventsPath(infra interface{}) (msgs map[string]s
 			continue
 		}
 		msgs[k] = v
+	}
+	return
+}
+
+// EventsSequential 返回每个topic的串行/并行配置
+func (msgBus *eventPathManager) EventsSequential(infra interface{}) (sequential map[string]bool) {
+	infraComType := reflect.TypeOf(infra)
+	sequential = make(map[string]bool)
+	for k, v := range msgBus.eventsSequential {
+		ty, ok := msgBus.eventsInfraCom[k]
+		if ok && ty != infraComType {
+			continue
+		}
+		sequential[k] = v
 	}
 	return
 }
