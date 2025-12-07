@@ -80,6 +80,7 @@ func mainTemplate() string {
 	package main
 
 	import (
+		"context"
 		"time"
 		"gorm.io/driver/mysql"
 		"github.com/8treenet/freedom"
@@ -166,8 +167,11 @@ func mainTemplate() string {
 				ConnMaxLifetime:    time.Duration(cfg.ConnMaxLifeTime) * time.Second,
 				PoolTimeout:        time.Duration(cfg.PoolTimeout) * time.Second,
 			}
+
 			redisClient := redis.NewClient(opt)
-			if e := redisClient.Ping().Err(); e != nil {
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+			defer cancel()
+			if e := redisClient.Ping(ctx).Err(); e != nil {
 				freedom.Logger().Fatal(e.Error())
 			}
 			client = redisClient
