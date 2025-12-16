@@ -10,7 +10,6 @@ import (
 
 	"github.com/8treenet/freedom"
 	"github.com/IBM/sarama"
-	"go.uber.org/ratelimit"
 )
 
 func init() {
@@ -40,7 +39,7 @@ type ConsumerConfig struct {
 	ProxyH2C bool
 	// HTTP 请求超时时间
 	RequestTimeout time.Duration
-	// 速率限制（并行模式下每秒处理的消息数，默认800）
+	// 并发限制（并行模式下最大同时处理的消息数，默认500）
 	RateLimit int
 	// 优雅关闭超时时间（默认3秒）
 	CloseTimeout time.Duration
@@ -74,11 +73,88 @@ type ConsumerImpl struct {
 	closeTimeout    time.Duration
 	h2cClient       requests.Client
 	httpClient      requests.Client
-	// 批处理配置
-	limiter ratelimit.Limiter
+	workerPool      *WorkerPool
 }
 
-// Start 使用配置结构体启动消费者
+// WorkerPool
+type WorkerPool struct {
+	maxWorkers int
+	taskChan   chan func()
+	wg         sync.WaitGroup
+	ctx        context.Context
+	cancel     context.CancelFunc
+}
+
+// NewWorkerPool
+func NewWorkerPool(maxWorkers int) *WorkerPool {
+	ctx, cancel := context.WithCancel(context.Background())
+	pool := &WorkerPool{
+		maxWorkers: maxWorkers,
+		taskChan:   make(chan func(), maxWorkers),
+		ctx:        ctx,
+		cancel:     cancel,
+	}
+
+	for i := 0; i < maxWorkers; i++ {
+		pool.wg.Add(1)
+		go pool.worker()
+	}
+
+	return pool
+}
+
+// worker 工作协程
+func (p *WorkerPool) worker() {
+	defer p.wg.Done()
+	for {
+		select {
+		case task := <-p.taskChan:
+			if task != nil {
+				task()
+			}
+		case <-p.ctx.Done():
+			for {
+				select {
+				case task := <-p.taskChan:
+					if task != nil {
+						task()
+					}
+				default:
+					return
+				}
+			}
+		}
+	}
+}
+
+// Submit
+func (p *WorkerPool) Submit(task func()) {
+	select {
+	case p.taskChan <- task:
+	case <-p.ctx.Done():
+		return
+	}
+}
+
+// Close
+func (p *WorkerPool) Close(timeout time.Duration) error {
+	p.cancel()
+
+	done := make(chan struct{})
+	go func() {
+		p.wg.Wait()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+		return nil
+	case <-time.After(timeout):
+		return fmt.Errorf("worker pool close timeout after %v", timeout)
+	}
+}
+
+// Start
 func (c *ConsumerImpl) Start(config *ConsumerConfig) {
 	c.addrs = config.Addrs
 	c.groupID = config.GroupID
@@ -92,7 +168,7 @@ func (c *ConsumerImpl) Start(config *ConsumerConfig) {
 
 	c.rateLimit = config.RateLimit
 	if c.rateLimit <= 0 {
-		c.rateLimit = 800 // 默认值
+		c.rateLimit = 500 // 默认值
 	}
 
 	c.closeTimeout = config.CloseTimeout
@@ -119,7 +195,7 @@ func (c *ConsumerImpl) Booting(bootManager freedom.BootManager) {
 	}
 	c.h2cClient = requests.NewH2CClient(c.proxyTimeout, 5*time.Second)
 	c.httpClient = requests.NewHTTPClient(c.proxyTimeout, 5*time.Second)
-	c.limiter = ratelimit.New(c.rateLimit)
+	c.workerPool = NewWorkerPool(c.rateLimit)
 
 	c.topicPath = bootManager.EventsPath(c)
 	c.topicSequential = bootManager.EventsSequential(c)
@@ -180,31 +256,18 @@ func (c *ConsumerImpl) Close() error {
 	}
 
 	c.cancel()
-
-	// 创建带超时的 context
-	ctx, cancel := context.WithTimeout(context.Background(), c.closeTimeout)
-	defer cancel()
-
-	done := make(chan struct{})
-	go func() {
-		c.wg.Wait()
-		close(done)
-	}()
-
-	select {
-	case <-done:
-		// 正常完成
-	case <-ctx.Done():
-		// 超时或取消
-		if ctx.Err() == context.DeadlineExceeded {
-			freedom.Logger().Warnf("Consumer close timeout after %v", c.closeTimeout)
+	if c.workerPool != nil {
+		if err := c.workerPool.Close(c.closeTimeout); err != nil {
+			freedom.Logger().Errorf("Failed to close worker pool: %v", err)
 		}
-		break
 	}
+
+	c.wg.Wait()
 
 	defer func() {
 		c.cancel = nil
 		c.client = nil
+		c.workerPool = nil
 	}()
 	return c.client.Close()
 }
@@ -281,14 +344,10 @@ func (consumerHandle *consumerHandle) ConsumeClaim(session sarama.ConsumerGroupS
 			continue
 		}
 
-		// 并行处理
-		consumerHandle.consumer.limiter.Take()
-		consumerHandle.consumer.wg.Add(1)
-		session.MarkMessage(message, "")
-		go func() {
-			defer consumerHandle.consumer.wg.Done()
+		consumerHandle.consumer.workerPool.Submit(func() {
 			consumerHandle.consumer.do(message)
-		}()
+		})
+		session.MarkMessage(message, "")
 	}
 	return nil
 }
