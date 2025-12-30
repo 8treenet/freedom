@@ -1,45 +1,31 @@
 # Service 使用指南
 
-## 1. 基本使用
+## 基本定义
 
-### 1.1 Service 定义
+Service 是领域服务层，用于实现业务逻辑和协调领域对象。
 
-Service 是领域服务层,用于实现业务逻辑。在 Freedom 框架中,Service 的定义和使用非常简单:
+### Service 结构
 
 ```go
-// 定义 Service
-type DefaultService struct {
-    Worker    freedom.Worker    // 依赖注入请求运行时
-    DefRepo   *repository.Default   // 依赖注入资源库对象
-    DefRepoIF repository.DefaultRepoInterface  // 也可以注入资源库接口
-}
-
-// 实现业务方法
-func (s *Default) RemoteInfo() (result struct {
-    IP string
-    Ua string
-}) {
-    s.Worker.Logger().Info("I'm service") 
-    result.IP = s.DefRepo.GetIP()
-    result.Ua = s.DefRepoIF.GetUA()
-    return
+type CartService struct {
+    Worker      freedom.Worker         // 请求运行时
+    CartRepo    dependency.CartRepo    // 资源库接口
+    CartFactory *aggregate.CartFactory // 聚合工厂
 }
 ```
 
-### 1.2 Service 注册
-
-Service 需要在 init() 函数中注册到框架:
+### 注册 Service
 
 ```go
 func init() {
     freedom.Prepare(func(initiator freedom.Initiator) {
-        // 绑定创建服务函数到框架
-        initiator.BindService(func() *DefaultService {
-            return &DefaultService{} 
+        // 绑定 Service
+        initiator.BindService(func() *CartService {
+            return &CartService{}
         })
-        
-        // 注入到控制器
-        initiator.InjectController(func(ctx freedom.Context) (service *DefaultService) {
+
+        // 注入到 Controller
+        initiator.InjectController(func(ctx freedom.Context) (service *CartService) {
             initiator.FetchService(ctx, &service)
             return
         })
@@ -47,154 +33,168 @@ func init() {
 }
 ```
 
-## 2. 依赖注入
+---
 
-Freedom 框架支持多种依赖注入方式:
+## 依赖注入
 
-### 2.1 Worker 注入
+Freedom 框架通过依赖注入自动管理 Service 的依赖。
 
-每个 Service 可以注入 Worker 对象,用于获取请求上下文、日志等:
+### 可注入的依赖类型
+
+| 类型 | 说明 | 示例 |
+|------|------|------|
+| Worker | 请求运行时，一个请求绑定一个 | `Worker freedom.Worker` |
+| Repository | 资源库接口或实现 | `CartRepo dependency.CartRepo` |
+| Factory | 聚合工厂 | `CartFactory *aggregate.CartFactory` |
+| Infrastructure | 基础设施组件 | `EventTransaction *domainevent.EventTransaction` |
+
+### Worker 使用
 
 ```go
-type UserService struct {
-    Worker freedom.Worker // 运行时,一个请求绑定一个运行时
-}
+func (s *CartService) SomeMethod() {
+    // 日志记录
+    s.Worker.Logger().Info("log message")
 
-func (s *UserService) SomeMethod() {
-    // 使用 Logger
-    s.Worker.Logger().Info("some log")
-    
-    // 获取上下文
+    // 获取请求上下文
     ctx := s.Worker.IrisContext()
 }
 ```
 
-### 2.2 Repository 注入 
-
-Service 可以注入 Repository 对象或接口:
+### Repository 使用
 
 ```go
 type OrderService struct {
-    OrderRepo    dependency.OrderRepo    // 依赖倒置订单资源库
-    GoodsRepo    dependency.GoodsRepo    // 依赖倒置商品资源库
+    OrderRepo dependency.OrderRepo
+    GoodsRepo dependency.GoodsRepo
 }
 ```
 
-### 2.3 Factory 注入
-
-可以注入 Factory 用于创建聚合根等:
+### Factory 使用
 
 ```go
-type GoodsService struct {
-    ShopFactory *aggregate.ShopFactory  // 依赖注入购买聚合根工厂
+func (c *CartService) Add(userID, goodsID, goodsNum int) error {
+    // 创建命令
+    cmd, err := c.CartFactory.NewCartAddCmd(goodsID, userID)
+    if err != nil {
+        return err
+    }
+    return cmd.Run(goodsNum)
 }
 ```
 
-### 2.4 Infrastructure 注入
+---
 
-可以注入基础设施组件:
+## 事务使用
 
-```go
-type UserService struct {
-    Transaction transaction.Transaction // 依赖注入事务组件
-    CartFactory *aggregate.CartFactory //依赖注入购物车聚合根工厂
-}
-```
+事务组件保证多个数据库操作的原子性。
 
-## 3. 事务使用
-
-Freedom 提供了事务组件用于保证数据一致性:
-
-### 3.1 事务组件注入
+### 事务注入
 
 ```go
 type OrderService struct {
-    Transaction transaction.Transaction //事务组件
+    EventTransaction *domainevent.EventTransaction // 事务组件
 }
 ```
 
-### 3.2 事务使用示例
+### 基本事务
 
 ```go
-// 简单事务示例
 func (srv *OrderService) CreateOrder() error {
-    return srv.Transaction.Execute(func() error {
-        // 在这个闭包函数中的所有数据库操作都在同一个事务中
+    return srv.EventTransaction.Execute(func() error {
+        // 闭包内所有操作在同一事务中
         if err := srv.OrderRepo.Create(); err != nil {
-            return err // 返回错误会触发回滚
+            return err // 返回错误触发回滚
         }
-        return nil // 返回 nil 会提交事务
+        return nil // 返回 nil 提交事务
     })
 }
+```
 
-// 复杂业务事务示例
+### 复杂业务事务
+
+```go
 func (srv *OrderService) Shop(goodsID, num, userID int) error {
     goodsEntity, err := srv.GoodsRepo.Get(goodsID)
     if err != nil {
         return err
     }
-    
+
     if goodsEntity.Stock < num {
         return errors.New("库存不足")
     }
-    
-    goodsEntity.AddStock(-num) // 扣减库存
-    
-    // 使用事务保证一致性:
-    // 1. 修改商品库存
-    // 2. 创建订单
-    return srv.Transaction.Execute(func() error {
+
+    goodsEntity.AddStock(-num)
+
+    // 添加领域事件
+    goodsEntity.AddPubEvent(&event.ShopGoods{
+        UserID:    userID,
+        GoodsID:   goodsID,
+        GoodsNum:  num,
+        GoodsName: goodsEntity.Name,
+    })
+
+    // 事务保证：修改库存 + 创建订单 + 记录事件
+    return srv.EventTransaction.Execute(func() error {
         if err := srv.GoodsRepo.Save(goodsEntity); err != nil {
             return err
         }
-        
         return srv.OrderRepo.Create(goodsEntity.ID, num, userID)
     })
 }
 ```
 
-### 3.3 事务使用示例
-通过工厂和聚合的合理使用,可以使 Service 层的代码更加清晰和易于维护。同时遵循 CQS 原则,也使系统行为更加可预测。[DDD 指南 - 工厂](ddd-guide.md#工厂factory)
+### 事务特性
+
+| 特性 | 说明 |
+|------|------|
+| 自动回滚 | Execute 闭包返回 error 时自动回滚 |
+| 自动提交 | 返回 nil 时自动提交 |
+| 同一连接 | 所有操作使用同一事务连接 |
+| 嵌套支持 | 支持事务嵌套使用 |
+| 事件集成 | 事务成功后自动推送领域事件 |
+
+---
+
+## 与工厂配合使用
+
+Service 通过工厂创建聚合，实现业务逻辑编排。
+
+### 命令模式（写操作）
+
 ```go
-// 购买商品使用工厂的示例
-func (s *CartService) Shop(ctx context.Context, cartID string) error {
-    // 使用工厂创建购买命令
-    cmd, err := s.CartFactory.CreateShopCmd(cartID)
+func (c *CartService) Add(userID, goodsID, goodsNum int) error {
+    // 创建命令
+    cmd, err := c.CartFactory.NewCartAddCmd(goodsID, userID)
     if err != nil {
         return err
     }
-
-    // 执行购买操作
-    return cmd.Run()
-}
-
-// 查询商品使用工厂的示例
-func (s *CartService) GetCartDetail(ctx context.Context, cartID string) (*dto.CartDetail, error) {
-    // 创建查询
-    query := s.CartFactory.CreateDetailQuery(cartID)
-    
-    // 执行查询并返回结果
-    return query.Result()
+    // 执行命令
+    return cmd.Run(goodsNum)
 }
 ```
 
-### 3.4 事务注意事项
+### 查询模式（读操作）
 
-1. 事务会自动处理回滚,在 Execute 闭包中返回 error 会触发回滚
-2. 事务中的所有数据库操作都会使用同一个事务连接
-3. 事务结束后会自动提交或回滚
-4. 事务支持嵌套使用
-5. 事务中可以结合领域事件使用
+```go
+func (c *CartService) Items(userID int) (json.Marshaler, error) {
+    // 创建查询
+    query, err := c.CartFactory.NewCartItemQuery(userID)
+    if err != nil {
+        return nil, err
+    }
+    return query, nil
+}
+```
 
-## 4. 最佳实践
+---
 
-1. Service 职责单一,只实现特定领域的业务逻辑
-2. 通过依赖注入解耦各个组件
-3. 合理使用事务保证数据一致性
-4. 使用 Worker 处理日志、上下文等
-5. 遵循 DDD 设计原则,合理划分领域边界
-6. Service 依赖字段必须是公开的（首字母大写），以便框架注入
+## 最佳实践
 
-
-
-
+| 原则 | 说明 |
+|------|------|
+| 职责单一 | Service 只实现特定领域的业务逻辑 |
+| 依赖倒置 | 通过接口解耦各个组件 |
+| 合理事务 | 使用事务保证数据一致性 |
+| Worker 使用 | 使用 Worker 处理日志、上下文等 |
+| 公开字段 | 依赖字段必须公开（首字母大写） |
+| DDD 原则 | 合理划分领域边界，遵循 CQS 模式 |

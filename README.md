@@ -83,54 +83,23 @@ $ freedom new-po --json ./domain/po/schema.json
 $ freedom new-po -h
 ```
 
-## 指南
+## 文档指南
 
 ### 核心文档
-1. [路由指南](doc/route-guide.md)
-   - HTTP 路由配置
-   - API 设计规范
-2. [服务指南](doc/service-guide.md)
-   - 服务层设计原则
-   - 业务逻辑实现指南
-3. [持久化对象指南](doc/po-guide.md)
-   - PO 对象使用说明
-   - 数据库操作最佳实践
-4. [HTTP 客户端指南](doc/http-client-guide.md)
-   - HTTP 客户端配置
-   - 请求处理最佳实践
-5. [DDD 指南](doc/ddd-guide.md)
-   - 领域驱动设计实践指南
-   - 架构设计原则
-6. [Worker 指南](doc/worker-guide.md)
-   - Worker 机制详解
-   - Context 使用说明
-
+- **[路由指南](doc/route-guide.md)** - HTTP 路由配置与 API 设计规范
+- **[服务指南](doc/service-guide.md)** - 服务层设计原则与业务逻辑实现
+- **[持久化对象指南](doc/po-guide.md)** - PO 对象使用说明与数据库操作最佳实践
+- **[HTTP 客户端指南](doc/http-client-guide.md)** - HTTP 客户端配置与请求处理
+- **[DDD 指南](doc/ddd-guide.md)** - 领域驱动设计实践与架构设计原则
+- **[Worker 指南](doc/worker-guide.md)** - Worker 机制详解与 Context 使用说明
 
 ## 学习资源
 
 ### 示例项目
-1. [基础教程](https://github.com/8treenet/freedom/blob/master/example/base)
-   - DDD 基础概念实践
-   - 框架基本功能使用
-
-2. [HTTP2 示例](https://github.com/8treenet/freedom/blob/master/example/http2)
-   - HTTP2 服务配置
-   - 依赖倒置实现
-
-3. [基础设施示例](https://github.com/8treenet/freedom/blob/master/example/infra-example)
-   - 事务组件实现
-   - 自定义组件开发
-   - Kafka 集成
-   - 领域事件使用
-
-4. [电商系统示例](https://github.com/8treenet/freedom/blob/master/example/fshop)
-   - 完整的电商领域实现
-   - CQS 模式示例
-   - 聚合根设计
-   - 实体和值对象使用
-   - 领域事件实践
-   - 资源库模式
-   - 基础设施层集成
+- **[基础教程](https://github.com/8treenet/freedom/blob/master/example/base)** - DDD 基础概念实践与框架核心功能演示
+- **[HTTP2 示例](https://github.com/8treenet/freedom/blob/master/example/http2)** - HTTP2 服务配置与依赖倒置实现
+- **[基础设施示例](https://github.com/8treenet/freedom/blob/master/example/infra-example)** - 事务组件、自定义组件开发、Kafka 集成与领域事件
+- **[电商系统示例](https://github.com/8treenet/freedom/blob/master/example/fshop)** - 完整电商领域实现，涵盖 CQS 模式、聚合根、实体值对象、领域事件、资源库模式及基础设施层集成
 
 ## 贡献指南
 
