@@ -10,6 +10,7 @@ import (
 )
 
 func init() {
+	//领域事件示例，普通消息请参考OrderController
 	freedom.Prepare(func(initiator freedom.Initiator) {
 		initiator.BindController("/goods", &GoodsController{})
 		initiator.ListenEvent((&event.ShopGoods{}).Topic(), "GoodsController.PostShop", true) // 串行处理

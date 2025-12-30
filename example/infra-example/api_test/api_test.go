@@ -3,6 +3,7 @@ package api_test
 import (
 	"testing"
 
+	"github.com/8treenet/freedom/example/infra-example/domain/vo"
 	"github.com/8treenet/freedom/infra/requests"
 )
 
@@ -42,5 +43,15 @@ func TestGetOrder(t *testing.T) {
 //查看全部订单
 func TestGetOrders(t *testing.T) {
 	str, resp := requests.NewHTTPRequest("http://127.0.0.1:8000/order").Get().SetQueryParam("userId", 1001).ToString()
+	t.Log(str, resp)
+}
+
+//订单支付
+func TestPutOrderPay(t *testing.T) {
+	req := vo.OrderPayReq{
+		OrderID: 2,
+		UserID:  1001,
+	}
+	str, resp := requests.NewHTTPRequest("http://127.0.0.1:8000/order/orderPay").Put().SetJSONBody(req).ToString()
 	t.Log(str, resp)
 }

@@ -104,3 +104,8 @@ func (srv *OrderService) Shop(goodsID, num, userID int) (e error) {
 	})
 	return
 }
+
+// Pay 订单支付.
+func (srv *OrderService) Pay(orderID, userID int) (e error) {
+	return srv.OrderRepo.Pay(orderID, userID)
+}

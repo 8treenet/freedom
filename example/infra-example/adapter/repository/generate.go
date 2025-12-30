@@ -169,15 +169,27 @@ func findOrder(repo GORMRepository, result *po.Order, builders ...Builder) (e er
 	return
 }
 
-// findOrderListByPrimarys .
-func findOrderListByPrimarys(repo GORMRepository, primarys ...interface{}) (results []po.Order, e error) {
+// findOrderByID .
+func findOrderByID(repo GORMRepository, iD int) (result po.Order, e error) {
 	now := time.Now()
 	defer func() {
-		freedom.Prometheus().OrmWithLabelValues("Order", "findOrderListByPrimarys", e, now)
-		ormErrorLog(repo, "Order", "findOrdersByPrimarys", e, primarys)
+		freedom.Prometheus().OrmWithLabelValues("Order", "findOrderID", e, now)
+		ormErrorLog(repo, "Order", "findOrderID", e, iD)
 	}()
 
-	e = repo.db().Find(&results, primarys).Error
+	e = repo.db().Last(&result, "id", iD).Error
+	return
+}
+
+// findOrderListByID .
+func findOrderListByID(repo GORMRepository, iD ...int) (result []*po.Order, e error) {
+	now := time.Now()
+	defer func() {
+		freedom.Prometheus().OrmWithLabelValues("Order", "findOrderListByID", e, now)
+		ormErrorLog(repo, "Order", "findOrderListByID", e, iD)
+	}()
+
+	e = repo.db().Find(&result, iD).Error
 	return
 }
 
@@ -220,7 +232,7 @@ func findOrderByMap(repo GORMRepository, query map[string]interface{}, builders 
 }
 
 // findOrderList .
-func findOrderList(repo GORMRepository, query po.Order, builders ...Builder) (results []po.Order, e error) {
+func findOrderList(repo GORMRepository, query po.Order, builders ...Builder) (results []*po.Order, e error) {
 	now := time.Now()
 	defer func() {
 		freedom.Prometheus().OrmWithLabelValues("Order", "findOrderList", e, now)
@@ -237,7 +249,7 @@ func findOrderList(repo GORMRepository, query po.Order, builders ...Builder) (re
 }
 
 // findOrderListByWhere .
-func findOrderListByWhere(repo GORMRepository, query string, args []interface{}, builders ...Builder) (results []po.Order, e error) {
+func findOrderListByWhere(repo GORMRepository, query string, args []interface{}, builders ...Builder) (results []*po.Order, e error) {
 	now := time.Now()
 	defer func() {
 		freedom.Prometheus().OrmWithLabelValues("Order", "findOrderListByWhere", e, now)
@@ -257,7 +269,7 @@ func findOrderListByWhere(repo GORMRepository, query string, args []interface{},
 }
 
 // findOrderListByMap .
-func findOrderListByMap(repo GORMRepository, query map[string]interface{}, builders ...Builder) (results []po.Order, e error) {
+func findOrderListByMap(repo GORMRepository, query map[string]interface{}, builders ...Builder) (results []*po.Order, e error) {
 	now := time.Now()
 	defer func() {
 		freedom.Prometheus().OrmWithLabelValues("Order", "findOrderListByMap", e, now)
@@ -271,6 +283,29 @@ func findOrderListByMap(repo GORMRepository, query map[string]interface{}, build
 		return
 	}
 	e = builders[0].Execute(db, &results)
+	return
+}
+
+// OrderListToMap
+func OrderListToMap(list []*po.Order, inErr error) (result map[int]*po.Order, e error) {
+	result = make(map[int]*po.Order)
+	if inErr != nil {
+		e = inErr
+		return
+	}
+	for _, v := range list {
+		result[v.ID] = v
+	}
+	return
+}
+
+// OrderToPoint
+func OrderToPoint(object po.Order, inErr error) (result *po.Order, e error) {
+	result = &object
+	if inErr != nil {
+		e = inErr
+		return
+	}
 	return
 }
 
@@ -326,15 +361,27 @@ func findGoods(repo GORMRepository, result *po.Goods, builders ...Builder) (e er
 	return
 }
 
-// findGoodsListByPrimarys .
-func findGoodsListByPrimarys(repo GORMRepository, primarys ...interface{}) (results []po.Goods, e error) {
+// findGoodsByID .
+func findGoodsByID(repo GORMRepository, iD int) (result po.Goods, e error) {
 	now := time.Now()
 	defer func() {
-		freedom.Prometheus().OrmWithLabelValues("Goods", "findGoodsListByPrimarys", e, now)
-		ormErrorLog(repo, "Goods", "findGoodssByPrimarys", e, primarys)
+		freedom.Prometheus().OrmWithLabelValues("Goods", "findGoodsID", e, now)
+		ormErrorLog(repo, "Goods", "findGoodsID", e, iD)
 	}()
 
-	e = repo.db().Find(&results, primarys).Error
+	e = repo.db().Last(&result, "id", iD).Error
+	return
+}
+
+// findGoodsListByID .
+func findGoodsListByID(repo GORMRepository, iD ...int) (result []*po.Goods, e error) {
+	now := time.Now()
+	defer func() {
+		freedom.Prometheus().OrmWithLabelValues("Goods", "findGoodsListByID", e, now)
+		ormErrorLog(repo, "Goods", "findGoodsListByID", e, iD)
+	}()
+
+	e = repo.db().Find(&result, iD).Error
 	return
 }
 
@@ -377,7 +424,7 @@ func findGoodsByMap(repo GORMRepository, query map[string]interface{}, builders 
 }
 
 // findGoodsList .
-func findGoodsList(repo GORMRepository, query po.Goods, builders ...Builder) (results []po.Goods, e error) {
+func findGoodsList(repo GORMRepository, query po.Goods, builders ...Builder) (results []*po.Goods, e error) {
 	now := time.Now()
 	defer func() {
 		freedom.Prometheus().OrmWithLabelValues("Goods", "findGoodsList", e, now)
@@ -394,7 +441,7 @@ func findGoodsList(repo GORMRepository, query po.Goods, builders ...Builder) (re
 }
 
 // findGoodsListByWhere .
-func findGoodsListByWhere(repo GORMRepository, query string, args []interface{}, builders ...Builder) (results []po.Goods, e error) {
+func findGoodsListByWhere(repo GORMRepository, query string, args []interface{}, builders ...Builder) (results []*po.Goods, e error) {
 	now := time.Now()
 	defer func() {
 		freedom.Prometheus().OrmWithLabelValues("Goods", "findGoodsListByWhere", e, now)
@@ -414,7 +461,7 @@ func findGoodsListByWhere(repo GORMRepository, query string, args []interface{},
 }
 
 // findGoodsListByMap .
-func findGoodsListByMap(repo GORMRepository, query map[string]interface{}, builders ...Builder) (results []po.Goods, e error) {
+func findGoodsListByMap(repo GORMRepository, query map[string]interface{}, builders ...Builder) (results []*po.Goods, e error) {
 	now := time.Now()
 	defer func() {
 		freedom.Prometheus().OrmWithLabelValues("Goods", "findGoodsListByMap", e, now)
@@ -428,6 +475,29 @@ func findGoodsListByMap(repo GORMRepository, query map[string]interface{}, build
 		return
 	}
 	e = builders[0].Execute(db, &results)
+	return
+}
+
+// GoodsListToMap
+func GoodsListToMap(list []*po.Goods, inErr error) (result map[int]*po.Goods, e error) {
+	result = make(map[int]*po.Goods)
+	if inErr != nil {
+		e = inErr
+		return
+	}
+	for _, v := range list {
+		result[v.ID] = v
+	}
+	return
+}
+
+// GoodsToPoint
+func GoodsToPoint(object po.Goods, inErr error) (result *po.Goods, e error) {
+	result = &object
+	if inErr != nil {
+		e = inErr
+		return
+	}
 	return
 }
 

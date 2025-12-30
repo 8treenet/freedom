@@ -3,14 +3,19 @@
 ## 目录
 - [概述](#概述)
 - [自定义基础设施组件](#自定义基础设施组件)
-  - [组件类型与生命周期](#组件类型与生命周期) 
-  - [组件注册](#组件注册)
-  - [单例组件示例](#单例组件示例)
-  - [多例组件示例](#多例组件示例)
-  - [最佳实践](#最佳实践)
+   - [组件类型与生命周期](#组件类型与生命周期)
+   - [组件注册](#组件注册)
+   - [单例组件示例](#单例组件示例)
+   - [多例组件示例](#多例组件示例)
+   - [最佳实践](#最佳实践)
+- [Kafka消息](#kafka消息)
+   - [Kafka消息概述](#kafka消息概述)
+   - [消息发送](#消息发送)
+   - [消息消费](#消息消费)
+   - [与领域事件的区别](#与领域事件的区别)
 - [事务组件](#事务组件)
-  - [核心概念](#核心概念)
-  - [使用示例](#使用示例)
+   - [核心概念](#核心概念)
+   - [使用示例](#使用示例)
 - [领域事件](#领域事件)
 	- [领域事件概述](#领域事件概述)
 	- [事件实现](#事件实现)
@@ -173,6 +178,106 @@ func (req *Request) ReadJSON(obj interface{}, validates ...bool) error {
    - 在初始化阶段失败时及时报错
    - 提供详细的错误信息和日志
    - 实现优雅降级和故障恢复机制
+
+
+## Kafka消息
+
+### Kafka消息概述
+
+Kafka消息是Freedom框架提供的普通消息队列功能，用于实现异步处理、系统解耦和事件驱动架构。与领域事件不同，普通Kafka消息不依赖事务组件，可以独立发送和消费。
+
+### 消息发送
+
+Kafka消息通过依赖注入的方式使用，只需定义成员变量即可开箱即用。Producer是单例组件，全局共享。
+
+以下是一个完整的消息发送示例：
+
+```go
+// OrderRepository 订单资源库
+type OrderRepository struct {
+	freedom.Repository
+	Producer kafka.Producer // Kafka生产者组件（单例）
+}
+
+// Pay 订单支付并发送消息
+func (repo *OrderRepository) Pay(orderID, userID int) error {
+	// 1. 更新订单状态
+	orderPO, err := OrderToPoint(findOrderByWhere(repo, "id = ? and user_id = ?", []interface{}{orderID, userID}))
+	if err != nil {
+		return err
+	}
+	if orderPO.Status == "PAID" {
+		return errors.New("订单已支付")
+	}
+	orderPO.SetStatus("PAID")
+	if _, err := saveOrder(repo, orderPO); err != nil {
+		return err
+	}
+
+	// 2. 发送支付消息到 Kafka
+	payEvent := event.OrderPay{
+		OrderID: orderID,
+		UserID:  userID,
+	}
+	data, _ := json.Marshal(payEvent)
+	
+	// 获取链路追踪ID并设置到消息头
+	traceHead := repo.Worker().Bus().Header.Clone()
+	return repo.Producer.NewMsg("OrderPay", data).
+		SetHeader(map[string]interface{}{"x-request-id": traceHead.Get("x-request-id")}).
+		Publish()
+}
+```
+
+### 消息消费
+
+Kafka消息消费通过Controller实现，使用`ListenEvent`注册Topic与处理方法的映射关系。
+
+```go
+// 注册事件监听
+func init() {
+	freedom.Prepare(func(initiator freedom.Initiator) {
+		initiator.BindController("/order", &OrderController{})
+		// 注册OrderPay topic的消费处理
+		initiator.ListenEvent("OrderPay", "OrderController.OrderPayEvent", false)
+	})
+}
+
+// OrderController 订单控制器
+type OrderController struct {
+	Worker   freedom.Worker
+	Request  *infra.Request
+}
+
+// BeforeActivation 自定义路由
+func (controller *OrderController) BeforeActivation(b freedom.BeforeActivation) {
+	b.Handle("POST", "/orderPayEvent", "OrderPayEvent")
+}
+
+// OrderPayEvent 处理订单支付消息
+func (c *OrderController) OrderPayEvent() freedom.Result {
+	var payEvent event.OrderPay
+	if e := c.Request.ReadJSON(&payEvent); e != nil {
+		return &infra.JSONResponse{Error: e}
+	}
+
+	// 处理支付消息，这里可以添加其他业务逻辑
+	c.Worker.Logger().Infof("收到订单支付消息: OrderID=%d, UserID=%d", payEvent.OrderID, payEvent.UserID)
+	
+	// 业务处理逻辑...
+	
+	return &infra.JSONResponse{}
+}
+```
+
+### 与领域事件的区别
+
+| 特性 | Kafka消息 | 领域事件 |
+|------|-----------|-----------|
+| **事务保证** | 无事务保证，独立发送 | 依赖事务组件，保证原子性 |
+| **消息可靠性** | 发送即忘，无重试机制 | 本地消息表+重试机制，保证可靠投递 |
+| **消息持久化** | 不持久化 | 持久化到本地消息表 |
+| **适用场景** | 非关键业务、可容忍消息丢失 | 关键业务、必须保证消息可靠 |
 
 
 ## 事务组件

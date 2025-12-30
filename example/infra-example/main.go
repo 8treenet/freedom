@@ -41,17 +41,17 @@ func main() {
 	kafkaConf := sarama.NewConfig()
 	kafkaConf.Version = sarama.V0_11_0_2
 	consumerConfig := &kafka.ConsumerConfig{
-		Addrs:          []string{":9092"},
+		Addrs:          []string{"172.16.0.20:9092"},
 		GroupID:        "freedom1",
 		Config:         kafkaConf,
 		ProxyAddr:      "http://127.0.0.1:8000",
 		ProxyH2C:       true,
 		RequestTimeout: 30 * time.Second, // 业务请求超时时间
-		RateLimit:      800,
+		RateLimit:      300,
 		CloseTimeout:   5 * time.Second, //优雅关闭超时时间,等待全部topic处理完成
 	}
 	kafka.GetConsumer().Start(consumerConfig)
-	kafka.GetProducer().Start([]string{":9092"}, kafkaConf)
+	kafka.GetProducer().Start([]string{"172.16.0.20:9092"}, kafkaConf)
 	app.Run(addrRunner, config.Get().App)
 }
 

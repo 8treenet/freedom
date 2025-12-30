@@ -11,7 +11,7 @@ func init() {
 	domainevent.GetEventManager().BindRetryPubEvent(&ShopGoods{})
 }
 
-// ShopGoods 购买事件
+// ShopGoods 购买事件-领域事件示例
 type ShopGoods struct {
 	ID         string `json:"identity"`
 	prototypes map[string]interface{}

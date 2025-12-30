@@ -41,7 +41,7 @@ func (repo *GoodsRepository) GetAll() (result []*entity.Goods, e error) {
 		return
 	}
 	for _, v := range list {
-		result = append(result, &entity.Goods{Goods: v})
+		result = append(result, &entity.Goods{Goods: *v})
 	}
 
 	//注入基础Entity
