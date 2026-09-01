@@ -1,6 +1,6 @@
 # Freedom DDD 框架
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/8treenet/freedom/blob/master/LICENSE) [![Go Report Card](https://goreportcard.com/badge/github.com/8treenet/freedom)](https://goreportcard.com/report/github.com/8treenet/freedom)[![GoDoc](https://godoc.org/github.com/8treenet/freedom?status.svg)](https://godoc.org/github.com/8treenet/freedom)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/8treenet/freedom/blob/master/LICENSE) [![Go Reference](https://pkg.go.dev/badge/github.com/8treenet/freedom.svg)](https://pkg.go.dev/github.com/8treenet/freedom) [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/8treenet/freedom)
 [![GitHub release](https://img.shields.io/github/v/release/8treenet/freedom.svg)](https://github.com/8treenet/freedom/releases)
 <img align="right" width="200px" src="https://raw.githubusercontent.com/8treenet/blog/master/img/freedom.png">
 ## 简介
