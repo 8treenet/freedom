@@ -69,7 +69,7 @@ require (
 	github.com/kataras/neffos v0.0.14 // indirect
 	github.com/kataras/pio v0.0.10 // indirect
 	github.com/kataras/sitemap v0.0.5 // indirect
-	github.com/klauspost/compress v1.18.1 // indirect
+	github.com/klauspost/compress v1.18.7 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/mediocregopher/radix/v3 v3.4.2 // indirect
 	github.com/microcosm-cc/bluemonday v1.0.16 // indirect
