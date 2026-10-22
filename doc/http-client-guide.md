@@ -89,7 +89,7 @@ req.SetBody([]byte(`{"raw": "data"}`))
 
 ```go
 // 单个请求头
-req.AddHeader("Authorization", "Bearer token123")
+req.SetHeaderValue("Authorization", "Bearer token123")
 
 // 批量设置
 headers := http.Header{}
@@ -726,23 +726,24 @@ func TestHTTPClient(t *testing.T) {
 ### Q: 如何处理大文件下载？
 
 ```go
-// 流式处理，避免内存占用过大
+// 流式处理，避免内存占用过大。Do 返回原始响应，并绕过 requests 中间件。
 func DownloadFile(url, filepath string) error {
-    response := requests.NewHTTPRequest(url).
-        Get()
+    response, err := requests.NewHTTPRequest(url).Get().Do()
+    if err != nil {
+        return err
+    }
+    defer response.Body.Close()
 
-    if response.Error != nil {
-        return response.Error
+    if response.StatusCode != http.StatusOK {
+        return fmt.Errorf("unexpected HTTP status: %s", response.Status)
     }
 
-    // 创建文件
     file, err := os.Create(filepath)
     if err != nil {
         return err
     }
     defer file.Close()
 
-    // 流式写入
     _, err = io.Copy(file, response.Body)
     return err
 }
@@ -752,18 +753,34 @@ func DownloadFile(url, filepath string) error {
 
 ```go
 func DownloadWithResume(url, filepath string) error {
-    // 检查已下载的文件大小
     var startByte int64
     if stat, err := os.Stat(filepath); err == nil {
         startByte = stat.Size()
+    } else if !os.IsNotExist(err) {
+        return err
     }
 
-    response := requests.NewHTTPRequest(url).
-        AddHeader("Range", fmt.Sprintf("bytes=%d-", startByte)).
+    request := requests.NewHTTPRequest(url).
+        SetHeaderValue("Range", fmt.Sprintf("bytes=%d-", startByte)).
         Get()
+    response, err := request.Do() // Do returns the raw response and bypasses requests middleware.
+    if err != nil {
+        return err
+    }
+    defer response.Body.Close()
 
-    // 追加写入文件
-    file, err := os.OpenFile(filepath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+    if startByte > 0 && response.StatusCode != http.StatusPartialContent {
+        return fmt.Errorf("server did not honor range request: %s", response.Status)
+    }
+    if startByte == 0 && response.StatusCode != http.StatusOK && response.StatusCode != http.StatusPartialContent {
+        return fmt.Errorf("unexpected HTTP status: %s", response.Status)
+    }
+
+    flags := os.O_CREATE | os.O_WRONLY | os.O_TRUNC
+    if startByte > 0 {
+        flags = os.O_CREATE | os.O_WRONLY | os.O_APPEND
+    }
+    file, err := os.OpenFile(filepath, flags, 0644)
     if err != nil {
         return err
     }
